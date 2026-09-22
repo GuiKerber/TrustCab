@@ -1,0 +1,41 @@
+# dependências
+node_modules/
+
+# Expo e Metro
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+.metro-health-check*
+*storybook.log
+storybook-static
+
+# pastas nativas geradas pelo prebuild
+/ios
+/android
+apps/*/ios
+apps/*/android
+
+# chaves e certificados: nunca entram no repositório
+*.jks
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision
+google-service-account.json
+google-services.json
+
+# variáveis de ambiente locais (Firebase, Google)
+.env*.local
+
+# erros e sistema
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.DS_Store
+*.tsbuildinfo
+*.orig.*
+
+# app antigo (mobile/) tem repositório próprio e não entra nos builds
+mobile/

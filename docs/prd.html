@@ -1,0 +1,1306 @@
+<title>TrustCab PRD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700&family=Inter:wght@400;700&display=swap">
+<style>
+:root{
+  --canvas:#ffffff;
+  --text:#000d10;
+  --muted:#6b6b72;
+  --ash:#8e8e95;
+  --line:#d5d3d4;
+  --band:#0f0f1c;
+  --footer:#000d10;
+  --on-band:#ffffff;
+  --on-band-muted:#8e8e95;
+  --band-line:rgba(255,255,255,.18);
+  --clay:#bc7155;
+  --on-clay:#000d10;
+  --btn-bg:#000d10;
+  --btn-fg:#ffffff;
+  --sky-top:#dce6eb;
+  --sky-bottom:#f5f0e8;
+  --focus:#000d10;
+  --font-display:"Inter Tight","Neue Haas Grotesk Display","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --font-body:Inter,"Helvetica Neue",Helvetica,Arial,sans-serif;
+  --text-caption:17px;
+  --text-body:18px;
+  --text-subheading:23px;
+  --text-heading-sm:30px;
+  --text-heading:37px;
+  --text-heading-lg:52px;
+  --text-display:63px;
+  --text-display-xl:131px;
+  --radius-full:1000px;
+  --gap:16px;
+  --pad:22px;
+  --section-gap:80px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --canvas:#0f0f1c;
+    --text:#ffffff;
+    --muted:#8e8e95;
+    --line:rgba(255,255,255,.16);
+    --band:#151623;
+    --btn-bg:#ffffff;
+    --btn-fg:#000d10;
+    --sky-top:#151623;
+    --sky-bottom:#0f0f1c;
+    --focus:#ffffff;
+  }
+}
+:root[data-theme="dark"]{
+  --canvas:#0f0f1c;
+  --text:#ffffff;
+  --muted:#8e8e95;
+  --line:rgba(255,255,255,.16);
+  --band:#151623;
+  --btn-bg:#ffffff;
+  --btn-fg:#000d10;
+  --sky-top:#151623;
+  --sky-bottom:#0f0f1c;
+  --focus:#ffffff;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+@media (prefers-reduced-motion: no-preference){html{scroll-behavior:smooth}}
+body{margin:0;background:var(--canvas);color:var(--text);font-family:var(--font-body);font-size:var(--text-body);line-height:1.61;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-underline-offset:3px}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+p{margin:0}
+ul,ol{margin:0;padding:0}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:16px;top:-60px;background:var(--btn-bg);color:var(--btn-fg);padding:13px 22px;border-radius:var(--radius-full);font-weight:700;z-index:5}
+.skip:focus{top:16px}
+.wrap{max-width:1200px;margin-inline:auto;padding-inline:var(--pad)}
+.eyebrow{font-size:var(--text-caption);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);line-height:1.2}
+.muted{color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+
+/* Hero */
+.hero{background:linear-gradient(180deg,var(--sky-top),var(--sky-bottom));padding-block:31px 68px}
+.hero-bar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:var(--gap);font-size:var(--text-caption)}
+.pill{display:inline-flex;align-items:center;min-height:44px;padding:0 22px;border-radius:var(--radius-full);border:1px solid var(--text);font-weight:700;font-size:var(--text-caption)}
+.hero-grid{display:grid;gap:31px;margin-top:59px;align-items:end}
+.wordmark{font-family:var(--font-display);font-weight:700;font-size:clamp(88px,19vw,var(--text-display-xl));letter-spacing:-.02em;line-height:.8;margin:0}
+.hero h1{font-family:var(--font-display);font-weight:700;font-size:clamp(37px,5.4vw,var(--text-display));letter-spacing:-.02em;line-height:1;margin:0;text-wrap:balance}
+.lede{max-width:62ch;margin-top:38px}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:var(--gap) 31px;margin:52px 0 0;padding:0}
+.meta div{border-top:1px solid var(--text);padding-top:13px}
+.meta dt{font-size:var(--text-caption);color:var(--muted);line-height:1.3}
+.meta dd{margin:4px 0 0;font-weight:700;line-height:1.3}
+@media (min-width:900px){.hero-grid{grid-template-columns:auto 1fr}.hero h1{justify-self:end;text-align:right;max-width:12ch}}
+
+/* Bands */
+.band{background:var(--band);color:var(--on-band);--muted:var(--on-band-muted);--line:var(--band-line);--text:#ffffff;--focus:#ffffff;--btn-bg:#ffffff;--btn-fg:#000d10}
+.thesis{padding-block:var(--section-gap)}
+.thesis-grid{display:grid;gap:31px}
+.thesis blockquote{margin:0;font-family:var(--font-display);font-weight:700;font-size:clamp(30px,4.2vw,var(--text-heading-lg));letter-spacing:-.01em;line-height:1.05;text-wrap:balance}
+.thesis p{color:var(--on-band-muted);max-width:56ch;margin-top:31px}
+@media (min-width:900px){.thesis-grid{grid-template-columns:1fr 1.6fr}}
+
+/* Layout */
+.layout{display:grid;gap:52px;padding-block:var(--section-gap)}
+.toc{font-size:var(--text-caption)}
+.toc ol{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:0 22px;margin-top:13px}
+.toc a{display:block;padding-block:11px;color:var(--muted);text-decoration:none;line-height:1.3;border-top:1px solid var(--line)}
+.toc a:hover{color:var(--text)}
+@media (min-width:1024px){
+  .layout{grid-template-columns:200px minmax(0,1fr);gap:80px}
+  .toc{position:sticky;top:31px;align-self:start}
+  .toc ol{grid-template-columns:1fr}
+  .toc a{padding-block:8px}
+}
+main{display:flex;flex-direction:column;gap:119px;min-width:0}
+section{scroll-margin-top:31px}
+.sec-head{display:grid;gap:13px;margin-bottom:38px}
+h2{font-family:var(--font-display);font-weight:700;font-size:clamp(37px,4.6vw,var(--text-heading-lg));letter-spacing:-.01em;line-height:1;margin:0;text-wrap:balance}
+h3{font-family:var(--font-display);font-weight:700;font-size:var(--text-subheading);letter-spacing:-.01em;line-height:1.15;margin:0;text-wrap:balance}
+h4{font-size:var(--text-body);font-weight:700;margin:0;line-height:1.3}
+.prose{display:grid;gap:var(--gap);max-width:68ch}
+.stack{display:grid;gap:52px}
+
+/* Feature blocks */
+.blocks{display:grid;gap:38px 52px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.block{border-top:1px solid var(--line);padding-top:21px;display:grid;gap:13px;align-content:start}
+.block > p{color:var(--muted)}
+.list{list-style:none;display:grid;gap:10px}
+.list li{position:relative;padding-left:22px}
+.list li::before{content:"";position:absolute;left:0;top:.72em;width:8px;height:2px;background:currentColor}
+.list.muted li{color:var(--muted)}
+.note{border:1px solid var(--text);padding:var(--pad);display:grid;gap:8px;max-width:68ch}
+.note strong{font-size:var(--text-caption);letter-spacing:.06em;text-transform:uppercase}
+
+/* Glossary */
+.glossary{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:0 52px;margin:0}
+.glossary div{border-top:1px solid var(--line);padding-block:17px;display:grid;gap:4px}
+.glossary dt{font-weight:700}
+.glossary dd{margin:0;color:var(--muted)}
+
+/* Requirements */
+.req-group{display:grid;gap:13px}
+.req-group + .req-group{margin-top:52px}
+.req-list{list-style:none;border-bottom:1px solid var(--line)}
+.req{display:grid;grid-template-columns:72px minmax(0,1fr) 132px;grid-template-areas:"id body chip";gap:6px 22px;padding-block:17px;border-top:1px solid var(--line)}
+.req-id{grid-area:id;font-size:var(--text-caption);font-weight:700;font-variant-numeric:tabular-nums;line-height:1.7}
+.req-body{grid-area:body;display:grid;gap:4px}
+.req-body strong{font-weight:700}
+.req-body p{color:var(--muted)}
+.req .chip{grid-area:chip;justify-self:end}
+@media (max-width:640px){
+  .req{grid-template-columns:1fr auto;grid-template-areas:"id chip" "body body"}
+}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:2px 13px;border-radius:var(--radius-full);font-size:var(--text-caption);font-weight:700;line-height:1.2;white-space:nowrap;border:1px solid var(--text)}
+.chip-must{background:var(--btn-bg);color:var(--btn-fg);border-color:var(--btn-bg)}
+.chip-should{background:transparent;color:var(--text)}
+.chip-later{background:transparent;color:var(--muted);border-style:dashed;border-color:var(--muted)}
+.chip-fail{background:transparent;color:var(--text)}
+.chip-pass{background:var(--btn-bg);color:var(--btn-fg);border-color:var(--btn-bg)}
+
+/* Tables */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:680px;font-size:var(--text-caption);line-height:1.45}
+th{text-align:left;font-weight:700;padding:13px 22px 13px 0;border-bottom:1px solid var(--text);vertical-align:bottom}
+td{padding:13px 22px 13px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{font-weight:700}
+td .muted{display:block}
+.swatch{display:inline-block;width:14px;height:14px;border:1px solid var(--line);vertical-align:-2px;margin-right:6px}
+
+/* Diagrams */
+figure{margin:0;display:grid;gap:13px}
+.diagram{overflow-x:auto;border-block:1px solid var(--line);padding-block:22px}
+.diagram svg{display:block;width:100%;min-width:880px;height:auto;color:var(--text)}
+figcaption{color:var(--muted);font-size:var(--text-caption);max-width:68ch}
+.d-node{fill:var(--canvas);stroke:currentColor;stroke-width:1.5}
+.d-strong{fill:var(--text);stroke:var(--text);stroke-width:1.5}
+.d-text{fill:currentColor;font:700 14px var(--font-body)}
+.d-text-inv{fill:var(--canvas);font:700 14px var(--font-body)}
+.d-sub{fill:currentColor;font:400 12px var(--font-body)}
+.d-sub-inv{fill:var(--canvas);font:400 12px var(--font-body)}
+.d-label{fill:var(--muted);font:400 13px var(--font-body)}
+.d-edge{stroke:currentColor;stroke-width:1.5;fill:none}
+.d-lane{stroke:var(--line);stroke-width:1}
+.d-lane-label{fill:var(--muted);font:700 12px var(--font-body);letter-spacing:.08em}
+
+/* App samples (sempre em tema claro, como o MVP) */
+.samples{display:grid;gap:38px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));align-items:start}
+.sample{display:grid;gap:13px}
+.screen{--s-ink:#000d10;--s-white:#ffffff;--s-muted:#6b6b72;--s-ash:#8e8e95;--s-pebble:#d5d3d4;--s-clay:#bc7155;background:var(--s-white);color:var(--s-ink);border:1px solid var(--line);padding:16px;max-width:380px;width:100%;display:grid;gap:16px;font-size:18px;line-height:1.45}
+.s-title{font-family:var(--font-display);font-weight:700;font-size:37px;letter-spacing:-.37px;line-height:1;margin:0}
+.s-days{display:flex;gap:2px;list-style:none}
+.s-days li{flex:1;min-width:0;min-height:56px;display:grid;place-content:center;text-align:center;border-radius:var(--radius-full);font-size:13px;line-height:1.2;color:var(--s-muted)}
+.s-days b{display:block;font-size:17px;color:var(--s-ink)}
+.s-days .on{background:var(--s-ink);color:var(--s-ash)}
+.s-days .on b{color:var(--s-white)}
+.s-clay{background:var(--s-clay);color:var(--s-ink);padding:22px;display:grid;gap:4px}
+.s-clay .s-eyebrow{font-size:15px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.s-time{font-family:var(--font-display);font-weight:700;font-size:30px;line-height:1.05;letter-spacing:-.3px}
+.s-name{font-weight:700;font-size:23px;letter-spacing:-.23px;line-height:1.2}
+.s-btn{margin-top:13px;min-height:48px;border-radius:var(--radius-full);background:var(--s-ink);color:var(--s-white);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px}
+.s-rows{list-style:none;display:grid}
+.s-rows li{display:grid;grid-template-columns:54px 1fr auto;gap:2px 11px;padding-block:13px;border-top:1px solid var(--s-pebble);align-items:start}
+.s-rows .t{font-weight:700;font-size:17px;font-variant-numeric:tabular-nums}
+.s-rows .r{grid-column:2;font-size:17px;color:var(--s-muted)}
+.s-chip{grid-row:1 / span 2;grid-column:3;display:inline-flex;align-items:center;gap:4px;min-height:28px;padding:0 11px;border-radius:var(--radius-full);font-size:13px;font-weight:700;border:1px solid var(--s-ink);white-space:nowrap}
+.s-chip.fill{background:var(--s-ink);color:var(--s-white)}
+.s-chip.out{border-style:dashed;border-color:var(--s-ash)}
+.s-notif{border:1px solid var(--s-pebble);padding:13px 16px;display:grid;gap:2px}
+.s-notif-head{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--s-muted)}
+.s-dot{width:18px;height:18px;border-radius:50%;background:var(--s-ink)}
+.s-actions{display:flex;gap:22px;margin-top:6px;font-size:15px;font-weight:700}
+.s-actions span{min-height:44px;display:flex;align-items:center}
+.s-chat{display:grid;gap:8px;background:var(--s-white)}
+.s-chat-head{display:flex;align-items:baseline;gap:10px;padding-bottom:11px;border-bottom:1px solid var(--s-pebble)}
+.s-sys{justify-self:center;background:var(--s-pebble);border-radius:var(--radius-full);padding:4px 13px;font-size:13px;font-weight:700}
+.s-bub{max-width:82%;padding:9px 13px;border-radius:22px;font-size:17px;line-height:1.4}
+.s-bub small{display:inline-flex;align-items:center;gap:3px;margin-left:8px;font-size:12px;vertical-align:-1px}
+.s-in{justify-self:start;border:1px solid var(--s-pebble);border-bottom-left-radius:6px}
+.s-in small{color:var(--s-muted)}
+.s-out{justify-self:end;background:var(--s-ink);color:var(--s-white);border-bottom-right-radius:6px}
+.s-out small{color:var(--s-ash)}
+.s-compose{display:flex;gap:8px;align-items:center;margin-top:6px}
+.s-input{flex:1;min-height:48px;border:1px solid var(--s-ash);border-radius:var(--radius-full);display:flex;align-items:center;padding:0 16px;color:var(--s-muted);font-size:17px}
+.s-send{width:48px;height:48px;border-radius:50%;background:var(--s-ink);display:grid;place-items:center;flex:none}
+
+/* Decisions */
+.decisions{padding-block:var(--section-gap)}
+.decisions .sec-head{margin-bottom:52px}
+.decision{display:grid;gap:13px 31px;border-top:1px solid var(--band-line);padding-block:31px}
+.decision-id{font-size:var(--text-caption);font-weight:700;font-variant-numeric:tabular-nums;color:var(--on-band-muted)}
+.decision h3{max-width:36ch}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px 31px;margin-top:13px;list-style:none}
+.opts li{border-top:1px solid var(--band-line);padding-top:13px;display:grid;gap:4px;align-content:start}
+.opts p{color:var(--on-band-muted)}
+.suggest{margin-top:16px;font-weight:700}
+.suggest span{color:var(--on-band-muted);font-weight:400}
+@media (min-width:900px){.decision{grid-template-columns:90px minmax(0,1fr)}}
+
+/* Phases */
+.phases{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:38px 52px;counter-reset:phase}
+.phases li{border-top:2px solid var(--text);padding-top:17px;display:grid;gap:10px;align-content:start}
+.phases .eyebrow{color:var(--text)}
+
+/* Footer */
+.foot{background:var(--footer);color:#ffffff;padding-block:52px}
+.foot-grid{display:grid;gap:22px;align-items:end}
+.foot .wordmark{font-size:clamp(64px,12vw,var(--text-display));color:#ffffff}
+.foot p{color:#8e8e95;font-size:var(--text-caption);max-width:60ch}
+@media (min-width:900px){.foot-grid{grid-template-columns:auto 1fr}.foot p{justify-self:end;text-align:right}}
+</style>
+
+<a class="skip" href="#conteudo">Pular para o conteúdo</a>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-bar">
+      <span class="eyebrow">TrustCab · Documento de requisitos de produto</span>
+      <span class="pill">Rascunho v0.2 · 15 set 2026</span>
+    </div>
+    <div class="hero-grid">
+      <p class="wordmark" aria-hidden="true">PRD.</p>
+      <h1>A corrida fica entre conhecidos.</h1>
+    </div>
+    <p class="lede">TrustCab é um app Android para quem usa o próprio carro como renda extra atender a própria rede — família, amigos e conhecidos — com agenda semanal, aviso de chegada no celular do passageiro e conversa direta. Sem marketplace, sem desconhecidos e sem comissão por corrida.</p>
+    <dl class="meta">
+      <div><dt>Nome do produto</dt><dd>TrustCab</dd></div>
+      <div><dt>Plataforma</dt><dd>Android (iOS depois)</dd></div>
+      <div><dt>Acesso</dt><dd>Entrar com Google</dd></div>
+      <div><dt>Perfis</dt><dd>Motorista e passageiro</dd></div>
+      <div><dt>Entrada</dt><dd>Só por convite do motorista</dd></div>
+    </dl>
+  </div>
+</header>
+
+<section class="band thesis" aria-label="Tese do produto">
+  <div class="wrap thesis-grid">
+    <p class="eyebrow">Tese do produto</p>
+    <div>
+      <blockquote>O app não encontra passageiros para o motorista. Ele organiza os que o motorista já tem.</blockquote>
+      <p>A confiança nasce fora do app — no grupo da família, no vizinho, no colega de trabalho. O produto dá estrutura a essa relação: horário combinado, valor registrado, aviso de chegada e um lugar para conversar.</p>
+    </div>
+  </div>
+</section>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="Nesta página">
+    <p class="eyebrow">Nesta página</p>
+    <ol>
+      <li><a href="#resumo">Resumo</a></li>
+      <li><a href="#problema">Problema</a></li>
+      <li><a href="#perfis">Perfis</a></li>
+      <li><a href="#principios">Princípios</a></li>
+      <li><a href="#conceitos">Conceitos</a></li>
+      <li><a href="#escopo">Escopo do MVP</a></li>
+      <li><a href="#requisitos">Requisitos</a></li>
+      <li><a href="#fluxos">Fluxos</a></li>
+      <li><a href="#notificacoes">Notificações</a></li>
+      <li><a href="#telas">Telas</a></li>
+      <li><a href="#visual">Direção visual</a></li>
+      <li><a href="#bordas">Casos de borda</a></li>
+      <li><a href="#nao-funcionais">Não funcionais</a></li>
+      <li><a href="#tecnico">Técnico</a></li>
+      <li><a href="#metricas">Métricas</a></li>
+      <li><a href="#riscos">Riscos</a></li>
+      <li><a href="#fases">Fases</a></li>
+      <li><a href="#decisoes">Decisões em aberto</a></li>
+    </ol>
+  </nav>
+
+  <main id="conteudo">
+
+    <section id="resumo">
+      <div class="sec-head">
+        <p class="eyebrow">Produto</p>
+        <h2>Resumo.</h2>
+      </div>
+      <div class="stack">
+        <div class="blocks">
+          <div class="block">
+            <h3>Problema</h3>
+            <p>Plataformas de transporte definem o preço e retêm parte de cada corrida. Enquanto isso, corridas combinadas com conhecidos já acontecem — mas vivem espalhadas no WhatsApp, sem agenda e sem aviso de chegada.</p>
+          </div>
+          <div class="block">
+            <h3>Solução</h3>
+            <p>O motorista convida sua rede por link. O passageiro monta a agenda de viagens, o motorista confirma, e no dia avisa com um toque que está a caminho e que chegou.</p>
+          </div>
+          <div class="block">
+            <h3>Diferencial</h3>
+            <p>Nenhum perfil é público. Só existe vínculo quando o motorista convida e aprova. O valor combinado é todo do motorista.</p>
+          </div>
+        </div>
+        <div class="note">
+          <strong>Premissa a confirmar</strong>
+          <p>O pedido cita “login com Google Authenticator”. Este documento assume <b>Entrar com Google</b> (login com a conta Google). O Google Authenticator é um app de códigos para verificação em duas etapas, não uma forma de login. Ver decisão D-01.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="problema">
+      <div class="sec-head">
+        <p class="eyebrow">Produto</p>
+        <h2>O combinado se perde no meio da conversa.</h2>
+      </div>
+      <div class="stack">
+        <div class="blocks">
+          <div class="block">
+            <h3>Para quem dirige</h3>
+            <ul class="list muted">
+              <li>Não controla preço nem carteira de clientes nas plataformas.</li>
+              <li>Horários combinados ficam em mensagens soltas e são esquecidos.</li>
+              <li>Não enxerga a semana nem quanto vai receber.</li>
+              <li>Precisa mandar mensagem enquanto dirige para avisar que chegou.</li>
+            </ul>
+          </div>
+          <div class="block">
+            <h3>Para quem é levado</h3>
+            <ul class="list muted">
+              <li>Tem trajetos fixos — trabalho, faculdade, escola — e quer alguém de confiança.</li>
+              <li>Não sabe se o motorista já saiu; espera na porta ou se atrasa.</li>
+              <li>Exceções como “amanhã não vou” se perdem entre outras conversas.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="note">
+          <strong>Hipóteses a validar antes do build</strong>
+          <ul class="list">
+            <li>Motoristas-alvo já têm pelo menos alguns passageiros recorrentes na própria rede.</li>
+            <li>Passageiros aceitam instalar um app quando o convite vem de alguém que conhecem.</li>
+            <li>O aviso “cheguei” é o momento em que o passageiro percebe valor.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="perfis">
+      <div class="sec-head">
+        <p class="eyebrow">Produto</p>
+        <h2>Dois perfis, uma relação.</h2>
+      </div>
+      <div class="blocks">
+        <div class="block">
+          <h3>Motorista</h3>
+          <p>Pessoa com carro próprio que faz corridas como renda extra, dentro ou fora de apps de transporte.</p>
+          <h4>Precisa</h4>
+          <ul class="list">
+            <li>Ver a semana inteira num olhar: horários, trajetos e valores.</li>
+            <li>Aceitar ou recusar pedidos sem negociar em mensagens soltas.</li>
+            <li>Avisar que saiu e que chegou com um toque.</li>
+            <li>Gerar e revogar convites com facilidade.</li>
+          </ul>
+          <h4>Afasta</h4>
+          <ul class="list muted">
+            <li>Cadastro burocrático.</li>
+            <li>Ter que digitar ao volante.</li>
+            <li>Exposição a desconhecidos.</li>
+          </ul>
+        </div>
+        <div class="block">
+          <h3>Passageiro</h3>
+          <p>Alguém da rede do motorista com trajetos fixos ou pontuais.</p>
+          <h4>Precisa</h4>
+          <ul class="list">
+            <li>Pedir viagens recorrentes uma vez só.</li>
+            <li>Ajustar exceções: feriado, home office, consulta.</li>
+            <li>Ser avisado fora do app quando o motorista sair e chegar.</li>
+            <li>Falar com o motorista sem trocar de app.</li>
+          </ul>
+          <h4>Afasta</h4>
+          <ul class="list muted">
+            <li>Cadastro longo antes de ver quem convidou.</li>
+            <li>Instalar sem entender por quê.</li>
+            <li>Pagar taxa extra.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="principios">
+      <div class="sec-head">
+        <p class="eyebrow">Produto</p>
+        <h2>Princípios e o que não fazemos.</h2>
+      </div>
+      <div class="blocks">
+        <div class="block">
+          <h3>Confiança antes de escala</h3>
+          <p>Nenhum perfil é público ou pesquisável. Conexão só com convite e aprovação do motorista.</p>
+        </div>
+        <div class="block">
+          <h3>O motorista decide</h3>
+          <p>Toda agenda só vale depois que o motorista confirma. Toda mudança passa por ele de novo.</p>
+        </div>
+        <div class="block">
+          <h3>Um toque ao volante</h3>
+          <p>Ações durante a viagem cabem em um toque, com alvo grande e sem digitação.</p>
+        </div>
+        <div class="block">
+          <h3>O combinado fica visível</h3>
+          <p>Horário, trajeto e valor aceitos pelos dois ficam registrados na viagem, não só no chat.</p>
+        </div>
+        <div class="block">
+          <h3>Fora do MVP, de propósito</h3>
+          <ul class="list muted">
+            <li>Busca ou descoberta de motoristas</li>
+            <li>Pagamento dentro do app</li>
+            <li>Cálculo automático ou dinâmico de tarifa</li>
+            <li>Avaliações e notas públicas</li>
+            <li>Localização em tempo real</li>
+            <li>Viagem com mais de um passageiro</li>
+            <li>iOS</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="conceitos">
+      <div class="sec-head">
+        <p class="eyebrow">Produto</p>
+        <h2>Vocabulário do produto.</h2>
+      </div>
+      <dl class="glossary">
+        <div><dt>Motorista</dt><dd>Conta que oferece viagens. Tem veículo cadastrado e gera convites.</dd></div>
+        <div><dt>Passageiro</dt><dd>Conta que entra por convite. Pode estar conectada a vários motoristas.</dd></div>
+        <div><dt>Convite</dt><dd>Link gerado pelo motorista para compartilhar fora do app. Pode ser revogado e trocado.</dd></div>
+        <div><dt>Conexão</dt><dd>Vínculo aprovado entre um motorista e um passageiro. Libera perfil, agenda e chat.</dd></div>
+        <div><dt>Agenda</dt><dd>Pedido do passageiro com dias, horário, origem, destino e valor. Recorrente (dias da semana) ou avulsa (uma data).</dd></div>
+        <div><dt>Viagem</dt><dd>Cada ocorrência de uma agenda num dia. É o que aparece na semana do motorista.</dd></div>
+        <div><dt>Aviso</dt><dd>Sinal do motorista numa viagem: “a caminho” ou “cheguei”. Vira notificação e mensagem no chat.</dd></div>
+        <div><dt>Conversa</dt><dd>Chat de uma conexão. Um por par motorista–passageiro.</dd></div>
+      </dl>
+    </section>
+
+    <section id="escopo">
+      <div class="sec-head">
+        <p class="eyebrow">Produto</p>
+        <h2>Escopo do MVP.</h2>
+      </div>
+      <div class="blocks">
+        <div class="block">
+          <h3>Obrigatório</h3>
+          <ul class="list">
+            <li>Entrar com Google e escolha de perfil</li>
+            <li>Cadastro do veículo</li>
+            <li>Gerar, copiar, compartilhar e revogar convite</li>
+            <li>Aprovar pedidos de conexão</li>
+            <li>Lista de motoristas do passageiro</li>
+            <li>Agenda recorrente ou avulsa, pedida pelo passageiro</li>
+            <li>Confirmar, recusar ou propor outro valor</li>
+            <li>Agenda semanal do motorista</li>
+            <li>Cancelar uma viagem sem cancelar a agenda</li>
+            <li>Avisos “a caminho” e “cheguei” com notificação</li>
+            <li>Chat por conexão com status de leitura</li>
+            <li>Excluir conta</li>
+          </ul>
+        </div>
+        <div class="block">
+          <h3>Desejável</h3>
+          <ul class="list">
+            <li>Total previsto da semana</li>
+            <li>Lembrete antes da viagem</li>
+            <li>Respostas rápidas na notificação: “Estou descendo”</li>
+            <li>Abrir trajeto no Google Maps ou Waze</li>
+            <li>Alerta de conflito de horário</li>
+            <li>Endereços salvos</li>
+            <li>Pausar agenda por período</li>
+            <li>Responder mensagem específica</li>
+          </ul>
+        </div>
+        <div class="block">
+          <h3>Depois do MVP</h3>
+          <ul class="list muted">
+            <li>Pix e controle de viagens pagas</li>
+            <li>Localização em tempo real e previsão de chegada</li>
+            <li>Viagem compartilhada</li>
+            <li>Áudio, foto e localização no chat</li>
+            <li>Perfil dependente (quem pede por um filho ou idoso)</li>
+            <li>Feriados automáticos</li>
+            <li>Tema escuro</li>
+            <li>iOS</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="requisitos">
+      <div class="sec-head">
+        <p class="eyebrow">Requisitos</p>
+        <h2>Requisitos funcionais.</h2>
+        <p class="muted" style="max-width:68ch">Cada item tem um código para rastrear em design, desenvolvimento e testes. O texto em cinza é o critério de aceite.</p>
+      </div>
+
+      <div class="req-group">
+        <h3>Acesso e conta</h3>
+        <ol class="req-list">
+          <li class="req"><span class="req-id">AC-01</span><div class="req-body"><strong>Entrar com Google é a única forma de acesso.</strong><p>Nome, e-mail e foto vêm da conta Google. Não existe senha nem cadastro por e-mail.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">AC-02</span><div class="req-body"><strong>No primeiro acesso, a pessoa escolhe “Sou motorista” ou “Recebi um convite”.</strong><p>Quem chega por um link de convite pula a escolha e entra como passageiro.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">AC-03</span><div class="req-body"><strong>A permissão de notificação é pedida no momento em que faz sentido, com explicação antes do diálogo do Android.</strong><p>Passageiro: logo após pedir conexão. Motorista: ao gerar o primeiro convite. Se negar, o app mostra um aviso fixo com atalho para as configurações.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">AC-04</span><div class="req-body"><strong>Excluir conta pelo app e por uma página web.</strong><p>Apaga dados pessoais, encerra conexões e avisa a outra parte. É exigência da Google Play.</p></div><span class="chip chip-must">Obrigatório</span></li>
+        </ol>
+      </div>
+
+      <div class="req-group">
+        <h3>Convite e conexão</h3>
+        <ol class="req-list">
+          <li class="req"><span class="req-id">CV-01</span><div class="req-body"><strong>Motorista gera um link de convite com os botões Copiar e Compartilhar.</strong><p>Compartilhar abre a folha do Android (WhatsApp incluído) com texto sugerido e editável.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">CV-02</span><div class="req-body"><strong>A prévia do link no WhatsApp mostra nome, foto do motorista e uma frase de convite.</strong><p>Não expõe veículo, telefone nem outros passageiros.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">CV-03</span><div class="req-body"><strong>Com o app instalado, o link abre direto a tela do convite. Sem o app, leva à Play Store e o convite é recuperado depois de instalar.</strong><p>A pessoa não precisa tocar no link de novo após instalar e entrar.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">CV-04</span><div class="req-body"><strong>A tela do convite mostra foto, nome e veículo do motorista e o botão “Pedir para conectar”.</strong><p>É a primeira tela que o passageiro vê depois do login.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">CV-05</span><div class="req-body"><strong>Cada pedido de conexão precisa da aprovação do motorista.</strong><p>O pedido chega como notificação e fica em “Pedidos de conexão”. O passageiro vê “Aguardando aprovação”. Uma recusa não mostra motivo. Depende da decisão D-02.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">CV-06</span><div class="req-body"><strong>Motorista revoga o link e gera outro.</strong><p>O link antigo mostra “Este convite não está mais ativo. Peça um novo link para quem te enviou.” Conexões existentes continuam.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">CV-07</span><div class="req-body"><strong>Qualquer lado pode encerrar a conexão.</strong><p>A confirmação informa quantas viagens futuras serão canceladas. A outra parte é avisada e o chat fica somente leitura.</p></div><span class="chip chip-must">Obrigatório</span></li>
+        </ol>
+      </div>
+
+      <div class="req-group">
+        <h3>Agenda e viagens</h3>
+        <ol class="req-list">
+          <li class="req"><span class="req-id">AG-01</span><div class="req-body"><strong>No perfil do motorista, o passageiro cria uma agenda.</strong><p>Campos: tipo (recorrente ou avulsa), dias da semana ou data, horário de embarque, origem, destino, valor opcional e observação. “Adicionar volta” cria a viagem de retorno com horário próprio.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">AG-02</span><div class="req-body"><strong>Motorista recebe a agenda como pedido e escolhe Confirmar, Recusar ou Propor outro valor.</strong><p>Se o valor mudar, a agenda volta ao passageiro como “Aguardando seu aceite”. Depende da decisão D-04.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">AG-03</span><div class="req-body"><strong>A tela inicial do motorista é a agenda da semana.</strong><p>Seletor de dias e lista por horário com passageiro, origem → destino, valor e status. Pedidos pendentes aparecem no topo com contador.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">AG-04</span><div class="req-body"><strong>A próxima viagem ganha destaque com os botões de aviso.</strong><p>É o único card de destaque da tela.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">AG-05</span><div class="req-body"><strong>No perfil de cada motorista, o passageiro vê suas agendas e as próximas viagens com status.</strong><p>Status sempre com ícone e texto, nunca só com cor.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">AG-06</span><div class="req-body"><strong>Qualquer lado cancela uma viagem específica sem cancelar a agenda.</strong><p>A outra parte recebe notificação. A viagem continua visível com o rótulo “Cancelada”.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">AG-07</span><div class="req-body"><strong>Editar uma agenda exige nova confirmação do motorista.</strong><p>Até a confirmação, continua valendo a versão anterior.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">AG-08</span><div class="req-body"><strong>Ao confirmar, o motorista vê se já tem viagem no mesmo horário.</strong><p>O app avisa, mas não bloqueia.</p></div><span class="chip chip-should">Desejável</span></li>
+          <li class="req"><span class="req-id">AG-09</span><div class="req-body"><strong>Total previsto da semana na agenda do motorista.</strong><p>Soma das viagens confirmadas que têm valor. Viagens sem valor aparecem como “sem valor combinado”.</p></div><span class="chip chip-should">Desejável</span></li>
+          <li class="req"><span class="req-id">AG-10</span><div class="req-body"><strong>Tocar no endereço abre o Google Maps ou o Waze.</strong><p>O app pergunta qual usar na primeira vez e lembra a escolha.</p></div><span class="chip chip-should">Desejável</span></li>
+          <li class="req"><span class="req-id">AG-11</span><div class="req-body"><strong>Passageiro salva endereços (Casa, Trabalho e outros) para preencher a agenda.</strong><p>Endereços salvos só aparecem para motoristas quando usados numa agenda.</p></div><span class="chip chip-should">Desejável</span></li>
+          <li class="req"><span class="req-id">AG-12</span><div class="req-body"><strong>Pausar uma agenda por período, como férias.</strong><p>Viagens do período ficam canceladas e voltam sozinhas no fim da pausa.</p></div><span class="chip chip-should">Desejável</span></li>
+        </ol>
+      </div>
+
+      <div class="req-group">
+        <h3>Avisos de trajeto</h3>
+        <ol class="req-list">
+          <li class="req"><span class="req-id">AV-01</span><div class="req-body"><strong>Botão “Estou a caminho” na viagem do dia.</strong><p>Fica disponível a partir de uma janela antes do horário de embarque (sugestão: 60 min, validar no beta).</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">AV-02</span><div class="req-body"><strong>Botão “Cheguei” depois do aviso de saída — ou direto, se o motorista esqueceu o primeiro.</strong><p>Os dois botões têm pelo menos 48dp de altura e ficam na metade inferior da tela, ao alcance do polegar.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">AV-03</span><div class="req-body"><strong>Cada aviso vira notificação de alta prioridade no celular do passageiro e mensagem de sistema no chat.</strong><p>A notificação de “Cheguei” inclui modelo, cor e placa do veículo para o passageiro reconhecer o carro.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">AV-04</span><div class="req-body"><strong>Sem internet, o aviso mostra “Enviando…” e sai quando a conexão volta.</strong><p>Se falhar, o botão mostra “Não enviado. Toque para tentar de novo.” Nenhum aviso falha em silêncio.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">AV-05</span><div class="req-body"><strong>Motorista conclui a viagem; se não concluir, ela se conclui sozinha depois de um prazo.</strong><p>Prazo a definir. Viagens concluídas entram no histórico e no total da semana.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">AV-06</span><div class="req-body"><strong>Depois de enviar, o motorista pode desfazer o aviso por alguns segundos.</strong><p>Se desfizer após a entrega, o passageiro recebe “Aviso cancelado”.</p></div><span class="chip chip-should">Desejável</span></li>
+          <li class="req"><span class="req-id">AV-07</span><div class="req-body"><strong>Respostas rápidas na própria notificação: “Estou descendo” e “Vou atrasar 5 min”.</strong><p>A resposta chega ao motorista como notificação e aparece no chat.</p></div><span class="chip chip-should">Desejável</span></li>
+          <li class="req"><span class="req-id">AV-08</span><div class="req-body"><strong>Motorista vê quando o passageiro está com notificações desativadas.</strong><p>Texto: “{passageiro} está com notificações desativadas e pode não ver seus avisos.”</p></div><span class="chip chip-should">Desejável</span></li>
+        </ol>
+      </div>
+
+      <div class="req-group">
+        <h3>Chat</h3>
+        <ol class="req-list">
+          <li class="req"><span class="req-id">CH-01</span><div class="req-body"><strong>Uma conversa por conexão, aberta pelo perfil da outra pessoa ou pela aba Conversas.</strong><p>A lista de conversas mostra foto, nome, prévia da última mensagem, horário e contador de não lidas.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">CH-02</span><div class="req-body"><strong>Mesmos padrões de interação do WhatsApp.</strong><p>Bolhas enviadas à direita e recebidas à esquerda, horário em cada bolha, separador de dia (Hoje, Ontem, data), campo de texto com botão de enviar, rolagem que começa na última mensagem.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">CH-03</span><div class="req-body"><strong>Status de cada mensagem: enviando, enviada, entregue e lida.</strong><p>Cada status tem ícone de forma diferente e rótulo para leitor de tela. “Lida” não pode depender só da cor, como no tique azul do WhatsApp.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">CH-04</span><div class="req-body"><strong>Mensagens de sistema centralizadas para eventos da relação.</strong><p>Agenda pedida, confirmada, recusada ou alterada; viagem cancelada; a caminho; cheguei.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">CH-05</span><div class="req-body"><strong>Tocar e segurar numa mensagem para copiar o texto.</strong><p>Confirmação: “Mensagem copiada”.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">CH-06</span><div class="req-body"><strong>Indicador “digitando…”.</strong><p>Some depois de alguns segundos sem digitação.</p></div><span class="chip chip-should">Desejável</span></li>
+          <li class="req"><span class="req-id">CH-07</span><div class="req-body"><strong>Responder uma mensagem específica arrastando a bolha para o lado.</strong><p>Também acessível pelo menu de toque longo, para quem não usa gestos.</p></div><span class="chip chip-should">Desejável</span></li>
+          <li class="req"><span class="req-id">CH-08</span><div class="req-body"><strong>Áudio, foto e localização.</strong><p>Fora do MVP.</p></div><span class="chip chip-later">Depois</span></li>
+        </ol>
+      </div>
+
+      <div class="req-group">
+        <h3>Perfil</h3>
+        <ol class="req-list">
+          <li class="req"><span class="req-id">PF-01</span><div class="req-body"><strong>Motorista: foto e nome do Google, veículo (modelo, cor, placa) e telefone opcional.</strong><p>O veículo é obrigatório antes de gerar o primeiro convite.</p></div><span class="chip chip-must">Obrigatório</span></li>
+          <li class="req"><span class="req-id">PF-02</span><div class="req-body"><strong>Passageiro: foto e nome do Google e telefone opcional.</strong><p>Com telefone preenchido, o motorista vê o botão “Ligar” na viagem.</p></div><span class="chip chip-must">Obrigatório</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="fluxos">
+      <div class="sec-head">
+        <p class="eyebrow">Requisitos</p>
+        <h2>Do link à primeira viagem.</h2>
+      </div>
+      <div class="stack">
+        <figure>
+          <div class="diagram">
+            <svg viewBox="0 0 990 335" role="img" aria-label="Fluxo de convite: o motorista gera o link e compartilha pelo WhatsApp; o passageiro toca no link, instala o app pela Play Store se ainda não tiver, entra com Google e pede conexão; o motorista aprova e a conexão libera a agenda e o chat.">
+              <defs>
+                <marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker>
+              </defs>
+              <line class="d-lane" x1="0" y1="150" x2="990" y2="150"/>
+              <text class="d-lane-label" x="20" y="30">MOTORISTA</text>
+              <text class="d-lane-label" x="20" y="176">PASSAGEIRO</text>
+
+              <rect class="d-node" x="20" y="50" width="170" height="56"/>
+              <text class="d-text" x="105" y="75" text-anchor="middle">Gera o link</text>
+              <text class="d-sub" x="105" y="93" text-anchor="middle">copia ou compartilha</text>
+
+              <path class="d-edge" d="M190 78H300V188" marker-end="url(#arrA)"/>
+              <text class="d-label" x="245" y="70" text-anchor="middle">WhatsApp</text>
+
+              <rect class="d-node" x="230" y="190" width="140" height="56"/>
+              <text class="d-text" x="300" y="215" text-anchor="middle">Toca no link</text>
+              <text class="d-sub" x="300" y="233" text-anchor="middle">vê nome e foto</text>
+
+              <path class="d-edge" d="M370 218H410" marker-end="url(#arrA)"/>
+              <polygon class="d-node" points="412,218 470,180 528,218 470,256"/>
+              <text class="d-text" x="470" y="214" text-anchor="middle" style="font-size:13px">App</text>
+              <text class="d-text" x="470" y="230" text-anchor="middle" style="font-size:13px">instalado?</text>
+
+              <path class="d-edge" d="M528 218H588" marker-end="url(#arrA)"/>
+              <text class="d-label" x="558" y="210" text-anchor="middle">sim</text>
+
+              <path class="d-edge" d="M470 256V278" marker-end="url(#arrA)"/>
+              <text class="d-label" x="480" y="272">não</text>
+              <rect class="d-node" x="375" y="280" width="190" height="40"/>
+              <text class="d-text" x="470" y="305" text-anchor="middle">Instala pela Play Store</text>
+              <path class="d-edge" d="M565 300H675V248" marker-end="url(#arrA)"/>
+              <text class="d-label" x="620" y="292" text-anchor="middle">convite guardado</text>
+
+              <rect class="d-node" x="590" y="190" width="170" height="56"/>
+              <text class="d-text" x="675" y="215" text-anchor="middle">Entra com Google</text>
+              <text class="d-sub" x="675" y="233" text-anchor="middle">e pede para conectar</text>
+
+              <path class="d-edge" d="M675 190V108" marker-end="url(#arrA)"/>
+              <text class="d-label" x="683" y="138">notificação</text>
+
+              <rect class="d-node" x="590" y="50" width="170" height="56"/>
+              <text class="d-text" x="675" y="75" text-anchor="middle">Aprova o pedido</text>
+              <text class="d-sub" x="675" y="93" text-anchor="middle">ou recusa sem motivo</text>
+
+              <path class="d-edge" d="M760 78H818" marker-end="url(#arrA)"/>
+              <text class="d-label" x="789" y="70" text-anchor="middle">aprova</text>
+
+              <rect class="d-strong" x="820" y="50" width="160" height="56"/>
+              <text class="d-text-inv" x="900" y="75" text-anchor="middle">Conexão ativa</text>
+              <text class="d-sub-inv" x="900" y="93" text-anchor="middle">libera agenda e chat</text>
+
+              <path class="d-edge" d="M900 106V188" marker-end="url(#arrA)"/>
+              <text class="d-label" x="908" y="138">notificação</text>
+
+              <rect class="d-node" x="820" y="190" width="160" height="56"/>
+              <text class="d-text" x="900" y="215" text-anchor="middle">Monta a agenda</text>
+              <text class="d-sub" x="900" y="233" text-anchor="middle">primeiro pedido</text>
+            </svg>
+          </div>
+          <figcaption>Convite até conexão. A aprovação do motorista é a barreira que mantém a rede fechada mesmo se o link for encaminhado a desconhecidos. Um link revogado para no primeiro passo, com a tela “convite inativo”.</figcaption>
+        </figure>
+
+        <figure>
+          <div class="diagram">
+            <svg viewBox="0 0 990 290" role="img" aria-label="Estados: uma agenda pedida pode ser confirmada, recusada ou ficar aguardando aceite quando o motorista propõe outro valor. Cada viagem confirmada passa por a caminho, chegou e concluída, e pode ser cancelada por qualquer lado antes de chegar.">
+              <defs>
+                <marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker>
+              </defs>
+
+              <rect class="d-node" x="110" y="28" width="170" height="48"/>
+              <text class="d-text" x="195" y="57" text-anchor="middle">Aguardando aceite</text>
+
+              <rect class="d-node" x="20" y="126" width="130" height="48"/>
+              <text class="d-text" x="85" y="155" text-anchor="middle">Pedida</text>
+
+              <path class="d-edge" d="M85 126V52H108" marker-end="url(#arrB)"/>
+              <text class="d-label" x="93" y="104">novo valor</text>
+              <path class="d-edge" d="M280 52H310V124" marker-end="url(#arrB)"/>
+              <text class="d-label" x="318" y="95">passageiro aceita</text>
+
+              <path class="d-edge" d="M150 150H238" marker-end="url(#arrB)"/>
+              <text class="d-label" x="195" y="142" text-anchor="middle">confirma</text>
+
+              <rect class="d-node" x="240" y="126" width="140" height="48"/>
+              <text class="d-text" x="310" y="155" text-anchor="middle">Confirmada</text>
+
+              <path class="d-edge" d="M380 150H458" marker-end="url(#arrB)"/>
+              <text class="d-label" x="420" y="142" text-anchor="middle">avisa</text>
+
+              <rect class="d-node" x="460" y="126" width="130" height="48"/>
+              <text class="d-text" x="525" y="155" text-anchor="middle">A caminho</text>
+
+              <path class="d-edge" d="M590 150H668" marker-end="url(#arrB)"/>
+              <text class="d-label" x="630" y="142" text-anchor="middle">avisa</text>
+
+              <rect class="d-strong" x="670" y="126" width="110" height="48"/>
+              <text class="d-text-inv" x="725" y="155" text-anchor="middle">Chegou</text>
+
+              <path class="d-edge" d="M780 150H848" marker-end="url(#arrB)"/>
+              <text class="d-label" x="815" y="142" text-anchor="middle">conclui</text>
+
+              <rect class="d-node" x="850" y="126" width="120" height="48"/>
+              <text class="d-text" x="910" y="155" text-anchor="middle">Concluída</text>
+
+              <path class="d-edge" d="M85 174V224" marker-end="url(#arrB)"/>
+              <text class="d-label" x="93" y="204">recusa</text>
+              <rect class="d-node" x="20" y="226" width="130" height="48"/>
+              <text class="d-text" x="85" y="255" text-anchor="middle">Recusada</text>
+
+              <path class="d-edge" d="M310 174V250H358" marker-end="url(#arrB)"/>
+              <text class="d-label" x="318" y="204">cancela</text>
+              <path class="d-edge" d="M525 174V224" marker-end="url(#arrB)"/>
+              <text class="d-label" x="533" y="204">cancela</text>
+              <rect class="d-node" x="360" y="226" width="200" height="48"/>
+              <text class="d-text" x="460" y="255" text-anchor="middle">Cancelada</text>
+            </svg>
+          </div>
+          <figcaption>Estados da agenda e da viagem. “Pedida”, “Aguardando aceite” e “Recusada” valem para a agenda inteira; de “Confirmada” em diante, para cada viagem do dia. “Chegou” está em destaque porque é o aviso que precisa furar o silêncio do celular.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="notificacoes">
+      <div class="sec-head">
+        <p class="eyebrow">Requisitos</p>
+        <h2>Avisos que chegam fora do app.</h2>
+        <p class="muted" style="max-width:68ch">Notificações push via Firebase Cloud Messaging, separadas em três canais do Android. Canal é o agrupamento que a pessoa controla nas configurações do celular — assim o passageiro pode silenciar mensagens sem perder o aviso de chegada.</p>
+      </div>
+      <div class="stack">
+        <div class="blocks">
+          <div class="block">
+            <h3>Chegada do motorista</h3>
+            <p>Importância alta: som, vibração e banner sobre a tela. Só “a caminho” e “cheguei”.</p>
+          </div>
+          <div class="block">
+            <h3>Mensagens</h3>
+            <p>Importância alta, agrupadas por conversa, com resposta direta pela notificação.</p>
+          </div>
+          <div class="block">
+            <h3>Agenda</h3>
+            <p>Importância padrão. Pedidos, confirmações, mudanças, cancelamentos e lembretes.</p>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th scope="col">Evento</th><th scope="col">Quem recebe</th><th scope="col">Canal</th><th scope="col">Texto</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Motorista a caminho</td><td>Passageiro</td><td>Chegada</td><td>{motorista} está a caminho. Embarque às {hora}.</td></tr>
+              <tr><td>Motorista chegou</td><td>Passageiro</td><td>Chegada</td><td>{motorista} chegou. {modelo} {cor} · {placa}</td></tr>
+              <tr><td>Pedido de conexão</td><td>Motorista</td><td>Agenda</td><td>{passageiro} quer viajar com você. Toque para aprovar.</td></tr>
+              <tr><td>Conexão aprovada</td><td>Passageiro</td><td>Agenda</td><td>{motorista} aprovou sua conexão. Monte sua agenda de viagens.</td></tr>
+              <tr><td>Agenda pedida</td><td>Motorista</td><td>Agenda</td><td>{passageiro} pediu viagens {dias}, às {hora}. Toque para confirmar.</td></tr>
+              <tr><td>Agenda confirmada</td><td>Passageiro</td><td>Agenda</td><td>{motorista} confirmou suas viagens {dias}, às {hora}.</td></tr>
+              <tr><td>Outro valor proposto</td><td>Passageiro</td><td>Agenda</td><td>{motorista} propôs {valor} por viagem. Toque para aceitar ou conversar.</td></tr>
+              <tr><td>Agenda recusada</td><td>Passageiro</td><td>Agenda</td><td>{motorista} não pode fazer as viagens {dias}, às {hora}. Converse no chat para combinar outro horário.</td></tr>
+              <tr><td>Viagem cancelada</td><td>A outra parte</td><td>Agenda</td><td>{nome} cancelou a viagem de {dia}, às {hora}.</td></tr>
+              <tr><td>Nova mensagem</td><td>A outra parte</td><td>Mensagens</td><td>{nome}: {prévia da mensagem}</td></tr>
+              <tr><td>Lembrete <span class="muted">Desejável</span></td><td>Motorista</td><td>Agenda</td><td>Sua viagem com {passageiro} começa em {tempo}.</td></tr>
+              <tr><td>Resposta rápida <span class="muted">Desejável</span></td><td>Motorista</td><td>Mensagens</td><td>{passageiro}: Estou descendo.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="telas">
+      <div class="sec-head">
+        <p class="eyebrow">Design</p>
+        <h2>Telas por perfil.</h2>
+        <p class="muted" style="max-width:68ch">Arquitetura de informação do MVP. As abas são a navegação inferior fixa de cada perfil.</p>
+      </div>
+      <div class="blocks">
+        <div class="block">
+          <h3>Comum</h3>
+          <ul class="list">
+            <li>Boas-vindas e Entrar com Google</li>
+            <li>Escolha de perfil</li>
+            <li>Explicação antes da permissão de notificação</li>
+            <li>Configurações: notificações, privacidade, termos</li>
+            <li>Excluir conta</li>
+          </ul>
+        </div>
+        <div class="block">
+          <h3>Motorista</h3>
+          <p>Abas: Agenda · Passageiros · Conversas · Perfil</p>
+          <ul class="list">
+            <li><b>Agenda</b> — semana, próxima viagem, pedidos pendentes</li>
+            <li>Detalhe da viagem — avisos, abrir no mapa, ligar, cancelar</li>
+            <li>Pedido de agenda — confirmar, recusar, propor valor</li>
+            <li><b>Passageiros</b> — lista e pedidos de conexão</li>
+            <li>Convite — gerar, copiar, compartilhar, revogar</li>
+            <li>Perfil do passageiro — agendas, encerrar conexão</li>
+            <li><b>Conversas</b> — lista e chat</li>
+            <li><b>Perfil</b> — dados e veículo</li>
+          </ul>
+        </div>
+        <div class="block">
+          <h3>Passageiro</h3>
+          <p>Abas: Motoristas · Conversas · Perfil</p>
+          <ul class="list">
+            <li>Convite — prévia do motorista e “Pedir para conectar”</li>
+            <li>Aguardando aprovação</li>
+            <li><b>Motoristas</b> — lista com a próxima viagem de cada um</li>
+            <li>Perfil do motorista — veículo, agendas, próximas viagens</li>
+            <li>Nova agenda e editar agenda</li>
+            <li>Detalhe da viagem — status, cancelar</li>
+            <li><b>Conversas</b> — lista e chat</li>
+            <li><b>Perfil</b> — dados e endereços salvos</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="visual">
+      <div class="sec-head">
+        <p class="eyebrow">Design</p>
+        <h2>A referência Hyer, adaptada a 360dp.</h2>
+        <p class="muted" style="max-width:68ch">A referência vem de um site editorial de aviação. No app, o sistema mantém cor, peso e forma, e reduz a escala para uma tela de celular. dp é a unidade do Android que mantém o mesmo tamanho físico em telas de densidades diferentes.</p>
+      </div>
+      <div class="stack">
+
+        <div class="blocks">
+          <div class="block">
+            <h3>Entra sem mudança</h3>
+            <ul class="list muted">
+              <li>Paleta monocromática com Deep Ink como cor estrutural</li>
+              <li>Todo botão é pílula (raio 1000)</li>
+              <li>Cards sem sombra; elevação por troca de superfície</li>
+              <li>Peso 700 em tudo de 23 para cima</li>
+              <li>Títulos de tela terminam com ponto: “Sua semana.”</li>
+            </ul>
+          </div>
+          <div class="block">
+            <h3>Clay Ember com função</h3>
+            <p>A cor quente aparece uma vez por tela e marca o que importa agora: o card da próxima viagem. No passageiro, o motorista com viagem hoje.</p>
+          </div>
+          <div class="block">
+            <h3>Chat do WhatsApp, linguagem própria</h3>
+            <p>Copiar os padrões de interação é seguro e reduz aprendizado. Copiar a identidade visual (verde, papel de parede, ícones) não é — e brigaria com a direção do app.</p>
+          </div>
+        </div>
+
+        <figure>
+          <div class="samples">
+            <div class="sample">
+              <p class="eyebrow">Motorista · Agenda</p>
+              <div class="screen" role="img" aria-label="Exemplo da agenda do motorista: título Sua semana, seletor de dias com segunda 14 selecionada, card de próxima viagem às 07:30 com botão Estou a caminho, e lista com mais duas viagens.">
+                <p class="s-title">Sua semana.</p>
+                <ul class="s-days">
+                  <li class="on">Seg<b>14</b></li><li>Ter<b>15</b></li><li>Qua<b>16</b></li><li>Qui<b>17</b></li><li>Sex<b>18</b></li><li>Sáb<b>19</b></li><li>Dom<b>20</b></li>
+                </ul>
+                <div class="s-clay">
+                  <span class="s-eyebrow">Próxima viagem</span>
+                  <span class="s-time num">07:30</span>
+                  <span class="s-name">Ana Souza</span>
+                  <span>Casa → Trabalho · R$ 25,00</span>
+                  <span class="s-btn">Estou a caminho</span>
+                </div>
+                <ul class="s-rows">
+                  <li><span class="t">07:45</span><span>Pedro Lima</span><span class="s-chip out">◷ Pendente</span><span class="r">Casa → Faculdade · sem valor</span></li>
+                  <li><span class="t">18:00</span><span>Ana Souza</span><span class="s-chip fill">✓ Confirmada</span><span class="r">Trabalho → Casa · R$ 25,00</span></li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="sample">
+              <p class="eyebrow">Passageiro · Aviso e chat</p>
+              <div class="screen" role="img" aria-label="Exemplo do passageiro: notificação Carlos chegou com carro e placa e botões Estou descendo e Vou atrasar 5 min; abaixo, chat com mensagem de sistema, bolha recebida e bolha enviada marcada como lida.">
+                <div class="s-notif">
+                  <span class="s-notif-head"><span class="s-dot"></span>Chegada do motorista · agora</span>
+                  <b>Carlos chegou.</b>
+                  <span>Onix branco · ABC1D23</span>
+                  <span class="s-actions"><span>Estou descendo</span><span>Vou atrasar 5 min</span></span>
+                </div>
+                <div class="s-chat">
+                  <div class="s-chat-head"><b style="font-size:23px;letter-spacing:-.23px">Carlos</b><span style="font-size:15px;color:#6b6b72">Motorista</span></div>
+                  <span class="s-sys">Carlos está a caminho · 07:18</span>
+                  <p class="s-bub s-in">Bom dia! Saio agora.<small>07:18</small></p>
+                  <p class="s-bub s-out">Perfeito, te espero na portaria.<small>07:19 <svg width="15" height="10" viewBox="0 0 15 10" aria-hidden="true"><path d="M1 5.5l2.5 2.5L9 1.5M6.5 8l.5.5L14 1.5" stroke="currentColor" stroke-width="1.6" fill="none"/></svg> Lida</small></p>
+                  <span class="s-sys">Carlos chegou · 07:29</span>
+                  <div class="s-compose"><span class="s-input">Mensagem</span><span class="s-send"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13M10.5 4.5L16 10l-5.5 5.5" stroke="#ffffff" stroke-width="2" fill="none"/></svg></span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <figcaption>Exemplo ilustrativo, sempre em tema claro como o MVP. Nomes, valores e placa são fictícios. Texto sobre Clay em Deep Ink para passar em contraste; “Lida” tem ícone e palavra, não só cor.</figcaption>
+        </figure>
+
+        <div>
+          <h3 style="margin-bottom:17px">Escala tipográfica no app</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th scope="col">Papel no app</th><th scope="col">Token</th><th scope="col">Tamanho</th><th scope="col">Onde aparece</th></tr></thead>
+              <tbody>
+                <tr><td>Marca</td><td>display</td><td class="num">63 · 700</td><td>Só boas-vindas e login</td></tr>
+                <tr><td>Título de tela</td><td>heading</td><td class="num">37 · 700</td><td>“Sua semana.”, “Motoristas.”</td></tr>
+                <tr><td>Destaque</td><td>heading-sm</td><td class="num">30 · 700</td><td>Horário da próxima viagem</td></tr>
+                <tr><td>Subtítulo</td><td>subheading</td><td class="num">23 · 700</td><td>Nome no card, cabeçalho do chat</td></tr>
+                <tr><td>Corpo</td><td>body</td><td class="num">18 · 400 · 1,61</td><td>Textos e mensagens do chat</td></tr>
+                <tr><td>Rótulo</td><td>caption</td><td class="num">17 · 700</td><td>Horários, status, botões</td></tr>
+                <tr><td>Não usados</td><td>hero, display-xl, heading-lg</td><td class="num">187 · 131 · 52</td><td>Não cabem em 360dp; ficam para site e loja</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="muted" style="margin-top:13px;max-width:68ch;font-size:17px">No Android, texto usa sp — unidade que acompanha o tamanho de fonte escolhido pela pessoa. Todas as telas precisam funcionar com fonte em 200%. Em bolhas e notificações, a regra de corpo mínimo 18 deixa o chat menos denso que o WhatsApp; é uma troca consciente.</p>
+        </div>
+
+        <div>
+          <h3 style="margin-bottom:17px">Contraste medido</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th scope="col">Combinação</th><th scope="col">Razão</th><th scope="col">Resultado</th><th scope="col">Uso no app</th></tr></thead>
+              <tbody>
+                <tr><td><span class="swatch" style="background:#000d10"></span>Deep Ink sobre branco</td><td class="num">19,7:1</td><td><span class="chip chip-pass">✓ Passa</span></td><td>Texto, botões, ícones</td></tr>
+                <tr><td><span class="swatch" style="background:#8e8e95"></span>Cool Ash sobre branco</td><td class="num">3,3:1</td><td><span class="chip chip-fail">✕ Falha em texto</span></td><td>Só bordas de campos e ícones de apoio (mínimo 3:1)</td></tr>
+                <tr><td><span class="swatch" style="background:#6b6b72"></span>Ash legível sobre branco <span class="muted">token novo proposto: #6b6b72</span></td><td class="num">5,3:1</td><td><span class="chip chip-pass">✓ Passa</span></td><td>Texto secundário no tema claro</td></tr>
+                <tr><td><span class="swatch" style="background:#bc7155"></span>Branco sobre Clay Ember</td><td class="num">3,7:1</td><td><span class="chip chip-fail">✕ Só texto grande</span></td><td>Evitar; se usar, só título 23+ em 700</td></tr>
+                <tr><td><span class="swatch" style="background:#bc7155"></span>Deep Ink sobre Clay Ember</td><td class="num">5,3:1</td><td><span class="chip chip-pass">✓ Passa</span></td><td>Todo texto do card de destaque</td></tr>
+                <tr><td><span class="swatch" style="background:#0f0f1c"></span>Cool Ash sobre Midnight Hull</td><td class="num">5,8:1</td><td><span class="chip chip-pass">✓ Passa</span></td><td>Texto secundário em superfície escura</td></tr>
+                <tr><td><span class="swatch" style="background:#d5d3d4"></span>Pebble sobre branco</td><td class="num">1,5:1</td><td><span class="chip chip-fail">✕ Falha como borda de controle</span></td><td>Só divisores decorativos e bolha recebida</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="blocks">
+          <div class="block">
+            <h3>Lacunas do sistema para um app</h3>
+            <ul class="list muted">
+              <li>Cor de erro — a referência proíbe novos acentos (D-09)</li>
+              <li>Texto secundário legível no claro (#6b6b72)</li>
+              <li>Raio de bolha e campo de texto (sugestão: 22, igual ao card-padding)</li>
+              <li>Anel de foco: 2dp Deep Ink no claro, branco no escuro</li>
+              <li>Tipografia licenciável para app (D-08)</li>
+            </ul>
+          </div>
+          <div class="block">
+            <h3>Componentes a desenhar</h3>
+            <ul class="list muted">
+              <li>Campo de texto, seletor de horário e de dias</li>
+              <li>Chip de status com ícone e texto</li>
+              <li>Barra de abas, badge de não lidas</li>
+              <li>Bolhas, mensagem de sistema, campo do chat</li>
+              <li>Snackbar, diálogo de confirmação, skeleton</li>
+            </ul>
+          </div>
+          <div class="block">
+            <h3>Regras de uso</h3>
+            <ul class="list muted">
+              <li>Cada componente cobre padrão, hover, foco, pressionado, desabilitado, carregando, erro e vazio</li>
+              <li>Alvo de toque mínimo de 48dp (padrão Android, acima dos 44 exigidos)</li>
+              <li>Animações de 150 a 300ms; desligadas quando “Remover animações” está ativo</li>
+              <li>Estado nunca comunicado só por cor</li>
+            </ul>
+          </div>
+        </div>
+
+        <div>
+          <h3 style="margin-bottom:17px">Estados vazios, de carregamento e de erro</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th scope="col">Tela</th><th scope="col">Vazio</th><th scope="col">Carregando</th><th scope="col">Erro</th></tr></thead>
+              <tbody>
+                <tr><td>Agenda do motorista</td><td>“Sua semana está livre. Convide quem já anda com você.” Botão: Criar convite</td><td>Skeleton dos dias e de três viagens</td><td>“Não conseguimos carregar sua agenda. Confira sua internet e tente de novo.” Botão: Tentar de novo</td></tr>
+                <tr><td>Motoristas</td><td>“Você ainda não tem motoristas. Peça o link de convite para quem dirige para você.”</td><td>Skeleton de dois cards</td><td>“Não conseguimos carregar seus motoristas. Confira sua internet e tente de novo.”</td></tr>
+                <tr><td>Conversas</td><td>“Suas conversas aparecem aqui depois que você se conectar.”</td><td>Skeleton da lista</td><td>Última versão salva, com aviso “Sem conexão”</td></tr>
+                <tr><td>Convite</td><td>—</td><td>Botão com “Gerando link…”</td><td>“Não conseguimos gerar o link. Tente de novo em alguns segundos.”</td></tr>
+                <tr><td>Botão de aviso</td><td>—</td><td>“Enviando…”</td><td>“Não enviado. Toque para tentar de novo.”</td></tr>
+                <tr><td>Convite inativo</td><td>“Este convite não está mais ativo. Peça um novo link para quem te enviou.”</td><td>—</td><td>—</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="bordas">
+      <div class="sec-head">
+        <p class="eyebrow">Requisitos</p>
+        <h2>Casos de borda.</h2>
+      </div>
+      <div class="blocks">
+        <div class="block">
+          <h3>Convite</h3>
+          <ul class="list muted">
+            <li>Quem já está conectado abre o link: vai direto ao perfil do motorista.</li>
+            <li>Motorista abre o próprio link: vê a prévia que o passageiro verá.</li>
+            <li>Conta de motorista abre convite de outro motorista: depende de D-03.</li>
+            <li>Link encaminhado a desconhecidos: barrado na aprovação; motorista revoga.</li>
+          </ul>
+        </div>
+        <div class="block">
+          <h3>Agenda</h3>
+          <ul class="list muted">
+            <li>Dois pedidos no mesmo horário: alerta de conflito, motorista decide.</li>
+            <li>Cancelamento em cima da hora: motorista é notificado; regra de cancelamento é acordo entre os dois.</li>
+            <li>Feriado: passageiro cancela a viagem do dia.</li>
+            <li>Encerrar conexão com agendas ativas: confirmação lista as viagens canceladas.</li>
+          </ul>
+        </div>
+        <div class="block">
+          <h3>No dia da viagem</h3>
+          <ul class="list muted">
+            <li>Motorista sem internet: aviso em fila, com estado visível.</li>
+            <li>Aviso na viagem errada: desfazer por alguns segundos (AV-06).</li>
+            <li>Passageiro com notificações bloqueadas: aviso fixo para ele, indicador para o motorista.</li>
+            <li>Fabricantes com economia de bateria agressiva: orientar a liberar o app.</li>
+          </ul>
+        </div>
+        <div class="block">
+          <h3>Conta</h3>
+          <ul class="list muted">
+            <li>Conta excluída: a outra parte vê “Conta excluída” e o chat fica somente leitura.</li>
+            <li>Troca de celular: tudo volta ao entrar com a mesma conta Google.</li>
+            <li>Horários salvos com fuso horário, para não quebrar em cidades com fuso diferente.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="nao-funcionais">
+      <div class="sec-head">
+        <p class="eyebrow">Engenharia</p>
+        <h2>Requisitos não funcionais.</h2>
+      </div>
+      <dl class="glossary">
+        <div><dt>Privacidade (LGPD)</dt><dd>Política de privacidade, consentimento no primeiro acesso, exclusão de dados e mínimo de dados coletados. Sem localização em tempo real no MVP.</dd></div>
+        <div><dt>Google Play</dt><dd>Exclusão de conta no app e na web, formulário de segurança de dados e permissão de notificação no Android 13 ou superior.</dd></div>
+        <div><dt>Links de convite</dt><dd>Android App Links verificados no domínio do produto. Recuperação do convite após instalar pela Play Install Referrer API — o Firebase Dynamic Links foi descontinuado em 2025.</dd></div>
+        <div><dt>Segurança</dt><dd>Token de convite imprevisível e revogável, limite de pedidos por link e regras de acesso: só as duas partes de uma conexão leem agenda e chat.</dd></div>
+        <div><dt>Offline</dt><dd>Agenda e conversas abrem com a última versão salva. Ações ficam em fila e mostram estado.</dd></div>
+        <div><dt>Acessibilidade</dt><dd>TalkBack em todos os fluxos, fonte em 200%, contraste mínimo de 4,5:1 em texto, alvo de 48dp, foco visível com teclado físico.</dd></div>
+        <div><dt>Versão mínima do Android</dt><dd>A definir com a stack e com os aparelhos dos motoristas do beta.</dd></div>
+        <div><dt>Entrega de avisos</dt><dd>Medir no beta o tempo entre o toque do motorista e a notificação exibida. Meta definida a partir dessa linha de base.</dd></div>
+      </dl>
+    </section>
+
+    <section id="tecnico">
+      <div class="sec-head">
+        <p class="eyebrow">Engenharia</p>
+        <h2>Caminhos técnicos.</h2>
+        <p class="muted" style="max-width:68ch">Nenhuma escolha feita aqui. Cada par mostra o que se ganha e o que se paga.</p>
+      </div>
+      <div class="stack">
+        <div>
+          <h3 style="margin-bottom:17px">App</h3>
+          <div class="blocks">
+            <div class="block">
+              <h4>React Native com Expo (TypeScript)</h4>
+              <p>Ganha: stack que você já usou, iOS depois com quase todo o código reaproveitado, atualizações sem passar pela loja. Paga: notificações com ações e App Links exigem configuração nativa extra.</p>
+            </div>
+            <div class="block">
+              <h4>Kotlin com Jetpack Compose</h4>
+              <p>Ganha: melhor integração com notificações, canais e links do Android. Paga: iOS vira outro app do zero e o time precisa de desenvolvimento Android nativo.</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h3 style="margin-bottom:17px">Backend</h3>
+          <div class="blocks">
+            <div class="block">
+              <h4>Firebase</h4>
+              <p>Ganha: login com Google, banco em tempo real para o chat, notificações e funções no mesmo lugar. Paga: banco não relacional dificulta relatórios de ganhos e histórico; custo cresce por leitura.</p>
+            </div>
+            <div class="block">
+              <h4>Supabase com FCM</h4>
+              <p>Ganha: banco relacional combina com agenda, viagem e conexão; relatórios em SQL. Paga: notificações continuam no Firebase, e o chat em tempo real exige mais cuidado.</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h3 style="margin-bottom:17px">Endereços</h3>
+          <div class="blocks">
+            <div class="block">
+              <h4>Autocompletar do Google Places</h4>
+              <p>Ganha: endereço preciso que abre certo no Maps e no Waze. Paga: custo por uso.</p>
+            </div>
+            <div class="block">
+              <h4>Texto livre</h4>
+              <p>Ganha: zero custo e zero integração. Paga: endereços ambíguos e navegação que pode abrir no lugar errado.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="metricas">
+      <div class="sec-head">
+        <p class="eyebrow">Negócio</p>
+        <h2>Como saber se funciona.</h2>
+        <p class="muted" style="max-width:68ch">Metas definidas depois do beta, a partir da linha de base. Nenhum número aqui é estimativa.</p>
+      </div>
+      <dl class="glossary">
+        <div><dt>Métrica principal</dt><dd>Viagens concluídas por semana, por motorista ativo.</dd></div>
+        <div><dt>Ativação do motorista</dt><dd>Parcela que compartilha um convite em até 24h e que tem um passageiro conectado em até 7 dias.</dd></div>
+        <div><dt>Ativação do passageiro</dt><dd>Parcela de convites abertos que viram conexão; tempo entre conexão e primeira agenda confirmada.</dd></div>
+        <div><dt>Uso</dt><dd>Parcela de viagens com aviso “cheguei”; taxa de confirmação de agendas.</dd></div>
+        <div><dt>Retenção</dt><dd>Agendas recorrentes ainda ativas depois de 4 semanas.</dd></div>
+        <div><dt>Qualidade</dt><dd>Taxa de entrega dos avisos; parcela de passageiros com notificações desativadas.</dd></div>
+      </dl>
+    </section>
+
+    <section id="riscos">
+      <div class="sec-head">
+        <p class="eyebrow">Negócio</p>
+        <h2>Riscos.</h2>
+      </div>
+      <div class="blocks">
+        <div class="block">
+          <h3>Regulação</h3>
+          <p>O transporte remunerado privado individual é regulado pela Lei 12.587/2012, alterada pela Lei 13.640/2018, com regras municipais para motoristas e plataformas. O app pode ser visto como intermediador. Validar com jurídico antes do lançamento público.</p>
+        </div>
+        <div class="block">
+          <h3>Responsabilidade</h3>
+          <p>Seguro e acidentes não são cobertos pelo app. Os termos precisam deixar claro que o acordo é entre motorista e passageiro.</p>
+        </div>
+        <div class="block">
+          <h3>Rede pequena demais</h3>
+          <p>O valor depende de o motorista já ter passageiros. Mitigação: beta só com motoristas que já fazem corridas combinadas.</p>
+        </div>
+        <div class="block">
+          <h3>Aviso que não chega</h3>
+          <p>Economia de bateria de alguns fabricantes atrasa notificações. Mitigação: orientação no onboarding e medição de entrega.</p>
+        </div>
+        <div class="block">
+          <h3>Link vazado</h3>
+          <p>Convite encaminhado para fora da rede. Mitigação: aprovação manual e revogação.</p>
+        </div>
+        <div class="block">
+          <h3>Monetização contra a promessa</h3>
+          <p>Qualquer cobrança por corrida contradiz o posicionamento. Ver D-05.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="fases">
+      <div class="sec-head">
+        <p class="eyebrow">Negócio</p>
+        <h2>Fases.</h2>
+      </div>
+      <ol class="phases">
+        <li>
+          <span class="eyebrow">Fase 1 · MVP</span>
+          <h3>Beta fechado</h3>
+          <p class="muted">Escopo obrigatório com motoristas convidados que já atendem a própria rede. Foco em ativação e entrega de avisos.</p>
+        </li>
+        <li>
+          <span class="eyebrow">Fase 2 · V1</span>
+          <h3>Lançamento na Play Store</h3>
+          <p class="muted">Itens desejáveis, ajustes do beta, parecer jurídico e modelo de negócio decidido.</p>
+        </li>
+        <li>
+          <span class="eyebrow">Fase 3 · Depois</span>
+          <h3>Expansão</h3>
+          <p class="muted">Pix, localização em tempo real, viagem compartilhada, mídia no chat, tema escuro e iOS.</p>
+        </li>
+      </ol>
+    </section>
+
+  </main>
+</div>
+
+<section class="band decisions" id="decisoes">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Para decidir</p>
+      <h2>Decisões em aberto.</h2>
+      <p style="max-width:68ch;color:var(--on-band-muted)">Cada decisão muda telas, dados ou regras. As sugestões são ponto de partida para a conversa, não escolhas feitas.</p>
+    </div>
+
+    <article class="decision">
+      <span class="decision-id">D-01</span>
+      <div>
+        <h3>Como a pessoa entra no app?</h3>
+        <ul class="opts">
+          <li><h4>Entrar com Google</h4><p>Sem senha, nome e foto já vêm prontos. Depende de a pessoa ter conta Google — quase todo Android tem.</p></li>
+          <li><h4>Google + verificação em duas etapas</h4><p>Mais proteção da conta, mas muito mais atrito para o passageiro que só quer ver quem convidou.</p></li>
+        </ul>
+        <p class="suggest">Sugestão: <span>Entrar com Google, sem segunda etapa no MVP.</span></p>
+      </div>
+    </article>
+
+    <article class="decision">
+      <span class="decision-id">D-02</span>
+      <div>
+        <h3>Como o convite funciona?</h3>
+        <ul class="opts">
+          <li><h4>Link único com aprovação</h4><p>Um link serve para o grupo da família inteira; aprovação protege se vazar. Custa um toque a mais ao motorista por passageiro.</p></li>
+          <li><h4>Link de uso único por pessoa</h4><p>Conecta direto, sem aprovação. O motorista precisa gerar e mandar um link para cada pessoa.</p></li>
+        </ul>
+        <p class="suggest">Sugestão: <span>link único com aprovação (CV-05).</span></p>
+      </div>
+    </article>
+
+    <article class="decision">
+      <span class="decision-id">D-03</span>
+      <div>
+        <h3>Uma conta pode ser motorista e passageiro?</h3>
+        <ul class="opts">
+          <li><h4>Não no MVP</h4><p>Navegação e regras mais simples. Quem é os dois precisa de outra conta Google.</p></li>
+          <li><h4>Sim, com troca de perfil</h4><p>Reflete redes reais, onde um motorista também pega carona. Dobra estados de navegação e testes.</p></li>
+        </ul>
+      </div>
+    </article>
+
+    <article class="decision">
+      <span class="decision-id">D-04</span>
+      <div>
+        <h3>Quem define o valor da viagem?</h3>
+        <ul class="opts">
+          <li><h4>Motorista confirma o valor</h4><p>Passageiro pode sugerir; se o motorista mudar, o passageiro aceita. Registro claro, um passo a mais.</p></li>
+          <li><h4>Quem pede registra</h4><p>Menos passos, sem aceite formal. Pode gerar divergência no dia.</p></li>
+          <li><h4>Sem valor no app</h4><p>Tudo combinado no chat. Mais simples, mas perde o total da semana.</p></li>
+        </ul>
+      </div>
+    </article>
+
+    <article class="decision">
+      <span class="decision-id">D-05</span>
+      <div>
+        <h3>Como o produto ganha dinheiro sem cobrar por corrida?</h3>
+        <ul class="opts">
+          <li><h4>Assinatura do motorista</h4><p>Receita previsível e coerente com “sem comissão”. Cria barreira para quem ainda tem poucos passageiros.</p></li>
+          <li><h4>Grátis até um limite de passageiros</h4><p>Entrada sem custo. O limite pode frustrar quem tem rede grande.</p></li>
+          <li><h4>Grátis no beta, decidir depois</h4><p>Valida uso sem ruído de preço. Adia um risco central do negócio.</p></li>
+        </ul>
+      </div>
+    </article>
+
+    <article class="decision">
+      <span class="decision-id">D-06</span>
+      <div>
+        <h3>Onde fica o pagamento?</h3>
+        <ul class="opts">
+          <li><h4>Fora do app</h4><p>Pix ou dinheiro, direto entre os dois. Zero responsabilidade financeira no MVP.</p></li>
+          <li><h4>Marcar como pago</h4><p>Motorista controla quem pagou. Mais telas e estados.</p></li>
+          <li><h4>Pix integrado</h4><p>Mais conveniente. Traz taxas, regras de meios de pagamento e suporte.</p></li>
+        </ul>
+      </div>
+    </article>
+
+    <article class="decision">
+      <span class="decision-id">D-07</span>
+      <div>
+        <h3>Qual stack?</h3>
+        <p style="color:var(--on-band-muted);margin-top:13px;max-width:68ch">Opções e trocas descritas em <a href="#tecnico">Caminhos técnicos</a>.</p>
+      </div>
+    </article>
+
+    <article class="decision">
+      <span class="decision-id">D-08</span>
+      <div>
+        <h3>Qual tipografia?</h3>
+        <ul class="opts">
+          <li><h4>Inter</h4><p>Gratuita, próxima da referência e feita para tela. Menos personalidade no display.</p></li>
+          <li><h4>Licenciar HelveticaNowDisplay</h4><p>Fiel à referência. Licença para app tem custo e renovação.</p></li>
+        </ul>
+      </div>
+    </article>
+
+    <article class="decision">
+      <span class="decision-id">D-09</span>
+      <div>
+        <h3>Como sinalizar erro sem novo acento?</h3>
+        <ul class="opts">
+          <li><h4>Vermelho funcional</h4><p>Reconhecimento imediato. Quebra a regra “um único acento” — restringir a erro, sempre com ícone e texto.</p></li>
+          <li><h4>Só Deep Ink com ícone</h4><p>Mantém o sistema puro. Erro chama menos atenção, o que pesa num aviso de viagem.</p></li>
+        </ul>
+      </div>
+    </article>
+
+    <article class="decision">
+      <span class="decision-id">D-10</span>
+      <div>
+        <h3>Nome do produto: decidido — TrustCab.</h3>
+        <p style="color:var(--on-band-muted);margin-top:13px;max-width:68ch">Aparece no convite do WhatsApp antes de tudo. Pendente: checar registro no INPI, domínio para os links de convite e nomes parecidos na Play Store.</p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="wrap foot-grid">
+    <p class="wordmark" aria-hidden="true">PRD.</p>
+    <p>Rascunho v0.2 · 15 set 2026 · Próximo passo: fechar as decisões D-01 a D-06 e entrevistar motoristas que já fazem corridas combinadas.</p>
+  </div>
+</footer>

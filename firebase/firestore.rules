@@ -1,0 +1,232 @@
+rules_version = '2';
+
+// Regras do TrustCab. Princípio: só as duas pessoas de uma conexão veem agenda, viagens e conversa;
+// convites e mensagens de sistema são escritos apenas pelas Cloud Functions.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function me() { return request.auth.uid; }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function onlyChanged(keys) { return incoming().diff(existing()).affectedKeys().hasOnly(keys); }
+
+    function userDoc(uid) { return get(/databases/$(database)/documents/users/$(uid)).data; }
+    function connectionDoc(id) { return get(/databases/$(database)/documents/connections/$(id)).data; }
+    function agendaDoc(id) { return get(/databases/$(database)/documents/agendas/$(id)).data; }
+    function inviteDoc(token) { return get(/databases/$(database)/documents/invites/$(token)).data; }
+
+    function isParty(data) { return data.driverId == me() || data.passengerId == me(); }
+    function activeParty(connectionId) {
+      let c = connectionDoc(connectionId);
+      return c.status == 'active' && isParty(c);
+    }
+    function validInvite(token, driverId) {
+      let invite = inviteDoc(token);
+      return invite.active == true && invite.driverId == driverId;
+    }
+
+    function validTime(t) { return t is string && t.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$'); }
+    function validDate(d) { return d is string && d.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'); }
+    function validPrice(p) { return p == null || (p is number && p >= 0 && p <= 10000000); }
+    function validText(s, max) { return s is string && s.size() <= max; }
+
+    function agendaFieldKeys() {
+      return ['kind', 'weekdays', 'date', 'time', 'origin', 'destination', 'note', 'price'];
+    }
+    function validAgendaFields(d) {
+      return d.keys().hasAll(agendaFieldKeys())
+        && d.kind in ['recurring', 'single']
+        && d.weekdays is list && d.weekdays.size() <= 7
+        && (d.kind == 'single' ? validDate(d.date) : (d.date == null && d.weekdays.size() > 0))
+        && validTime(d.time)
+        && validText(d.origin, 200) && d.origin.size() > 0
+        && validText(d.destination, 200) && d.destination.size() > 0
+        && validText(d.note, 280)
+        && validPrice(d.price);
+    }
+    function sameAgendaFields(a, b) {
+      return a.kind == b.kind && a.weekdays == b.weekdays && a.date == b.date && a.time == b.time
+        && a.origin == b.origin && a.destination == b.destination && a.note == b.note && a.price == b.price;
+    }
+
+    // Perfil: cada pessoa lê e edita só o próprio. Papel, nome e convite não mudam pelo app.
+    match /users/{uid} {
+      allow get: if signedIn() && uid == me();
+      allow create: if signedIn() && uid == me()
+        && incoming().keys().hasOnly(['role', 'name', 'email', 'photoURL', 'phone', 'vehicle', 'fcmTokens', 'notificationsEnabled', 'createdAt'])
+        && incoming().role in ['driver', 'passenger']
+        && incoming().vehicle == null
+        && incoming().fcmTokens.size() == 0;
+      allow update: if signedIn() && uid == me()
+        && onlyChanged(['phone', 'vehicle', 'fcmTokens', 'notificationsEnabled'])
+        && (incoming().phone == null || validText(incoming().phone, 11))
+        && (incoming().vehicle == null
+          || (existing().role == 'driver'
+            && validText(incoming().vehicle.model, 60)
+            && validText(incoming().vehicle.color, 30)
+            && incoming().vehicle.plate is string && incoming().vehicle.plate.matches('^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$')))
+        && incoming().fcmTokens.size() <= 10;
+      allow list, delete: if false;
+    }
+
+    // Convite: lido só por quem tem o código; nunca listado.
+    match /invites/{token} {
+      allow get: if signedIn();
+      allow list, write: if false;
+    }
+
+    // Conexão: id = motoristaId_passageiroId.
+    match /connections/{id} {
+      allow get: if signedIn() && (me() == id.split('_')[0] || me() == id.split('_')[1]);
+      allow list: if signedIn() && isParty(existing());
+
+      allow create: if signedIn()
+        && id == incoming().driverId + '_' + me()
+        && incoming().passengerId == me()
+        && incoming().keys().hasOnly(['driverId', 'passengerId', 'status', 'inviteToken', 'unread', 'createdAt', 'updatedAt'])
+        && incoming().status == 'pending'
+        && validInvite(incoming().inviteToken, incoming().driverId)
+        && userDoc(me()).role == 'passenger';
+
+      allow update: if signedIn() && isParty(existing()) && (
+        // Passageiro pede de novo depois de recusa ou encerramento.
+        (existing().passengerId == me() && existing().status in ['declined', 'ended']
+          && incoming().status == 'pending'
+          && onlyChanged(['status', 'inviteToken', 'updatedAt'])
+          && validInvite(incoming().inviteToken, existing().driverId))
+        // Motorista aprova ou recusa.
+        || (existing().driverId == me() && existing().status == 'pending'
+          && incoming().status in ['active', 'declined']
+          && onlyChanged(['status', 'updatedAt']))
+        // Qualquer lado encerra.
+        || (existing().status == 'active' && incoming().status == 'ended'
+          && incoming().endedBy == me()
+          && onlyChanged(['status', 'endedBy', 'updatedAt']))
+        // Zera o próprio contador de não lidas.
+        || (onlyChanged(['unread'])
+          && incoming().unread[me()] == 0
+          && incoming().unread.diff(existing().get('unread', {})).affectedKeys().hasOnly([me()]))
+      );
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow read: if signedIn() && isParty(connectionDoc(id));
+        allow create: if signedIn() && activeParty(id)
+          && incoming().keys().hasOnly(['type', 'senderId', 'text', 'createdAt'])
+          && incoming().type == 'text'
+          && incoming().senderId == me()
+          && incoming().text is string && incoming().text.size() > 0 && incoming().text.size() <= 2000
+          && incoming().createdAt == request.time
+          // Aviso automático da viagem, de qualquer lado da conexão; vira push pela Function onTripNotice.
+          || signedIn() && activeParty(id)
+          && incoming().keys().hasOnly(['type', 'senderId', 'text', 'event', 'push', 'createdAt'])
+          && incoming().type == 'notice'
+          && incoming().senderId == me()
+          && incoming().text is string && incoming().text.size() > 0 && incoming().text.size() <= 500
+          && incoming().push.keys().hasOnly(['title', 'body'])
+          && incoming().push.title is string && incoming().push.body is string
+          && incoming().createdAt == request.time;
+        // Quem recebe marca como lida.
+        allow update: if signedIn() && isParty(connectionDoc(id))
+          && existing().type == 'text' && existing().senderId != me()
+          && onlyChanged(['readAt'])
+          && incoming().readAt == request.time;
+        allow delete: if false;
+      }
+    }
+
+    // Agenda: o passageiro pede; o motorista confirma, recusa, propõe valor ou responde alterações.
+    match /agendas/{agendaId} {
+      allow get, list: if signedIn() && isParty(existing());
+
+      allow create: if signedIn()
+        && incoming().passengerId == me()
+        && activeParty(incoming().connectionId)
+        && connectionDoc(incoming().connectionId).driverId == incoming().driverId
+        && connectionDoc(incoming().connectionId).passengerId == me()
+        && incoming().keys().hasOnly(['connectionId', 'driverId', 'passengerId', 'status', 'proposedPrice', 'pendingChange',
+          'startDate', 'returnOf', 'createdAt', 'updatedAt', 'kind', 'weekdays', 'date', 'time', 'origin', 'destination',
+          'note', 'price'])
+        && incoming().status == 'requested'
+        && incoming().proposedPrice == null
+        && incoming().pendingChange == null
+        && validDate(incoming().startDate)
+        && validAgendaFields(incoming());
+
+      allow update: if signedIn() && isParty(existing()) && activeParty(existing().connectionId)
+        && (driverAgendaUpdate() || passengerAgendaUpdate() || endAgendaUpdate());
+
+      allow delete: if false;
+    }
+
+    function driverAgendaUpdate() {
+      return existing().driverId == me() && (
+        // Confirmar ou recusar pedido.
+        (existing().status == 'requested' && incoming().status in ['confirmed', 'declined']
+          && onlyChanged(['status', 'updatedAt']))
+        // Propor outro valor.
+        || (existing().status == 'requested' && incoming().status == 'awaiting_passenger'
+          && incoming().proposedPrice != null && validPrice(incoming().proposedPrice)
+          && onlyChanged(['status', 'proposedPrice', 'updatedAt']))
+        // Aceitar alteração: aplica exatamente os campos pedidos.
+        || (existing().status == 'confirmed' && existing().pendingChange != null
+          && incoming().pendingChange == null
+          && sameAgendaFields(incoming(), existing().pendingChange)
+          && onlyChanged(agendaFieldKeys().concat(['pendingChange', 'updatedAt'])))
+        // Recusar alteração.
+        || (existing().status == 'confirmed' && existing().pendingChange != null
+          && incoming().pendingChange == null
+          && onlyChanged(['pendingChange', 'updatedAt']))
+      );
+    }
+
+    function passengerAgendaUpdate() {
+      return existing().passengerId == me() && (
+        // Aceitar o valor proposto.
+        (existing().status == 'awaiting_passenger' && incoming().status == 'confirmed'
+          && incoming().price == existing().proposedPrice && incoming().proposedPrice == null
+          && onlyChanged(['status', 'price', 'proposedPrice', 'updatedAt']))
+        // Editar pedido ainda não confirmado.
+        || (existing().status == 'requested' && validAgendaFields(incoming())
+          && onlyChanged(agendaFieldKeys().concat(['updatedAt'])))
+        // Pedir alteração de agenda confirmada (AG-07).
+        || (existing().status == 'confirmed' && incoming().pendingChange != null
+          && validAgendaFields(incoming().pendingChange)
+          && onlyChanged(['pendingChange', 'updatedAt']))
+      );
+    }
+
+    function endAgendaUpdate() {
+      return existing().status in ['requested', 'awaiting_passenger', 'confirmed']
+        && incoming().status == 'ended' && incoming().endedBy == me()
+        && onlyChanged(['status', 'endedBy', 'updatedAt']);
+    }
+
+    // Viagem do dia: id = agendaId_AAAA-MM-DD. Motorista avisa e conclui; qualquer lado cancela.
+    match /trips/{tripId} {
+      allow get: if signedIn() && (resource == null || isParty(existing()));
+      allow list: if signedIn() && isParty(existing());
+
+      allow create, update: if signedIn()
+        && tripId == incoming().agendaId + '_' + incoming().date
+        && validDate(incoming().date) && validTime(incoming().time)
+        && incoming().keys().hasOnly(['agendaId', 'connectionId', 'driverId', 'passengerId', 'date', 'time', 'status',
+          'cancelledBy', 'onTheWayAt', 'arrivedAt', 'completedAt', 'cancelledAt', 'updatedAt'])
+        && tripMatchesAgenda()
+        && ((me() == incoming().driverId && incoming().status in ['on_the_way', 'arrived', 'completed', 'cancelled'])
+          || (me() == incoming().passengerId && incoming().status == 'cancelled'))
+        && (incoming().status == 'cancelled' ? incoming().cancelledBy == me() : incoming().cancelledBy == null);
+      allow delete: if false;
+    }
+
+    function tripMatchesAgenda() {
+      let a = agendaDoc(incoming().agendaId);
+      return a.status == 'confirmed'
+        && a.driverId == incoming().driverId
+        && a.passengerId == incoming().passengerId
+        && a.connectionId == incoming().connectionId
+        && activeParty(a.connectionId);
+    }
+  }
+}

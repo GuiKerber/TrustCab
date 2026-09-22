@@ -1,0 +1,16 @@
+{
+  "name": "trustcab",
+  "private": true,
+  "workspaces": [
+    "apps/driver",
+    "apps/passenger",
+    "packages/*"
+  ],
+  "scripts": {
+    "storybook": "npm run storybook -w @trustcab/ui",
+    "test:stories": "npm run test -w @trustcab/ui",
+    "driver": "npm run start -w @trustcab/driver",
+    "passenger": "npm run start -w @trustcab/passenger",
+    "typecheck": "tsc -p apps/driver --noEmit && tsc -p apps/passenger --noEmit && tsc -p packages/ui --noEmit"
+  }
+}

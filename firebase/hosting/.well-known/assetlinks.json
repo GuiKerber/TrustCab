@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.trustcab.app",
+      "sha256_cert_fingerprints": [
+        "CB:26:FE:3C:29:83:64:48:41:E9:47:4E:0E:F7:A8:4E:C1:5E:AE:D6:30:44:0E:D6:41:C6:1B:4D:69:0E:D0:68"
+      ]
+    }
+  }
+]
