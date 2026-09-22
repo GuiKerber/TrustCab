@@ -14,7 +14,11 @@ export const googleClientIds = {
   iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '',
 };
 
-export const authConfigured = Boolean(firebaseConfig.apiKey && firebaseConfig.authDomain && firebaseConfig.projectId && firebaseConfig.appId);
+// Versão de demonstração (ex.: o site na Vercel, para portfólio): entra sem conta, com os dados de exemplo.
+// No celular, o app publicado continua exigindo login.
+export const demoEnabled = __DEV__ || process.env.EXPO_PUBLIC_DEMO === '1';
+
+export const authConfigured =Boolean(firebaseConfig.apiKey && firebaseConfig.authDomain && firebaseConfig.projectId && firebaseConfig.appId);
 
 export const missingAuthKeys = [
   ...Object.entries(firebaseConfig).filter(([, value]) => !value).map(([key]) => `Firebase ${key}`),

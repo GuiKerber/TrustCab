@@ -29,3 +29,9 @@ export const Erro: Story = { args: { error: 'Você fechou o login do Google ante
 export const Desenvolvimento: Story = {
   args: { dev: { text: 'Modo de desenvolvimento: no Expo Go o Google não deixa entrar. Veja as telas sem conta:', onEnter: fn() } },
 };
+
+// Site de portfólio: sem as chaves do Firebase, só a entrada com dados de exemplo.
+export const Demonstracao: Story = {
+  name: 'Demonstração',
+  args: { onSignIn: undefined, dev: { text: 'Versão de demonstração: navegue pelo app com dados de exemplo, sem criar conta.', onEnter: fn() } },
+};

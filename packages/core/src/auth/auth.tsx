@@ -4,7 +4,7 @@ import { deleteUser, GoogleAuthProvider, onAuthStateChanged, signInWithCredentia
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Platform } from 'react-native';
 
-import { authConfigured, googleClientIds, missingAuthKeys } from './config';
+import { authConfigured, demoEnabled, googleClientIds, missingAuthKeys } from './config';
 import { auth } from './firebase';
 
 // No celular, o login do Google abre no navegador e volta para o app por aqui.
@@ -132,7 +132,7 @@ export function AuthProvider({ children, onDeleted }: { children: ReactNode; onD
     reason,
     devSession,
     enterDevSession: () => {
-      if (__DEV__) setDevSession(true);
+      if (demoEnabled) setDevSession(true);
     },
   };
 

@@ -7,7 +7,7 @@ import { TextButton } from './Button';
 import { Icon, Text } from './ui';
 
 // Login dos dois apps: marca, uma frase em três linhas e uma única ação em texto. Nada mais.
-// Cada app passa a própria frase; o resto (sessão expirada, erro, modo de desenvolvimento) é igual.
+// Cada app passa a própria frase; o resto (sessão expirada, erro, entrada sem conta) é igual.
 export function LoginScreen({
   brand,
   headline,
@@ -25,8 +25,9 @@ export function LoginScreen({
   notice?: string | null;
   error?: string | null;
   busy?: boolean;
-  onSignIn: () => void;
-  // Só em desenvolvimento: entrar sem conta, com o motivo escrito.
+  // Sem ele (login sem chaves, como na versão de demonstração), o botão do Google não aparece.
+  onSignIn?: () => void;
+  // Entrar sem conta (desenvolvimento ou demonstração), com o motivo escrito.
   dev?: { text: string; onEnter?: () => void } | null;
 }) {
   return (
@@ -54,7 +55,7 @@ export function LoginScreen({
               {notice}
             </Text>
           ) : null}
-          <TextButton label="Entrar com Google" loading={busy} onPress={onSignIn} accessibilityHint="Abre o login da sua conta Google" />
+          {onSignIn ? <TextButton label="Entrar com Google" loading={busy} onPress={onSignIn} accessibilityHint="Abre o login da sua conta Google" /> : null}
           {error ? (
             <Text variant="small" tone="orange" accessibilityLiveRegion="polite">
               {error}
@@ -65,7 +66,7 @@ export function LoginScreen({
               <Text variant="small" tone="secondary">
                 {dev.text}
               </Text>
-              {dev.onEnter ? <TextButton label="Ver sem conta" muted onPress={dev.onEnter} accessibilityHint="Só em desenvolvimento" /> : null}
+              {dev.onEnter ? <TextButton label="Ver sem conta" muted={Boolean(onSignIn)} onPress={dev.onEnter} accessibilityHint="Abre o app com dados de exemplo" /> : null}
             </View>
           ) : null}
         </View>
