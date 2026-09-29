@@ -1,5 +1,3 @@
-import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
 import { deleteUser, GoogleAuthProvider, onAuthStateChanged, signInWithCredential, signInWithPopup, signOut as firebaseSignOut, type User } from 'firebase/auth';
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Platform } from 'react-native';
@@ -7,8 +5,42 @@ import { Platform } from 'react-native';
 import { authConfigured, demoEnabled, googleClientIds, missingAuthKeys } from './config';
 import { auth } from './firebase';
 
-// No celular, o login do Google abre no navegador e volta para o app por aqui.
-WebBrowser.maybeCompleteAuthSession();
+// No celular o login é o seletor de contas do próprio Android; no navegador é a janela do Google.
+// A biblioteca nativa só é carregada fora da web, onde ela não existe.
+type GoogleModule = typeof import('@react-native-google-signin/google-signin');
+
+let google: GoogleModule | null = null;
+let configured = false;
+
+function googleNative() {
+  if (!google) google = require('@react-native-google-signin/google-signin') as GoogleModule;
+  if (!configured) {
+    google.GoogleSignin.configure({
+      webClientId: googleClientIds.webClientId,
+      iosClientId: googleClientIds.iosClientId || undefined,
+    });
+    configured = true;
+  }
+  return google;
+}
+
+function errorCode(error: unknown) {
+  return typeof error === 'object' && error && 'code' in error ? String((error as { code: string }).code) : '';
+}
+
+// Devolve o id_token que o Firebase aceita, ou null quando a pessoa desiste.
+async function signInNative() {
+  const { GoogleSignin, statusCodes } = googleNative();
+  await GoogleSignin.hasPlayServices();
+  try {
+    const response = await GoogleSignin.signIn();
+    return response.type === 'success' ? response.data.idToken : null;
+  } catch (caught) {
+    const code = errorCode(caught);
+    if (code === String(statusCodes.SIGN_IN_CANCELLED) || code === String(statusCodes.IN_PROGRESS)) return null;
+    throw caught;
+  }
+}
 
 type Status = 'loading' | 'signedOut' | 'signedIn';
 
@@ -36,7 +68,8 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 function explain(error: unknown) {
-  const code = typeof error === 'object' && error && 'code' in error ? String((error as { code: string }).code) : '';
+  const code = errorCode(error);
+  if (code.includes('PLAY_SERVICES')) return 'Atualize o Google Play Services no seu celular e tente entrar de novo.';
   if (code.includes('popup-closed') || code.includes('cancelled')) return 'Você fechou o login do Google antes de terminar. Toque em entrar para tentar de novo.';
   if (code.includes('network')) return 'Sem internet agora. Confira a conexão e tente de novo.';
   if (code.includes('popup-blocked')) return 'O navegador bloqueou a janela do Google. Permita pop-ups para este site e tente de novo.';
@@ -51,7 +84,6 @@ export function AuthProvider({ children, onDeleted }: { children: ReactNode; onD
   const [error, setError] = useState<string | null>(null);
   const [devSession, setDevSession] = useState(false);
   const [reason, setReason] = useState<SignedOutReason>(null);
-  const nativePrompt = useRef<(() => Promise<void>) | null>(null);
   // Saída pedida pela pessoa (sair ou excluir). Qualquer outra saída com sessão aberta é sessão expirada.
   const leaving = useRef(false);
   const current = useRef<User | null>(null);
@@ -78,8 +110,9 @@ export function AuthProvider({ children, onDeleted }: { children: ReactNode; onD
     try {
       if (Platform.OS === 'web') {
         await signInWithPopup(auth, new GoogleAuthProvider());
-      } else if (nativePrompt.current) {
-        await nativePrompt.current();
+      } else {
+        const idToken = await signInNative();
+        if (idToken) await signInWithCredential(auth, GoogleAuthProvider.credential(idToken));
       }
     } catch (caught) {
       setError(explain(caught));
@@ -91,6 +124,8 @@ export function AuthProvider({ children, onDeleted }: { children: ReactNode; onD
   const signOut = async () => {
     setReason(null);
     setDevSession(false);
+    // Sem sair do Google junto, o seletor de contas não aparece na próxima vez.
+    if (Platform.OS !== 'web') await googleNative().GoogleSignin.signOut().catch(() => {});
     if (auth?.currentUser) {
       leaving.current = true;
       await firebaseSignOut(auth);
@@ -138,33 +173,9 @@ export function AuthProvider({ children, onDeleted }: { children: ReactNode; onD
 
   return (
     <AuthContext.Provider value={value}>
-      {Platform.OS !== 'web' && auth ? <NativeGoogle register={(prompt) => (nativePrompt.current = prompt)} onError={(e) => setError(explain(e))} /> : null}
       {children}
     </AuthContext.Provider>
   );
-}
-
-// Login nativo do Google (celular). Só existe quando há chaves, porque o provedor exige os IDs de cliente.
-function NativeGoogle({ register, onError }: { register: (prompt: () => Promise<void>) => void; onError: (error: unknown) => void }) {
-  const [, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: googleClientIds.webClientId,
-    androidClientId: googleClientIds.androidClientId,
-    iosClientId: googleClientIds.iosClientId,
-  });
-
-  useEffect(() => {
-    register(async () => {
-      await promptAsync();
-    });
-  }, [promptAsync, register]);
-
-  useEffect(() => {
-    if (response?.type !== 'success' || !auth) return;
-    const idToken = response.params.id_token;
-    signInWithCredential(auth, GoogleAuthProvider.credential(idToken)).catch(onError);
-  }, [response, onError]);
-
-  return null;
 }
 
 export function useAuth() {

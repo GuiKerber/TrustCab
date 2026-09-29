@@ -5,6 +5,13 @@ export const INVITE_HOST = 'trustcab-9bab6.web.app';
 // Pacote do app do passageiro na Play Store: é ele que recebe o convite.
 export const PASSENGER_PACKAGE = 'com.trustcab.app';
 
+// Páginas que o aceite do login aponta. A Play Store também pede esses endereços na ficha da loja.
+export const TERMS_URL = `https://${INVITE_HOST}/termos.html`;
+export const PRIVACY_URL = `https://${INVITE_HOST}/privacidade.html`;
+
+// Versão dos termos aceita no login. Subir este número faz o app pedir o aceite de novo.
+export const TERMS_VERSION = 1;
+
 // Tokens do servidor: 8 caracteres, sem letras e números fáceis de confundir.
 const TOKEN_LENGTH = 8;
 

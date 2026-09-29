@@ -14,6 +14,7 @@ export * from './components/ErrorState';
 export * from './components/FadeScroll';
 export * from './components/FloatingTabBar';
 export * from './components/FormScreen';
+export * from './components/GoogleButton';
 export * from './components/ListRow';
 export * from './components/MessageBubble';
 export * from './components/MonthGrid';

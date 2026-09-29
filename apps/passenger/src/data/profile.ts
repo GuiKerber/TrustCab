@@ -1,4 +1,4 @@
-import { createStore } from '@trustcab/core';
+import { createStore, TERMS_VERSION } from '@trustcab/core';
 
 // Seus dados no app: telefone (opcional), primeiro acesso e quais avisos receber.
 // Vira escrita no Firestore quando o app for ligado ao backend.
@@ -18,12 +18,17 @@ export type NotificationKind = keyof typeof NOTIFICATIONS;
 export type Profile = {
   phone: string;
   onboarded: boolean;
+  // Qual versão dos termos a pessoa aceitou ao entrar, e quando. É o que prova o aceite depois.
+  termsVersion: number | null;
+  termsAcceptedAt: string | null;
   notifications: Record<NotificationKind, boolean>;
 };
 
 const initial: Profile = {
   phone: '',
   onboarded: false,
+  termsVersion: null,
+  termsAcceptedAt: null,
   notifications: Object.fromEntries(Object.keys(NOTIFICATIONS).map((kind) => [kind, true])) as Profile['notifications'],
 };
 
@@ -33,6 +38,10 @@ export const useProfile = store.use;
 
 export function setPhone(phone: string) {
   store.set({ ...store.get(), phone });
+}
+
+export function acceptTerms() {
+  store.set({ ...store.get(), termsVersion: TERMS_VERSION, termsAcceptedAt: new Date().toISOString() });
 }
 
 export function finishOnboarding() {

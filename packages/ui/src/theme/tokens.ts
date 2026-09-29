@@ -35,6 +35,17 @@ export const palette = {
   whiteAlpha: { 45: 'rgba(255,255,255,0.45)' },
 } as const;
 
+// Cores de marca de terceiros. Não são escolha nossa: as diretrizes do Google definem o botão de entrar
+// e as quatro cores do símbolo. Ficam separadas da paleta para ninguém reaproveitar em outro lugar.
+export const brand = {
+  google: {
+    surface: '#FFFFFF',
+    text: '#1F1F1F',
+    line: '#747775',
+    mark: { blue: '#4285F4', green: '#34A853', yellow: '#FBBC05', red: '#EA4335' },
+  },
+} as const;
+
 // ─── 2. Cores semânticas ─────────────────────────────────────────────────────
 export const colors = {
   // Fundo e superfícies escuras

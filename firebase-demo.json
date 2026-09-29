@@ -1,0 +1,8 @@
+{
+  "hosting": {
+    "site": "trustcab-demo",
+    "public": "apps/passenger/dist",
+    "ignore": ["**/node_modules/**"],
+    "rewrites": [{ "source": "**", "destination": "/index.html" }]
+  }
+}

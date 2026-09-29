@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Linking, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { PRIVACY_URL, TERMS_URL } from '@trustcab/core';
 
 import { colors, layout, spacing } from '../theme/tokens';
 
@@ -110,6 +112,12 @@ export function SettingsScreen({
               </View>
             </View>
           ))}
+        </View>
+
+        <View style={styles.block}>
+          <Text variant="title">Legal</Text>
+          <Button label="Termos de uso" icon="open_in_new" variant="surface" onPress={() => Linking.openURL(TERMS_URL)} />
+          <Button label="Política de privacidade" icon="open_in_new" variant="surface" onPress={() => Linking.openURL(PRIVACY_URL)} />
         </View>
 
         <View style={styles.block}>

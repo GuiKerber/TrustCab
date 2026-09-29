@@ -1,4 +1,4 @@
-import { inviteShortUrl } from '@trustcab/core';
+import { inviteShortUrl, TERMS_VERSION } from '@trustcab/core';
 import { randomUUID } from 'expo-crypto';
 import { useSyncExternalStore } from 'react';
 
@@ -49,6 +49,9 @@ export type Profile = {
   vehicle: Vehicle | null;
   // Já passou pelo primeiro acesso (preenchendo ou pulando).
   onboarded: boolean;
+  // Qual versão dos termos a pessoa aceitou ao entrar, e quando. É o que prova o aceite depois.
+  termsVersion: number | null;
+  termsAcceptedAt: string | null;
   notifications: Record<NotificationKind, boolean>;
   // Parte final do link de convite. Gerar um novo invalida o anterior.
   inviteToken: string;
@@ -65,6 +68,8 @@ const initial: Profile = {
   pix: null,
   vehicle: null,
   onboarded: false,
+  termsVersion: null,
+  termsAcceptedAt: null,
   notifications: Object.fromEntries(Object.keys(NOTIFICATIONS).map((kind) => [kind, true])) as Profile['notifications'],
   inviteToken: newToken(),
 };
@@ -83,6 +88,10 @@ export function setPix(pix: Profile['pix']) {
 
 export function setVehicle(vehicle: Vehicle | null) {
   emit({ ...profile, vehicle });
+}
+
+export function acceptTerms() {
+  emit({ ...profile, termsVersion: TERMS_VERSION, termsAcceptedAt: new Date().toISOString() });
 }
 
 export function finishOnboarding() {

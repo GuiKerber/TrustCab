@@ -10,9 +10,8 @@
     "android": {
       "package": "com.trustcab.app",
       "adaptiveIcon": {
-        "backgroundColor": "#ffffff",
+        "backgroundColor": "#0b0a0f",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
@@ -39,9 +38,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#0b0a0f",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 180
         }
       ],
       "@react-native-community/datetimepicker"

@@ -14,11 +14,10 @@
     "react": "*",
     "react-native": "*",
     "@react-native-async-storage/async-storage": "*",
-    "expo-auth-session": "*",
-    "expo-web-browser": "*",
     "firebase": "*",
     "expo-constants": "*",
     "expo-notifications": "*",
-    "expo-router": "*"
+    "expo-router": "*",
+    "@react-native-google-signin/google-signin": "*"
   }
 }

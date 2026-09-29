@@ -50,23 +50,37 @@ service cloud.firestore {
         && a.origin == b.origin && a.destination == b.destination && a.note == b.note && a.price == b.price;
     }
 
+    // Chave Pix do motorista: só o passageiro conectado vê, e quem valida o formato é o app.
+    function validPix(p) {
+      return p == null
+        || (p.keys().hasOnly(['type', 'key'])
+          && p.type in ['cpf', 'phone', 'email', 'random']
+          && validText(p.key, 80) && p.key.size() > 0);
+    }
+
     // Perfil: cada pessoa lê e edita só o próprio. Papel, nome e convite não mudam pelo app.
     match /users/{uid} {
       allow get: if signedIn() && uid == me();
       allow create: if signedIn() && uid == me()
-        && incoming().keys().hasOnly(['role', 'name', 'email', 'photoURL', 'phone', 'vehicle', 'fcmTokens', 'notificationsEnabled', 'createdAt'])
+        && incoming().keys().hasOnly(['role', 'name', 'email', 'photoURL', 'phone', 'vehicle', 'pix', 'fcmTokens', 'notificationsEnabled', 'termsVersion', 'termsAcceptedAt', 'createdAt'])
         && incoming().role in ['driver', 'passenger']
         && incoming().vehicle == null
-        && incoming().fcmTokens.size() == 0;
+        && incoming().pix == null
+        && incoming().fcmTokens.size() == 0
+        // O aceite dos termos entra na criação da conta e nunca mais muda pelo app.
+        && incoming().termsVersion is int && incoming().termsVersion > 0;
       allow update: if signedIn() && uid == me()
-        && onlyChanged(['phone', 'vehicle', 'fcmTokens', 'notificationsEnabled'])
+        && onlyChanged(['phone', 'vehicle', 'pix', 'fcmTokens', 'notificationsEnabled', 'termsVersion', 'termsAcceptedAt'])
         && (incoming().phone == null || validText(incoming().phone, 11))
         && (incoming().vehicle == null
           || (existing().role == 'driver'
             && validText(incoming().vehicle.model, 60)
             && validText(incoming().vehicle.color, 30)
             && incoming().vehicle.plate is string && incoming().vehicle.plate.matches('^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$')))
-        && incoming().fcmTokens.size() <= 10;
+        && (incoming().pix == null || (existing().role == 'driver' && validPix(incoming().pix)))
+        && incoming().fcmTokens.size() <= 10
+        // Aceitar uma versão nova dos termos é permitido; voltar atrás não.
+        && incoming().termsVersion is int && incoming().termsVersion >= existing().termsVersion;
       allow list, delete: if false;
     }
 

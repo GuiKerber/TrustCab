@@ -29,6 +29,9 @@ google-services.json
 # variáveis de ambiente locais (Firebase, Google)
 .env*.local
 
+# cache do Firebase CLI
+.firebase/
+
 # erros e sistema
 npm-debug.*
 yarn-debug.*

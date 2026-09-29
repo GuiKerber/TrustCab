@@ -13,12 +13,18 @@ function entryText(configured: boolean, missing: string[]) {
 
 // Liga o LoginScreen ao login: aviso de sessão expirada ou conta excluída, erro e a entrada sem conta
 // (em desenvolvimento ou na versão de demonstração). Sem as chaves do Firebase, o botão do Google some.
-export function useLoginProps() {
+// "onAccept" guarda no perfil qual versão dos termos a pessoa aceitou ao tocar em entrar.
+export function useLoginProps({ onAccept }: { onAccept?: () => void } = {}) {
   const { signIn, busy, error, configured, missing, enterDevSession, reason } = useAuth();
   return {
     busy,
     error,
-    onSignIn: configured ? signIn : undefined,
+    onSignIn: configured
+      ? () => {
+          onAccept?.();
+          return signIn();
+        }
+      : undefined,
     notice:
       reason === 'expired'
         ? 'Sua sessão terminou. Entre de novo para continuar de onde parou.'

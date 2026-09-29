@@ -1,12 +1,15 @@
-import { StyleSheet, View } from 'react-native';
+import { Linking, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { PRIVACY_URL, TERMS_URL } from '@trustcab/core';
 
 import { colors, layout, size, spacing } from '../theme/tokens';
 
 import { TextButton } from './Button';
+import { GoogleButton } from './GoogleButton';
 import { Icon, Text } from './ui';
 
-// Login dos dois apps: marca, uma frase em três linhas e uma única ação em texto. Nada mais.
+// Login dos dois apps: marca, uma frase em três linhas, o botão do Google e o aceite dos termos.
 // Cada app passa a própria frase; o resto (sessão expirada, erro, entrada sem conta) é igual.
 export function LoginScreen({
   brand,
@@ -55,10 +58,23 @@ export function LoginScreen({
               {notice}
             </Text>
           ) : null}
-          {onSignIn ? <TextButton label="Entrar com Google" loading={busy} onPress={onSignIn} accessibilityHint="Abre o login da sua conta Google" /> : null}
+          {onSignIn ? <GoogleButton loading={busy} onPress={onSignIn} accessibilityHint="Abre a escolha de conta do Google" /> : null}
           {error ? (
             <Text variant="small" tone="orange" accessibilityLiveRegion="polite">
               {error}
+            </Text>
+          ) : null}
+          {onSignIn ? (
+            <Text variant="small" tone="secondary">
+              Ao entrar, você aceita os{' '}
+              <Text variant="small" style={styles.link} accessibilityRole="link" onPress={() => Linking.openURL(TERMS_URL)}>
+                termos de uso
+              </Text>{' '}
+              e a{' '}
+              <Text variant="small" style={styles.link} accessibilityRole="link" onPress={() => Linking.openURL(PRIVACY_URL)}>
+                política de privacidade
+              </Text>
+              .
             </Text>
           ) : null}
           {dev ? (
@@ -89,5 +105,6 @@ const styles = StyleSheet.create({
   },
   headline: { marginTop: 'auto', marginBottom: 'auto' },
   actions: { gap: spacing[12] },
+  link: { color: colors.text, textDecorationLine: 'underline' },
   dev: { gap: spacing[4], marginTop: spacing[20] },
 });
