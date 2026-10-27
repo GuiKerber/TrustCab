@@ -1,69 +1,72 @@
 import { router } from 'expo-router';
 import { Linking } from 'react-native';
 
-import { notifyPassenger } from '@/data/chat';
 import { usePassengerStore, withState } from '@/data/passengers';
 import { setTripPaid, setTripReported, usePaidTrips, useReportedTrips } from '@/data/payments';
-import { useProfile } from '@/data/profile';
-import { driver, formatPrice, passengerIdOf, relativeDay, samplePassengers, type Trip, type TripStatus } from '@trustcab/core';
+import { useDriver } from '@/data/driver';
+import { sendTo } from '@/data/whatsapp';
+import {
+  arrived,
+  formatPrice,
+  onTheWay,
+  relativeDay,
+  samplePassengers,
+  tripCancelled,
+  type Trip,
+  type TripStatus,
+} from '@trustcab/core';
 import { setTripSignal } from '@/data/tripSignals';
 
 import { PREVIOUS_STATUS, type TripOption } from '@trustcab/ui';
 
 // Ações da folha da viagem, iguais na home e na agenda.
-// Cada passo que muda algo para o passageiro vira aviso no chat dele e notificação no celular dele.
+//
+// O passageiro não tem app: o único jeito de ele saber de alguma coisa é o WhatsApp. Então o
+// toque faz duas coisas — muda o estado aqui, na hora, e abre a conversa com a mensagem escrita.
+// Quem envia é o motorista. É um toque a mais do que a versão com app tinha, e esse é o preço
+// honesto de não pedir instalação a ninguém.
+//
+// Só os três passos que mudam a vida do passageiro viram mensagem: a caminho, cheguei e
+// cancelei. Concluir a viagem e marcar como pago são contabilidade do motorista, e avisar cada
+// uma vira conversa demais — isso fecha na cobrança do mês.
 export function useTripActions({ now, date, close }: { now: Date; date: Date; close: () => void }) {
   const passengers = withState(samplePassengers(now), usePassengerStore());
   const paid = usePaidTrips();
   const reported = useReportedTrips();
-  const { vehicle } = useProfile();
+  const { slug } = useDriver();
 
   const phoneOf = (trip: Trip) => passengers.find((p) => p.name === trip.passenger)?.phone ?? null;
   const when = (trip: Trip, day: Date) => `${relativeDay(day, now).toLowerCase()}, ${trip.time}`;
+  const firstNameOf = (trip: Trip) => trip.passenger.split(' ')[0];
 
-  // Aviso ao passageiro para cada mudança que importa para ele. Desfazer um passo não avisa (o passo seguinte já corrige).
+  // Abre o WhatsApp com o recado do passo. Desfazer um passo não avisa: o passo seguinte corrige.
   const notice = (trip: Trip, from: TripStatus, to: TripStatus, day: Date) => {
-    const id = passengerIdOf(trip.passenger);
-    const me = driver.firstName;
-    const car = vehicle ? `${vehicle.model} ${vehicle.color}, placa ${vehicle.plate}` : null;
+    const firstName = firstNameOf(trip);
     if (to === 'on_the_way' && from === 'scheduled') {
-      notifyPassenger(id, `${me} está a caminho da partida (${trip.origin}).`, {
-        title: `${me} está a caminho`,
-        body: `Viagem das ${trip.time}, saindo de ${trip.origin}.`,
-      }, to);
-    } else if (to === 'arrived' && from === 'on_the_way') {
-      notifyPassenger(id, `${me} chegou em ${trip.origin}.${car ? ` ${car}.` : ''}`, {
-        title: `${me} chegou`,
-        body: car ? `${car}. ${trip.origin}.` : trip.origin,
-      }, to);
-    } else if (to === 'completed') {
-      notifyPassenger(id, `Viagem das ${trip.time} concluída · ${formatPrice(trip.priceCents)}.`, {
-        title: 'Viagem concluída',
-        body: `${formatPrice(trip.priceCents)} da viagem das ${trip.time}.`,
-      }, to);
-    } else if (to === 'cancelled') {
-      notifyPassenger(id, `${me} cancelou a viagem de ${when(trip, day)}.`, {
-        title: 'Viagem cancelada',
-        body: `${me} cancelou a viagem de ${when(trip, day)}.`,
-      }, to);
-    } else if (to === 'scheduled' && from === 'cancelled') {
-      notifyPassenger(id, `${me} reativou a viagem de ${when(trip, day)}.`, {
-        title: 'Viagem reativada',
-        body: `A viagem de ${when(trip, day)} voltou para a agenda.`,
-      }, to);
+      return sendTo(phoneOf(trip), onTheWay(firstName, trip.time));
     }
+    if (to === 'arrived' && from === 'on_the_way') {
+      return sendTo(phoneOf(trip), arrived(firstName));
+    }
+    if (to === 'cancelled') {
+      // A mensagem leva o link junto: é assim que ele remarca sem virar texto solto.
+      return sendTo(phoneOf(trip), tripCancelled(firstName, dayKeyOf(day), slug ?? ''));
+    }
+    return Promise.resolve({ ok: true } as const);
   };
 
   // "day": o dia da viagem, quando não é o dia aberto na tela (ex.: viagens esquecidas de ontem).
   const setStatus = (trip: Trip, status: TripStatus, day: Date = date) => {
-    notice(trip, trip.status, status, day);
+    const from = trip.status;
     setTripSignal(trip.id, status);
+    void notice(trip, from, status, day);
   };
 
   const openMaps = (address: string) =>
     Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}&travelmode=driving`);
 
-  const openChat = (trip: Trip) => router.push({ pathname: '/chat/[id]', params: { id: passengerIdOf(trip.passenger) } });
+  // O "conversar" da folha é a conversa de sempre do WhatsApp, sem texto nosso por cima.
+  const openChat = (trip: Trip) => sendTo(phoneOf(trip), '');
 
   const openSpending = (trip: Trip) => {
     close();
@@ -72,7 +75,7 @@ export function useTripActions({ now, date, close }: { now: Date; date: Date; cl
 
   // Toda ação pode ser desfeita pelos três pontos. Cancelar fica na própria folha, com confirmação.
   const options = (trip: Trip): TripOption[] => {
-    const firstName = trip.passenger.split(' ')[0];
+    const firstName = firstNameOf(trip);
     const phone = phoneOf(trip);
     const list: TripOption[] = [];
     const previous = PREVIOUS_STATUS[trip.status];
@@ -85,12 +88,6 @@ export function useTripActions({ now, date, close }: { now: Date; date: Date; cl
   const setPaid = (trip: Trip, isPaid: boolean) => {
     setTripPaid(trip.id, isPaid ? new Date() : null);
     if (isPaid) setTripReported(trip.id, null);
-    if (isPaid) {
-      notifyPassenger(passengerIdOf(trip.passenger), `${driver.firstName} confirmou o pagamento de ${formatPrice(trip.priceCents)} da viagem das ${trip.time}.`, {
-        title: 'Pagamento confirmado',
-        body: `${formatPrice(trip.priceCents)} da viagem das ${trip.time}.`,
-      }, 'paid');
-    }
   };
 
   // Carro ou Pix faltando: fecha a folha e abre o cadastro.
@@ -110,5 +107,12 @@ export function useTripActions({ now, date, close }: { now: Date; date: Date; cl
     isReported: (trip: Trip | null) => Boolean(trip && reported[trip.id]),
     setPaid,
     openSetup,
+    when,
+    formatPrice,
   };
+}
+
+// As mensagens falam a data por extenso, e a data delas é AAAA-MM-DD.
+function dayKeyOf(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }

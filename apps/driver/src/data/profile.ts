@@ -2,9 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { setPix as remoteSetPix, setVehicle as remoteSetVehicle } from '@trustcab/core/db';
 
-import type { Plan } from './plan';
-import { inviteShortUrl, TERMS_VERSION } from '@trustcab/core';
-import { randomUUID } from 'expo-crypto';
+import { TERMS_VERSION } from '@trustcab/core';
 import { useSyncExternalStore } from 'react';
 
 // Dados do motorista: chave Pix, veículo, link de convite e preferências de notificação.
@@ -13,7 +11,10 @@ import { useSyncExternalStore } from 'react';
 export type PixType = 'cpf' | 'phone' | 'email' | 'random';
 export type Vehicle = { model: string; color: string; plate: string };
 
-// O que avisa o motorista. "local" sai do próprio celular (não precisa de internet); "push" vem do servidor.
+// O que avisa o motorista. "local" sai do próprio celular (não precisa de internet); "push" vem
+// do servidor. A chave de push é uma só porque é uma só no servidor: a Function confere
+// users.notificationsEnabled antes de mandar qualquer coisa. Oferecer três interruptores que
+// desligam a mesma coisa seria mentir sobre o que o botão faz.
 export const NOTIFICATIONS = {
   tripReminder: {
     title: 'Hora de sair',
@@ -25,24 +26,9 @@ export const NOTIFICATIONS = {
     text: 'Se uma viagem passou do horário e você não concluiu.',
     source: 'local',
   },
-  tripRequest: {
-    title: 'Pedidos de viagem',
-    text: 'Quando um passageiro pede uma viagem para você aprovar.',
-    source: 'push',
-  },
-  tripCancelled: {
-    title: 'Viagem cancelada pelo passageiro',
-    text: 'Para você não sair à toa.',
-    source: 'push',
-  },
-  message: {
-    title: 'Mensagens',
-    text: 'Quando um passageiro escreve no chat.',
-    source: 'push',
-  },
-  inviteAccepted: {
-    title: 'Convite aceito',
-    text: 'Quando alguém entra na sua rede pelo seu link.',
+  serverPush: {
+    title: 'Pedidos e lembretes',
+    text: 'Quando alguém marca pelo seu link, a lista das viagens de amanhã e o fim do mês grátis.',
     source: 'push',
   },
 } as const;
@@ -58,18 +44,7 @@ export type Profile = {
   termsVersion: number | null;
   termsAcceptedAt: string | null;
   notifications: Record<NotificationKind, boolean>;
-  // Parte final do link de convite. Gerar um novo invalida o anterior.
-  inviteToken: string;
-  // Plano da conta: grátis (até três passageiros) ou pago (sem limite).
-  plan: Plan;
 };
-
-// Mesmo formato do token que o servidor gera: 8 caracteres, sem letras e números fáceis de confundir.
-const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-
-function newToken() {
-  return Array.from(randomUUID().replace(/-/g, '').slice(0, 8), (c) => ALPHABET[parseInt(c, 16) % ALPHABET.length]).join('');
-}
 
 const initial: Profile = {
   pix: null,
@@ -78,8 +53,6 @@ const initial: Profile = {
   termsVersion: null,
   termsAcceptedAt: null,
   notifications: Object.fromEntries(Object.keys(NOTIFICATIONS).map((kind) => [kind, true])) as Profile['notifications'],
-  inviteToken: newToken(),
-  plan: 'free',
 };
 
 // O perfil é a única coisa que precisa sobreviver a fechar o app: sem ele, a sessão do
@@ -146,15 +119,9 @@ export function setNotification(kind: NotificationKind, on: boolean) {
   emit({ ...profile, notifications: { ...profile.notifications, [kind]: on } });
 }
 
-// Link novo: o anterior para de funcionar para quem ainda não entrou.
-export function renewInviteLink() {
-  emit({ ...profile, inviteToken: newToken() });
-}
-
-
 // Excluir conta ou sair: o próximo acesso começa do zero.
 export function resetProfile() {
-  emit({ ...initial, inviteToken: newToken() });
+  emit({ ...initial });
 }
 
 // Carro e Pix são obrigatórios para começar qualquer viagem.
@@ -216,12 +183,3 @@ export function plateError(plate: string) {
   return null;
 }
 
-// Texto do convite que sai pelo WhatsApp.
-export function inviteMessage(firstName: string, driverName: string, token: string) {
-  return `Oi, ${firstName || '…'}! Sou ${driverName} e agora organizo minhas corridas pelo TrustCab. Entre pelo meu link para marcar suas viagens comigo: ${inviteShortUrl(token)}`;
-}
-
-// Assinar ou voltar para o grátis. Com a cobrança real, quem chama isto é a confirmação da loja.
-export function setPlan(plan: Plan) {
-  emit({ ...profile, plan });
-}

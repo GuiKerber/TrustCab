@@ -1,0 +1,57 @@
+// O plano do motorista. Um mês inteiro liberado, depois R$ 19,90 por mês.
+// Quem decide o estado é o servidor (firebase/functions/src/plan.ts grava as datas); o app só lê
+// e desenha. Assim mudar a data no relógio do celular não estende o teste.
+
+export const TRIAL_DAYS = 30;
+export const PRICE_CENTS = 1990;
+
+// Quantos dias antes do fim o app começa a avisar.
+export const WARN_DAYS = 7;
+
+export type PlanSource = 'none' | 'play' | 'pix';
+export type PlanStatus = 'trial' | 'active' | 'expired';
+
+export type Plan = {
+  status: PlanStatus;
+  // Último dia liberado, em AAAA-MM-DD. É o fim do teste ou o fim do mês pago.
+  until: string | null;
+  source: PlanSource;
+};
+
+export const newPlan = (): Plan => ({ status: 'trial', until: null, source: 'none' });
+
+// O teste acaba 30 dias depois do dia em que a conta nasceu, contando o primeiro dia.
+export function trialEnd(startISO: string, days = TRIAL_DAYS) {
+  const [y, m, d] = startISO.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d + days - 1)).toISOString().slice(0, 10);
+}
+
+export function daysLeft(plan: Plan, todayISO: string) {
+  if (!plan.until) return 0;
+  const day = (iso: string) => {
+    const [y, m, d] = iso.split('-').map(Number);
+    return Date.UTC(y, m - 1, d);
+  };
+  return Math.round((day(plan.until) - day(todayISO)) / 86_400_000);
+}
+
+// Liberado hoje? Vale para o teste e para o mês pago: é a mesma pergunta.
+export function isOpen(plan: Plan, todayISO: string) {
+  return plan.status !== 'expired' && !!plan.until && plan.until >= todayISO;
+}
+
+export function isEnding(plan: Plan, todayISO: string) {
+  const left = daysLeft(plan, todayISO);
+  return isOpen(plan, todayISO) && left <= WARN_DAYS;
+}
+
+// Quando o plano vence, o que para é a entrada de trabalho novo: o link deixa de aceitar
+// pedidos e ele não confirma agenda nova. O que já está combinado continua à mostra, ele
+// continua avisando e concluindo as viagens e continua vendo o histórico — tirar o acesso ao
+// que ele já construiu não cobra ninguém, só castiga.
+export const canReceiveRequests = isOpen;
+export const canConfirmAgenda = isOpen;
+
+export function priceLabel(cents = PRICE_CENTS) {
+  return `R$ ${(cents / 100).toFixed(2).replace('.', ',')}`;
+}

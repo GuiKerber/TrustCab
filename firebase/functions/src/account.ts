@@ -1,18 +1,14 @@
 import './setup';
 
 import { getAuth } from 'firebase-admin/auth';
-import { FieldValue, getFirestore } from 'firebase-admin/firestore';
+import { getFirestore } from 'firebase-admin/firestore';
 import { HttpsError, onCall } from 'firebase-functions/v2/https';
 
-const DELETED_CARD = {
-  name: 'Conta excluída',
-  photoURL: null,
-  phone: null,
-  vehicle: null,
-  notificationsEnabled: false,
-};
-
-// AC-04: apaga os dados pessoais, encerra conexões (a outra parte é avisada) e remove o login.
+// Exclusão de conta. Na versão 2 tudo o que existe pertence a um motorista só, então apagar a
+// conta apaga de verdade: perfil, link, passageiros, agendas e viagens. Não há outra pessoa do
+// outro lado da conexão para avisar nem histórico de terceiro para preservar.
+//
+// O link sai do ar na mesma hora: quem abrir o endereço depois disso lê "este link saiu do ar".
 export const deleteAccount = onCall(async (request) => {
   const uid = request.auth?.uid;
   if (!uid) throw new HttpsError('unauthenticated', 'Entre na sua conta para excluí-la.');
@@ -21,32 +17,12 @@ export const deleteAccount = onCall(async (request) => {
   const user = (await db.doc(`users/${uid}`).get()).data();
   const writer = db.bulkWriter();
 
-  const [asDriver, asPassenger] = await Promise.all([
-    db.collection('connections').where('driverId', '==', uid).get(),
-    db.collection('connections').where('passengerId', '==', uid).get(),
-  ]);
-
-  for (const connection of [...asDriver.docs, ...asPassenger.docs]) {
-    const data = connection.data();
-    const myCard = data.driverId === uid ? 'driver' : 'passenger';
-
-    // Mensagens escritas pela pessoa saem da conversa; o histórico do sistema fica para a outra parte.
-    const mine = await connection.ref.collection('messages').where('senderId', '==', uid).get();
-    mine.docs.forEach((message) => writer.delete(message.ref));
-
-    // Uma escrita por documento. Encerrar dispara o aviso à outra parte e cancela as agendas (onConnectionWritten).
-    writer.update(connection.ref, {
-      [myCard]: DELETED_CARD,
-      lastMessage: null,
-      ...(data.status === 'active'
-        ? { status: 'ended', endedBy: uid, accountDeleted: true, updatedAt: FieldValue.serverTimestamp() }
-        : {}),
-    });
+  for (const collection of ['passengers', 'agendas', 'trips']) {
+    const mine = await db.collection(collection).where('driverId', '==', uid).get();
+    mine.docs.forEach((doc) => writer.delete(doc.ref));
   }
 
-  if (user?.inviteToken) {
-    writer.update(db.doc(`invites/${user.inviteToken}`), { active: false, driver: DELETED_CARD });
-  }
+  if (user?.slug) writer.delete(db.doc(`links/${user.slug}`));
   writer.delete(db.doc(`users/${uid}`));
   await writer.close();
 

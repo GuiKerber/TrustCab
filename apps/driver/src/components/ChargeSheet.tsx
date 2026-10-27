@@ -11,7 +11,8 @@ function day(date: Date) {
   return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
 }
 
-// Prévia da cobrança exatamente como a passageira vai ler no chat, antes de enviar.
+// Prévia da cobrança exatamente como a passageira vai ler no WhatsApp. Enviar abre a conversa com
+// este texto escrito; quem toca em enviar é o motorista.
 export function ChargeSheet({
   visible,
   passenger,
@@ -45,7 +46,7 @@ export function ChargeSheet({
       <View style={[styles.sheet, { paddingBottom: insets.bottom + spacing[16], maxHeight: layout.sheetMaxHeight }]}>
         <Handle />
         <View style={styles.head}>
-          <Label>{`Prévia · chat de ${firstName}`}</Label>
+          <Label>{`Prévia · WhatsApp de ${firstName}`}</Label>
           <Text variant="title">{`Cobrança de ${monthLabel}`}</Text>
         </View>
 
@@ -82,7 +83,7 @@ export function ChargeSheet({
         ) : null}
 
         {pixKey ? (
-          <Button label={`Enviar no chat de ${firstName}`} icon="send" variant="light" onPress={onSend} />
+          <Button label={`Abrir o WhatsApp de ${firstName}`} icon="chat" variant="light" onPress={onSend} />
         ) : (
           <>
             <View style={styles.notice} accessibilityLiveRegion="polite">

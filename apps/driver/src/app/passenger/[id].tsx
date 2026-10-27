@@ -15,10 +15,11 @@ import {
   type PassengerWithState,
   type RequestDecision,
 } from '@/data/passengers';
-import { formatPhone, formatPrice, formatPriceShort, driver, longDate, monthName, relativeDay, reportText, reportUrl, sampleHistory, samplePassengers, sampleTripRequests, type TripRequest } from '@trustcab/core';
-import { inviteMessage, useProfile } from '@/data/profile';
+import { formatPhone, formatPrice, formatPriceShort, driver, longDate, monthName, relativeDay, reportText, reportUrl, sampleHistory, samplePassengers, sampleTripRequests, shareLink, whatsappUrl, type TripRequest } from '@trustcab/core';
+import { useDriver } from '@/data/driver';
+import { sendTo } from '@/data/whatsapp';
 import { useTripSignals } from '@/data/tripSignals';
-import { approve, decline, useNetwork } from '@/data/network';
+import { useNetwork } from '@/data/network';
 import { useAuth } from '@trustcab/core/auth';
 
 const capitalize = (text: string) => `${text[0].toUpperCase()}${text.slice(1)}`;
@@ -80,7 +81,7 @@ export default function PassengerScreen() {
           <IconButton name="arrow_back" label="Voltar" onPress={() => router.back()} />
           <View style={styles.topActions}>
             {passenger.state === 'active' ? (
-              <IconButton name="chat" label={`Conversar com ${firstName}`} onPress={() => router.push({ pathname: '/chat/[id]', params: { id: passenger.id } })} />
+              <IconButton name="chat" label={`Conversar com ${firstName} no WhatsApp`} onPress={() => sendTo(passenger.phone, '')} />
             ) : null}
             <IconButton name="more_horiz" label="Mais opções" onPress={() => setOptions(true)} />
           </View>
@@ -106,11 +107,7 @@ export default function PassengerScreen() {
           />
         ) : null}
         {passenger.state === 'invited' ? (
-          passenger.asked ? (
-            <Asked passenger={passenger} firstName={firstName} />
-          ) : (
-            <Invited passenger={passenger} firstName={firstName} onCancel={() => act('cancelled')} />
-          )
+          <Invited passenger={passenger} firstName={firstName} onCancel={() => act('cancelled')} />
         ) : null}
         {RESTORE[passenger.state] && !undo ? (
           <Button label={RESTORE[passenger.state]!.label} icon="undo" variant="light" onPress={() => act(RESTORE[passenger.state]!.to)} />
@@ -142,46 +139,6 @@ export default function PassengerScreen() {
         onClose={() => setReporting(false)}
       />
     </SafeAreaView>
-  );
-}
-
-// Quem entrou pelo seu link e espera a sua resposta. É a decisão que faltava: até aqui, quem abrisse
-// o link entrava na rede sozinho. Enquanto você não decide, a pessoa não pede viagem nem vê sua agenda.
-function Asked({ passenger, firstName }: { passenger: PassengerWithState; firstName: string }) {
-  const [sending, setSending] = useState<'approve' | 'decline' | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const decide = (action: 'approve' | 'decline') => async () => {
-    setSending(action);
-    setError(null);
-    try {
-      await (action === 'approve' ? approve(passenger.id) : decline(passenger.id));
-    } catch {
-      setError('Não deu para responder agora. Confira a internet e tente de novo.');
-    } finally {
-      setSending(null);
-    }
-  };
-
-  return (
-    <>
-      <Block style={styles.info}>
-        <Label>WhatsApp</Label>
-        <Text variant="heading">{formatPhone(passenger.phone)}</Text>
-        <Text variant="small" tone="secondary">
-          {`${firstName} entrou pelo seu link e espera você aprovar. Aprovando, ela passa a pedir viagens com você.`}
-        </Text>
-      </Block>
-      {error ? (
-        <Text variant="small" tone="orange" accessibilityLiveRegion="polite">
-          {error}
-        </Text>
-      ) : null}
-      <View style={styles.requestActions}>
-        <Button label="Aprovar" icon="check" variant="light" style={styles.requestApprove} loading={sending === 'approve'} onPress={decide('approve')} />
-        <Button label="Recusar" size="sm" variant="ghost" destructive loading={sending === 'decline'} onPress={decide('decline')} />
-      </View>
-    </>
   );
 }
 
@@ -416,14 +373,14 @@ function TripRequests({ requests, decisions, now }: { requests: TripRequest[]; d
 function Invited({ passenger, firstName, onCancel }: { passenger: PassengerWithState; firstName: string; onCancel: () => void }) {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { inviteToken } = useProfile();
-  const message = inviteMessage(firstName, driver.firstName, inviteToken);
+  const { slug } = useDriver();
+  const message = slug ? shareLink(driver.firstName, slug) : '';
 
   const resend = async () => {
     setSending(true);
     setError(null);
     try {
-      await Linking.openURL(`https://wa.me/55${passenger.phone}?text=${encodeURIComponent(message)}`);
+      await Linking.openURL(whatsappUrl(passenger.phone, message));
     } catch {
       setError('Não deu para abrir o WhatsApp. Confira se ele está instalado e tente de novo.');
     } finally {

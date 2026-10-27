@@ -1,20 +1,15 @@
 import { useMemo } from 'react';
 
-import { answerConnection, endConnection, useConnections, type ConnectionDoc } from '@trustcab/core/db';
+import { updatePassenger, usePassengers, type PassengerDoc } from '@trustcab/core/db';
 
-import type { PassengerState, PassengerWithState } from './passengers';
+import type { PassengerWithState } from './passengers';
 
-// A rede real do motorista, vinda do Firestore. Converte o documento de conexão para o mesmo
-// formato que as telas já usam, para o Firestore entrar sem reescrever tela nenhuma.
+// Os passageiros do motorista, vindos do Firestore. Converte o documento para o mesmo formato que
+// as telas já usam, para o banco entrar sem reescrever tela nenhuma.
 //
-// O mapa de estados é direto: o backend separa "convite esperando resposta" (pending) de
-// "está na rede" (active), que é a mesma divisão das abas Pendentes e Ativos.
-const STATE: Record<ConnectionDoc['status'], PassengerState> = {
-  pending: 'invited',
-  active: 'active',
-  declined: 'cancelled',
-  ended: 'ended',
-};
+// Na versão 2 não existe mais "esperando sua aprovação": quem abre o link já é alguém que o
+// motorista conhece, e o que ele aprova é o pedido de agenda, não a pessoa. Por isso todo contato
+// nasce ativo, e a única saída é arquivar.
 
 // Timestamp do Firestore vira Date. Enquanto a escrita não volta do servidor o campo vem null,
 // e aí "agora" é a melhor aproximação — é o que a pessoa acabou de fazer.
@@ -24,20 +19,17 @@ function toDate(value: unknown): Date {
 }
 
 export function useNetwork(uid: string | null) {
-  const { data, loading } = useConnections(uid, 'driver');
+  const { data, loading } = usePassengers(uid);
 
   const passengers = useMemo<PassengerWithState[]>(
     () =>
-      data.map((c) => ({
-        id: c.id,
-        name: c.passenger?.name ?? 'Passageiro',
-        phone: c.passenger?.phone ?? '',
-        status: c.status === 'active' ? 'active' : 'invited',
-        since: toDate(c.createdAt),
-        state: STATE[c.status],
-        // Quem está em pending entrou pelo seu link e espera você aprovar. Não é convite seu sem resposta:
-        // no backend o convite é um código, não um documento por pessoa.
-        asked: c.status === 'pending',
+      data.map((p: PassengerDoc & { id: string }) => ({
+        id: p.id,
+        name: p.name,
+        phone: p.phone,
+        status: 'active' as const,
+        since: toDate(p.createdAt),
+        state: p.archived ? ('ended' as const) : ('active' as const),
       })),
     [data],
   );
@@ -45,8 +37,7 @@ export function useNetwork(uid: string | null) {
   return { passengers, loading, connected: uid !== null };
 }
 
-// Aprovar ou recusar quem pediu para entrar na rede. É a decisão que o protótipo nunca teve:
-// no app local, quem abrisse o link entrava direto.
-export const approve = (connectionId: string) => answerConnection(connectionId, 'active');
-export const decline = (connectionId: string) => answerConnection(connectionId, 'declined');
-export const removeFromNetwork = (connectionId: string, uid: string) => endConnection(connectionId, uid);
+// Tirar da lista sem apagar: a agenda e as viagens apontam para este contato, e sem o nome o
+// histórico fica ilegível.
+export const archivePassenger = (id: string) => updatePassenger(id, { archived: true });
+export const restorePassenger = (id: string) => updatePassenger(id, { archived: false });

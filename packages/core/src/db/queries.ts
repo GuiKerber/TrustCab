@@ -1,14 +1,14 @@
-import { doc, orderBy, serverTimestamp, setDoc, updateDoc, where } from 'firebase/firestore';
+import { addDoc, collection, doc, orderBy, serverTimestamp, setDoc, updateDoc, where } from 'firebase/firestore';
 
+import type { Plan } from '../plan';
+import type { Slots } from '../slots';
 import { db } from './client';
 import { useCollection, useDoc, type Live } from './live';
 import {
-  connectionId,
   tripId,
   type AgendaDoc,
   type AgendaFields,
-  type ConnectionDoc,
-  type MessageDoc,
+  type PassengerDoc,
   type Pix,
   type TripDoc,
   type TripStatus,
@@ -16,58 +16,70 @@ import {
   type Vehicle,
 } from './types';
 
+// Leituras e escritas do app do motorista. Cada escrita espelha exatamente um caminho permitido
+// em firebase/firestore.rules: se a forma não bater, o Firestore recusa. É por isso que elas são
+// finas e específicas em vez de uma função genérica de salvar.
+//
+// O app nunca escreve em links nem em users.plan: o endereço público nasce na Function rotateLink
+// e a data do plano é o que estamos cobrando.
+
 // ─── Leituras ao vivo ────────────────────────────────────────────────────────
 
 export function useUser(uid: string | null) {
   return useDoc<UserDoc>(uid ? `users/${uid}` : null);
 }
 
-// As conexões de quem está logado. O papel decide por qual campo procurar.
-export function useConnections(uid: string | null, role: 'driver' | 'passenger'): Live<(ConnectionDoc & { id: string })[]> {
-  const field = role === 'driver' ? 'driverId' : 'passengerId';
-  return useCollection<ConnectionDoc>(uid ? 'connections' : null, [where(field, '==', uid)], `conn:${role}:${uid}`);
+// Os contatos do motorista.
+export function usePassengers(uid: string | null): Live<(PassengerDoc & { id: string })[]> {
+  return useCollection<PassengerDoc>(uid ? 'passengers' : null, [where('driverId', '==', uid)], `pax:${uid}`);
 }
 
-// Agendas de uma conexão, ou de todas as conexões da pessoa.
-export function useAgendas(uid: string | null, role: 'driver' | 'passenger'): Live<(AgendaDoc & { id: string })[]> {
-  const field = role === 'driver' ? 'driverId' : 'passengerId';
-  return useCollection<AgendaDoc>(uid ? 'agendas' : null, [where(field, '==', uid)], `ag:${role}:${uid}`);
+// Tudo o que ele combinou, em qualquer estado. A lista é pequena (uma por passageiro e trajeto)
+// e serve a agenda, a home e a conta do mês de uma vez só.
+export function useAgendas(uid: string | null): Live<(AgendaDoc & { id: string })[]> {
+  return useCollection<AgendaDoc>(uid ? 'agendas' : null, [where('driverId', '==', uid)], `ag:${uid}`);
 }
 
-// Viagens de um intervalo de datas. As datas são strings AAAA-MM-DD, que ordenam sozinhas.
-export function useTrips(uid: string | null, role: 'driver' | 'passenger', from: string, to: string) {
-  const field = role === 'driver' ? 'driverId' : 'passengerId';
-  return useCollection<TripDoc>(
-    uid ? 'trips' : null,
-    [where(field, '==', uid), where('date', '>=', from), where('date', '<=', to)],
-    `trip:${role}:${uid}:${from}:${to}`,
+// A caixa de pedidos: o que chegou pelo link e ainda espera resposta, mais novo primeiro.
+export function useRequests(uid: string | null): Live<(AgendaDoc & { id: string })[]> {
+  return useCollection<AgendaDoc>(
+    uid ? 'agendas' : null,
+    [where('driverId', '==', uid), where('status', '==', 'requested'), orderBy('createdAt', 'desc')],
+    `req:${uid}`,
   );
 }
 
-export function useMessages(connId: string | null) {
-  return useCollection<MessageDoc>(
-    connId ? `connections/${connId}/messages` : null,
-    [orderBy('createdAt', 'asc')],
-    `msg:${connId}`,
+// Viagens de um intervalo. As datas são AAAA-MM-DD, que ordenam sozinhas.
+export function useTrips(uid: string | null, from: string, to: string) {
+  return useCollection<TripDoc>(
+    uid ? 'trips' : null,
+    [where('driverId', '==', uid), where('date', '>=', from), where('date', '<=', to)],
+    `trip:${uid}:${from}:${to}`,
   );
 }
 
 // ─── Escritas ────────────────────────────────────────────────────────────────
-// Cada uma espelha exatamente um caminho permitido nas regras. Se a forma não bater,
-// o Firestore recusa — por isso elas são finas e específicas, não genéricas.
 
 function need() {
   if (!db) throw new Error('Firestore não configurado');
   return db;
 }
 
-// Primeiro acesso: cria o perfil. "role" nunca muda depois.
-export function createUser(uid: string, data: Pick<UserDoc, 'role' | 'name' | 'email' | 'photoURL' | 'termsVersion'>) {
+// Primeiro acesso: cria o perfil. O plano entra zerado e quem põe a data do fim do teste é a
+// Function onUserCreated — se o app pudesse escrevê-la, o teste nunca acabaria.
+export function createUser(
+  uid: string,
+  data: Pick<UserDoc, 'name' | 'email' | 'photoURL' | 'termsVersion'>,
+  slots: Slots,
+) {
   return setDoc(doc(need(), `users/${uid}`), {
     ...data,
     phone: null,
     vehicle: null,
     pix: null,
+    slug: null,
+    slots,
+    plan: { status: 'trial', until: null, source: 'none' } satisfies Plan,
     fcmTokens: [],
     notificationsEnabled: true,
     termsAcceptedAt: serverTimestamp(),
@@ -75,7 +87,6 @@ export function createUser(uid: string, data: Pick<UserDoc, 'role' | 'name' | 'e
   });
 }
 
-// Carro e Pix do motorista: a Function onUserUpdated espalha para as conexões dele.
 export function setVehicle(uid: string, vehicle: Vehicle | null) {
   return updateDoc(doc(need(), `users/${uid}`), { vehicle });
 }
@@ -88,67 +99,69 @@ export function setPhone(uid: string, phone: string | null) {
   return updateDoc(doc(need(), `users/${uid}`), { phone });
 }
 
+// Dias, janela e vagas: é o que a página de agendamento oferece a quem abre o link.
+export function setSlots(uid: string, slots: Slots) {
+  return updateDoc(doc(need(), `users/${uid}`), { slots });
+}
+
 export function setNotificationsEnabled(uid: string, on: boolean) {
   return updateDoc(doc(need(), `users/${uid}`), { notificationsEnabled: on });
 }
 
-// Passageiro entra pelo link: a conexão nasce "pending" e o motorista decide.
-export function requestConnection(driverId: string, passengerId: string, inviteToken: string) {
-  return setDoc(doc(need(), `connections/${connectionId(driverId, passengerId)}`), {
+// ─── Passageiros ─────────────────────────────────────────────────────────────
+
+export function addPassenger(driverId: string, name: string, phone: string, note = '') {
+  return addDoc(collection(need(), 'passengers'), {
     driverId,
-    passengerId,
-    status: 'pending',
-    inviteToken,
-    unread: {},
+    name,
+    phone,
+    note,
+    archived: false,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
 }
 
-export function answerConnection(id: string, status: 'active' | 'declined') {
-  return updateDoc(doc(need(), `connections/${id}`), { status, updatedAt: serverTimestamp() });
+export function updatePassenger(id: string, data: Partial<Pick<PassengerDoc, 'name' | 'phone' | 'note' | 'archived'>>) {
+  return updateDoc(doc(need(), `passengers/${id}`), { ...data, updatedAt: serverTimestamp() });
 }
 
-export function endConnection(id: string, uid: string) {
-  return updateDoc(doc(need(), `connections/${id}`), { status: 'ended', endedBy: uid, updatedAt: serverTimestamp() });
+// ─── Agenda ──────────────────────────────────────────────────────────────────
+
+// Responder ao pedido que veio do link. O valor é opcional: o acerto de preço acontece no
+// WhatsApp, e aqui ele só registra o que ficou combinado.
+export function answerRequest(id: string, status: 'confirmed' | 'declined', price: number | null = null) {
+  return updateDoc(doc(need(), `agendas/${id}`), { status, price, updatedAt: serverTimestamp() });
 }
 
-// Passageiro pede o combinado. É aprovado uma vez; os dias saem dele.
-export function requestAgenda(
-  id: string,
-  base: { connectionId: string; driverId: string; passengerId: string; startDate: string },
+// Combinado fechado na frente da pessoa: nasce confirmado, sem passar por pedido.
+export function addAgenda(
+  base: { driverId: string; passengerId: string; passengerName: string; passengerPhone: string; startDate: string },
   fields: AgendaFields,
 ) {
-  return setDoc(doc(need(), `agendas/${id}`), {
+  return addDoc(collection(need(), 'agendas'), {
     ...base,
     ...fields,
-    status: 'requested',
-    proposedPrice: null,
-    pendingChange: null,
+    status: 'confirmed',
+    source: 'driver',
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
 }
 
-export function answerAgenda(id: string, status: 'confirmed' | 'declined') {
-  return updateDoc(doc(need(), `agendas/${id}`), { status, updatedAt: serverTimestamp() });
+// Corrigir o que já está confirmado: endereço errado, horário trocado, valor acertado depois.
+export function updateAgenda(id: string, fields: AgendaFields) {
+  return updateDoc(doc(need(), `agendas/${id}`), { ...fields, updatedAt: serverTimestamp() });
 }
 
-// Motorista propõe outro valor; o passageiro aceita e o valor entra no combinado.
-export function proposePrice(id: string, proposedPrice: number) {
-  return updateDoc(doc(need(), `agendas/${id}`), { status: 'awaiting_passenger', proposedPrice, updatedAt: serverTimestamp() });
+export function endAgenda(id: string, by: 'driver' | 'passenger') {
+  return updateDoc(doc(need(), `agendas/${id}`), { status: 'ended', endedBy: by, updatedAt: serverTimestamp() });
 }
 
-export function acceptPrice(id: string, price: number) {
-  return updateDoc(doc(need(), `agendas/${id}`), { status: 'confirmed', price, proposedPrice: null, updatedAt: serverTimestamp() });
-}
+// ─── Viagem do dia ───────────────────────────────────────────────────────────
+// O documento só nasce quando alguém age: antes disso o dia é calculado a partir da agenda.
+// Por isso é setDoc com merge, e não create.
 
-export function endAgenda(id: string, uid: string) {
-  return updateDoc(doc(need(), `agendas/${id}`), { status: 'ended', endedBy: uid, updatedAt: serverTimestamp() });
-}
-
-// O dia da viagem. O documento só nasce quando alguém age: antes disso o dia é calculado
-// a partir da agenda. Por isso é setDoc com merge, e não create.
 const STAMP: Record<TripStatus, string> = {
   on_the_way: 'onTheWayAt',
   arrived: 'arrivedAt',
@@ -157,42 +170,19 @@ const STAMP: Record<TripStatus, string> = {
 };
 
 export function setTripStatus(
-  base: { agendaId: string; connectionId: string; driverId: string; passengerId: string; date: string; time: string },
+  base: { agendaId: string; driverId: string; passengerId: string; date: string; time: string; price: number | null },
   status: TripStatus,
-  by: string,
+  cancelledBy: 'driver' | 'passenger' | null = null,
 ) {
   return setDoc(
     doc(need(), `trips/${tripId(base.agendaId, base.date)}`),
     {
       ...base,
       status,
-      cancelledBy: status === 'cancelled' ? by : null,
+      cancelledBy: status === 'cancelled' ? (cancelledBy ?? 'driver') : null,
       [STAMP[status]]: serverTimestamp(),
       updatedAt: serverTimestamp(),
     },
     { merge: true },
   );
-}
-
-export function sendMessage(connId: string, senderId: string, text: string) {
-  const id = doc(need(), `connections/${connId}/messages`).id;
-  return setDoc(doc(need(), `connections/${connId}/messages/${id}`), {
-    type: 'text',
-    senderId,
-    text,
-    createdAt: serverTimestamp(),
-  });
-}
-
-// Aviso automático da viagem: vira push pela Function onTripNotice.
-export function sendNotice(connId: string, senderId: string, text: string, event: string, push: { title: string; body: string }) {
-  const id = doc(need(), `connections/${connId}/messages`).id;
-  return setDoc(doc(need(), `connections/${connId}/messages/${id}`), {
-    type: 'notice',
-    senderId,
-    text,
-    event,
-    push,
-    createdAt: serverTimestamp(),
-  });
 }

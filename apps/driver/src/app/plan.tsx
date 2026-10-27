@@ -1,57 +1,87 @@
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { formatPrice } from '@trustcab/core';
-import { Button, colors, FormScreen, Icon, Label, size, spacing, Text } from '@trustcab/ui';
+import { daysLeft, priceLabel, SUPPORT_PHONE, todayISO, TRIAL_DAYS } from '@trustcab/core';
+import { Banner, Block, Button, colors, FormScreen, Icon, Label, size, spacing, Text } from '@trustcab/ui';
 
-import { FREE_PASSENGERS, PRO_PRICE_CENTS } from '@/data/plan';
-import { setPlan, useProfile } from '@/data/profile';
+import { useDriver } from '@/data/driver';
+import { sendTo } from '@/data/whatsapp';
 
-// O que o plano pago entrega. Lista curta e concreta: nada de "recursos avançados".
+// O que a mensalidade sustenta. Lista curta e concreta: nada de "recursos avançados".
 const INCLUDED = [
-  { icon: 'group' as const, text: 'Passageiros sem limite na sua rede' },
-  { icon: 'request_quote' as const, text: 'Cobrança do mês para quantos passageiros você tiver' },
-  { icon: 'history' as const, text: 'Histórico e ganhos de todos eles, mês a mês' },
+  { icon: 'link' as const, text: 'Seu link recebendo pedidos, sem limite de passageiros' },
+  { icon: 'event_available' as const, text: 'Sua agenda cheia ou livre aparecendo certo para quem marca' },
+  { icon: 'request_quote' as const, text: 'A conta do mês de cada passageiro, pronta para cobrar' },
 ];
 
-// Assinatura do motorista. O plano grátis não expira e não tira nada de quem já está na rede:
-// ele só para de aceitar convite novo. Quem precisa de mais paga; quem não precisa, não paga.
+// O plano: um mês inteiro liberado, depois R$ 19,90 por mês.
+//
+// Vencer não tranca o app. O que para é a entrada de trabalho novo — o link deixa de aceitar
+// pedido e ele não confirma agenda nova. O que já está combinado continua à mostra, ele continua
+// avisando e concluindo as viagens e continua vendo o histórico. Tirar de alguém o acesso ao que
+// essa pessoa construiu não faz ninguém pagar; só castiga.
 export default function PlanScreen() {
-  const { plan } = useProfile();
-  const pro = plan === 'pro';
-  const price = formatPrice(PRO_PRICE_CENTS);
+  const { name, plan, open } = useDriver();
+  const [error, setError] = useState<string | null>(null);
+  const today = todayISO();
+  const left = daysLeft(plan, today);
+  const price = priceLabel();
+
+  const titulo = !open
+    ? 'acabou'
+    : plan.status === 'active'
+      ? 'em dia'
+      : left === 0
+        ? 'acaba hoje'
+        : left === 1
+          ? 'acaba amanhã'
+          : `${left} dias`;
+
+  const falar = async () => {
+    setError(null);
+    if (!SUPPORT_PHONE) {
+      setError('O WhatsApp de cobrança ainda não está configurado neste app.');
+      return;
+    }
+    const result = await sendTo(
+      SUPPORT_PHONE,
+      `Oi! Aqui é o ${name}. Quero continuar com o TrustCab depois do mês grátis. Como faço para pagar?`,
+    );
+    if (!result.ok) setError(result.message);
+  };
 
   return (
     <FormScreen
       backLabel="Voltar"
       onBack={() => router.back()}
       footer={
-        pro ? (
-          <Button
-            label="Voltar para o plano grátis"
-            variant="surface"
-            onPress={() => setPlan('free')}
-            accessibilityHint={`Você continua com os passageiros que já tem; o limite de ${FREE_PASSENGERS} vale só para convite novo`}
-          />
-        ) : (
-          <Button
-            label={`Assinar por ${price} por mês`}
-            icon="check"
-            variant="light"
-            onPress={() => setPlan('pro')}
-            accessibilityHint="Libera convites sem limite"
-          />
+        plan.status === 'active' ? null : (
+          <Button label="Falar sobre o pagamento" icon="chat" variant="light" onPress={falar} />
         )
       }>
       <View style={styles.head}>
-        <Text variant="display">Rede</Text>
+        <Text variant="display">Seu mês</Text>
         <Text variant="display" tone="secondary">
-          sem limite
+          {titulo}
         </Text>
         <Text variant="body" tone="secondary" style={styles.lead}>
-          {`No plano grátis cabem ${FREE_PASSENGERS} passageiros. Passando disso, a assinatura libera quantos você quiser, por ${price} por mês.`}
+          {plan.status === 'active'
+            ? `Sua assinatura está ativa. ${price} por mês.`
+            : !open
+              ? `O mês grátis acabou. Para o link voltar a receber pedidos, a assinatura é ${price} por mês.`
+              : `Você tem ${TRIAL_DAYS} dias com tudo liberado para ver se funciona para você. Depois são ${price} por mês.`}
         </Text>
       </View>
+
+      {!open ? (
+        <Banner
+          icon="lock"
+          tone="warning"
+          title="Seu link parou de receber pedidos"
+          text="Quem abrir ele vê que você não está aceitando agora. Tudo o que já estava combinado continua valendo, e você continua avisando e concluindo as viagens."
+        />
+      ) : null}
 
       <View style={styles.list}>
         {INCLUDED.map((item) => (
@@ -64,21 +94,19 @@ export default function PlanScreen() {
         ))}
       </View>
 
-      {pro ? (
-        <View style={styles.current} accessibilityLiveRegion="polite">
-          <Icon name="check_circle" size={size.icon.md} color={colors.text} />
-          <Text variant="bodyMedium" style={styles.itemText}>
-            Sua assinatura está ativa.
-          </Text>
-        </View>
-      ) : (
-        <View style={styles.note}>
-          <Label tone="secondary">Sem pegadinha</Label>
-          <Text variant="small" tone="secondary">
-            Cancelando, você fica com os passageiros que já tem. Nenhuma viagem e nenhum histórico some.
-          </Text>
-        </View>
-      )}
+      {error ? (
+        <Text variant="small" tone="orange" accessibilityLiveRegion="polite">
+          {error}
+        </Text>
+      ) : null}
+
+      <Block style={styles.note}>
+        <Label>Sem pegadinha</Label>
+        <Text variant="small" tone="secondary">
+          No mês grátis você não cadastra cartão nenhum. Se decidir não continuar, nada some: seus
+          passageiros, sua agenda e seu histórico ficam aqui do mesmo jeito.
+        </Text>
+      </Block>
     </FormScreen>
   );
 }
@@ -89,6 +117,5 @@ const styles = StyleSheet.create({
   list: { gap: spacing[12], paddingHorizontal: spacing[4] },
   item: { flexDirection: 'row', alignItems: 'center', gap: spacing[12] },
   itemText: { flex: 1 },
-  current: { flexDirection: 'row', alignItems: 'center', gap: spacing[12], paddingHorizontal: spacing[4] },
-  note: { paddingHorizontal: spacing[4], gap: spacing[4] },
+  note: { gap: spacing[4] },
 });

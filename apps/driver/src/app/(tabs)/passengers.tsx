@@ -8,7 +8,6 @@ import { TopBar } from '@/components/TopBar';
 import { formatPrice, longDate, monthName, relativeDay, sampleHistory, sampleMonthDays, samplePassengers, sampleTripRequests, startOfDay, useNow, useSyncState } from '@trustcab/core';
 import { passengerMonths, pendingRequests, usePassengerStore, withApprovedTrips, withState, type PassengerWithState } from '@/data/passengers';
 import { useTripSignals } from '@/data/tripSignals';
-import { canInvite, FREE_PASSENGERS, seatsLeft } from '@/data/plan';
 import { useProfile } from '@/data/profile';
 import { useNetwork } from '@/data/network';
 import { useAuth } from '@trustcab/core/auth';
@@ -42,11 +41,8 @@ export default function Passengers() {
   // Sem conta (demonstração), continuam os exemplos locais.
   const rede = useNetwork(user?.uid ?? null);
   const all = rede.connected ? rede.passengers : withState(base, store);
-  // O limite do plano grátis conta quem está na rede mais os convites em aberto.
-  const used = all.filter((p) => p.state === 'active' || p.state === 'invited').length;
-  const livre = canInvite(profile.plan, used);
-  // Sem vaga, convidar leva para o plano em vez de abrir o convite e falhar depois.
-  const convidar = () => router.push(livre ? '/invite' : '/plan');
+  // Não há mais limite de passageiros: o que o motorista faz é espalhar o link.
+  const convidar = () => router.push('/link');
   const active = all.filter((p) => p.state === 'active');
   const pending = all.filter((p) => p.state === 'invited');
   const ended = all.filter((p) => p.state === 'ended');
@@ -92,20 +88,8 @@ export default function Passengers() {
             de confiança
           </Text>
           <Text variant="body" tone="secondary" style={styles.inviteText}>
-            Convide quem já anda com você. A pessoa entra pelo seu link e pede as viagens; você aprova uma por uma.
+            Mande seu link para quem já anda com você. A pessoa escolhe o dia e o horário, e você confirma.
           </Text>
-          {/* O limite só aparece quando chega perto de doer. Antes disso é ruído. */}
-          {profile.plan === 'free' && used >= FREE_PASSENGERS - 1 ? (
-            <Pressable onPress={() => router.push('/plan')} accessibilityRole="button" accessibilityLabel={`${used} de ${FREE_PASSENGERS} passageiros no plano grátis. Ver planos.`} style={styles.seats}>
-              <Icon name={livre ? 'info' : 'lock'} size={size.icon.sm} color={colors.orange} />
-              <Text variant="small" tone="orange" style={styles.seatsText}>
-                {livre
-                  ? `${used} de ${FREE_PASSENGERS} passageiros do plano grátis. Resta ${seatsLeft(profile.plan, used)}.`
-                  : `Plano grátis cheio: ${FREE_PASSENGERS} passageiros. Assine para convidar mais.`}
-              </Text>
-              <Icon name="chevron_right" size={size.icon.sm} color={colors.orange} />
-            </Pressable>
-          ) : null}
         </View>
 
         <Pills

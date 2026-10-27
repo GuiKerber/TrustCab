@@ -7,32 +7,28 @@ import { IconButton } from './Button';
 import { OfflineNotice } from './OfflineNotice';
 import { Text } from './ui';
 
-// Topo de todas as abas: o nome da página à esquerda e o chat sempre à mão, no canto direito.
+// Topo de todas as abas: o nome da página à esquerda e, no canto direito, a ação daquela página.
 // Sem internet, a faixa de aviso aparece logo abaixo.
-// Cada app passa o total de conversas não lidas e o que abrir ao tocar no chat.
+// "badge" conta o que está esperando resposta atrás da ação (ex.: pedidos novos).
 export function TopBar({
   title,
-  unread = 0,
-  onChat,
-  // Ação própria da página, à esquerda do chat. Clara, porque é a ação principal dali.
   action,
 }: {
   title: string;
-  unread?: number;
-  onChat: () => void;
-  action?: { icon: AndroidSymbol; label: string; onPress: () => void };
+  action?: { icon: AndroidSymbol; label: string; badge?: number; onPress: () => void };
 }) {
   return (
     <View style={styles.wrapper}>
-    <View style={styles.bar}>
-      <Text variant="bodyMedium" tone="secondary" accessibilityRole="header">
-        {title}
-      </Text>
-      <View style={styles.actions}>
-        {action ? <IconButton name={action.icon} label={action.label} variant="light" onPress={action.onPress} /> : null}
-        <IconButton name="chat" label="Conversas" badge={unread} onPress={onChat} />
+      <View style={styles.bar}>
+        <Text variant="bodyMedium" tone="secondary" accessibilityRole="header">
+          {title}
+        </Text>
+        <View style={styles.actions}>
+          {action ? (
+            <IconButton name={action.icon} label={action.label} badge={action.badge} variant="light" onPress={action.onPress} />
+          ) : null}
+        </View>
       </View>
-    </View>
       <OfflineNotice />
     </View>
   );

@@ -17,17 +17,18 @@
     "ignore": ["firebase.json", "**/node_modules/**"],
     "rewrites": [
       {
-        "source": "/i/**",
+        "source": "/a/**",
         "function": {
-          "functionId": "invitePage",
+          "functionId": "bookingPage",
           "region": "southamerica-east1"
         }
-      }
-    ],
-    "headers": [
+      },
       {
-        "source": "/.well-known/assetlinks.json",
-        "headers": [{ "key": "Content-Type", "value": "application/json" }]
+        "source": "/i/**",
+        "function": {
+          "functionId": "bookingPage",
+          "region": "southamerica-east1"
+        }
       }
     ]
   }

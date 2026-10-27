@@ -1,9 +1,9 @@
 import { Tabs } from 'expo-router';
-import { useMemo } from 'react';
 
+import { useRequests } from '@trustcab/core/db';
 import { colors, FloatingTabBar, type TabIcons } from '@trustcab/ui';
-import { pendingRequests, usePassengerStore } from '@/data/passengers';
-import { sampleTripRequests } from '@trustcab/core';
+
+import { useDriver } from '@/data/driver';
 
 const TABS: TabIcons = {
   index: { icon: 'home', label: 'Home' },
@@ -14,9 +14,10 @@ const TABS: TabIcons = {
 };
 
 // Cinco destinos, sem rótulos: o menu é a pílula preta flutuante (FloatingTabBar).
+// O número em Passageiros é quem está esperando resposta a um pedido do link.
 export default function TabsLayout() {
-  const requests = useMemo(() => sampleTripRequests(new Date()), []);
-  const waiting = pendingRequests(requests, usePassengerStore()).length;
+  const { uid } = useDriver();
+  const { data } = useRequests(uid);
 
   return (
     <Tabs
@@ -24,7 +25,7 @@ export default function TabsLayout() {
       screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.ground } }}>
       <Tabs.Screen name="index" />
       <Tabs.Screen name="agenda" />
-      <Tabs.Screen name="passengers" options={{ tabBarBadge: waiting || undefined }} />
+      <Tabs.Screen name="passengers" options={{ tabBarBadge: data.length || undefined }} />
       <Tabs.Screen name="earnings" />
       <Tabs.Screen name="profile" />
     </Tabs>

@@ -19,10 +19,10 @@ function call<Req, Res>(name: string) {
   };
 }
 
-// Gera um convite novo e desativa o anterior. O token nasce no servidor para não ser previsível,
-// e por isso o app nunca escreve em "invites" — as regras proíbem.
-// Exige veículo cadastrado: é ele que vai no cartão que o passageiro vê antes de aceitar.
-export const rotateInvite = call<void, { token: string }>('rotateInvite');
+// Gera o link de agendamento, ou troca por um novo e desativa o antigo. O endereço nasce no
+// servidor para não ser previsível, e por isso o app nunca escreve em "links" — as regras proíbem.
+// Exige telefone cadastrado: é por ele que o passageiro avisa no WhatsApp.
+export const rotateLink = call<void, { slug: string }>('rotateLink');
 
-// Exclui a conta de vez: perfil, conexões, agendas e conversas.
-export const deleteAccount = call<void, { ok: boolean }>('deleteAccount');
+// Exclui a conta de vez: perfil, link, passageiros, agendas e viagens.
+export const deleteAccount = call<void, { deleted: boolean }>('deleteAccount');

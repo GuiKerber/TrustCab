@@ -1,12 +1,23 @@
 import { router } from 'expo-router';
 import type { AndroidSymbol } from 'expo-symbols';
 
+import { useRequests } from '@trustcab/core/db';
 import { TopBar as BaseTopBar } from '@trustcab/ui';
 
-import { useUnreadTotal } from '@/data/chat';
+import { useDriver } from '@/data/driver';
 
-// Topo das abas do motorista: o TopBar do design system ligado às conversas deste app.
+// Topo das abas do motorista. Quando a página não tem ação própria, o canto direito é a caixa de
+// pedidos com o número de quem está esperando — é o que ele precisa ver de qualquer tela.
 export function TopBar({ title, action }: { title: string; action?: { icon: AndroidSymbol; label: string; onPress: () => void } }) {
-  const unread = useUnreadTotal();
-  return <BaseTopBar title={title} unread={unread} action={action} onChat={() => router.push('/chat')} />;
+  const { uid } = useDriver();
+  const { data } = useRequests(uid);
+
+  const pedidos = {
+    icon: 'inbox' as AndroidSymbol,
+    label: data.length === 1 ? '1 pedido esperando você' : `${data.length} pedidos esperando você`,
+    badge: data.length,
+    onPress: () => router.push('/requests'),
+  };
+
+  return <BaseTopBar title={title} action={action ?? pedidos} />;
 }

@@ -2,20 +2,22 @@ import { router } from 'expo-router';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { inviteShortUrl } from '@trustcab/core';
+import { bookingShortUrl, daysLeft, formatPhone, priceLabel, todayISO, weekdayList } from '@trustcab/core';
 import { colors, Label, layout, ListRow, spacing, Text } from '@trustcab/ui';
 
 import { TopBar } from '@/components/TopBar';
-import { FREE_PASSENGERS } from '@/data/plan';
+import { useDriver } from '@/data/driver';
 import { PIX_TYPES, useProfile } from '@/data/profile';
 import { driver } from '@trustcab/core';
 import { useAuth } from '@trustcab/core/auth';
 
-// Perfil: quem você é, como recebe (Pix), o carro que aparece no aviso "Cheguei" e seu link de convite.
+// Perfil: quem você é, como recebe (Pix), o carro que aparece na sua página e o link de agenda.
 export default function Profile() {
   const { user, devSession } = useAuth();
   const profile = useProfile();
+  const { phone, slug, slots, plan, open } = useDriver();
   const name = user?.displayName ?? driver.firstName;
+  const left = daysLeft(plan, todayISO());
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -56,15 +58,34 @@ export default function Profile() {
         </View>
 
         <View style={styles.section}>
-          <Label>Convite</Label>
+          <Label>Sua agenda</Label>
+          <ListRow
+            icon="chat"
+            title="Seu WhatsApp"
+            value={phone ? formatPhone(phone) : 'Cadastre: é por ele que o passageiro fala com você'}
+            pending={!phone}
+            first
+            last={false}
+            onPress={() => router.push('/phone')}
+          />
           <ListRow
             icon="link"
-            title="Seu link de convite"
-            value={inviteShortUrl(profile.inviteToken)}
-            first
+            title="Seu link"
+            value={slug ? bookingShortUrl(slug) : 'Gere o link que você manda no WhatsApp'}
+            pending={!slug}
+            first={false}
+            last={false}
+            onPress={() => router.push('/link')}
+            accessibilityHint="Abre o link para compartilhar ou gerar outro"
+          />
+          <ListRow
+            icon="schedule"
+            title="Horários"
+            value={`${weekdayList(slots.weekdays)} · ${slots.from} às ${slots.to}`}
+            first={false}
             last
-            onPress={() => router.push('/invite-link')}
-            accessibilityHint="Abre o link para compartilhar ou gerar um novo"
+            onPress={() => router.push('/hours')}
+            accessibilityHint="Define o que aparece para quem abre seu link"
           />
         </View>
 
@@ -73,7 +94,16 @@ export default function Profile() {
           <ListRow
             icon="workspace_premium"
             title="Plano"
-            value={profile.plan === 'pro' ? 'Assinatura ativa · passageiros sem limite' : `Grátis · até ${FREE_PASSENGERS} passageiros`}
+            value={
+              plan.status === 'active'
+                ? `Assinatura ativa · ${priceLabel()} por mês`
+                : !open
+                  ? 'Mês grátis encerrado · seu link não recebe pedidos'
+                  : left === 0
+                    ? 'Seu mês grátis acaba hoje'
+                    : `Mês grátis · ${left} dias`
+            }
+            pending={!open}
             first
             last={false}
             onPress={() => router.push('/plan')}

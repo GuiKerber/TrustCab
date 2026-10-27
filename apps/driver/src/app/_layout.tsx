@@ -12,10 +12,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors, ErrorState } from '@trustcab/ui';
-import { setOnline } from '@/data/chat';
 import { mergeRemote, resetProfile, setCurrentUid, useProfile } from '@/data/profile';
 import { AuthProvider, useAuth } from '@trustcab/core/auth';
-import { useOnline } from '@trustcab/core';
 import { useProfileDoc } from '@trustcab/core/db';
 import { useNotificationLinks } from '@/lib/notifications';
 
@@ -50,23 +48,17 @@ export function ErrorBoundary({ error, retry }: { error: Error; retry: () => Pro
 function Routes() {
   const { status, user } = useAuth();
   const { onboarded } = useProfile();
-  const online = useOnline();
   useNotificationLinks();
 
   // Com conta, o perfil é criado no Firestore no primeiro acesso e carro e Pix passam a vir
-  // de lá. É isso que faz o passageiro conectado ver a troca de carro sem ninguém avisar.
-  const { profile: remote } = useProfileDoc(user, 'driver');
+  // de lá. É o mesmo documento que a página de agendamento lê para montar o cartão do motorista.
+  const { profile: remote } = useProfileDoc(user);
   useEffect(() => {
     setCurrentUid(user?.uid ?? null);
   }, [user]);
   useEffect(() => {
     mergeRemote(remote ? { vehicle: remote.vehicle, pix: remote.pix } : null);
   }, [remote]);
-
-  // O que ficou "Enviando…" sem internet sai quando a conexão volta.
-  useEffect(() => {
-    setOnline(online);
-  }, [online]);
 
   useEffect(() => {
     if (status !== 'loading') SplashScreen.hideAsync();
@@ -85,14 +77,14 @@ function Routes() {
       </Stack.Protected>
       <Stack.Protected guard={signedIn && onboarded}>
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="chat/index" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="chat/[id]" />
-        <Stack.Screen name="invite" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="requests" />
         <Stack.Screen name="passenger/[id]" />
         <Stack.Screen name="pix" />
         <Stack.Screen name="vehicle" />
         <Stack.Screen name="settings" />
-        <Stack.Screen name="invite-link" />
+        <Stack.Screen name="link" />
+        <Stack.Screen name="phone" />
+        <Stack.Screen name="hours" />
         <Stack.Screen name="plan" />
         <Stack.Screen name="trip/[id]" />
       </Stack.Protected>

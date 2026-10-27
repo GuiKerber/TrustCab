@@ -6,9 +6,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Block, Button, colors, focusRing, Icon, layout, Pills, radius, ScreenStatus, size, spacing, stateOpacity, Text, useInteraction } from '@trustcab/ui';
 import { ChargeSheet, type ChargeLine } from '@/components/ChargeSheet';
 import { TopBar } from '@/components/TopBar';
-import { formatPrice, formatPriceShort, monthName, passengerIdOf, sampleHistory, type Trip, useNow, useSyncState, weekdayShort } from '@trustcab/core';
+import { formatPrice, formatPriceShort, monthName, samplePassengers, sampleHistory, type Trip, useNow, useSyncState, weekdayShort } from '@trustcab/core';
 import { chargeKey, setChargeSent, useChargesSent } from '@/data/charges';
-import { removeMessage, sendMessage } from '@/data/chat';
+import { sendTo } from '@/data/whatsapp';
 import { setTripPaid, usePaidTrips, useReportedTrips } from '@/data/payments';
 import { useProfile } from '@/data/profile';
 import { useTripSignals } from '@/data/tripSignals';
@@ -70,6 +70,8 @@ export default function Earnings() {
   const total = sum(done);
   const name = monthName(current.month);
   const firstName = passenger === ALL ? '' : passenger.split(' ')[0];
+  // A cobrança sai pelo WhatsApp: sem o número do passageiro não há para onde mandar.
+  const phoneOf = (who: string) => samplePassengers(now).find((p) => p.name === who)?.phone ?? null;
 
   const byPassenger = passengers.map((person, index) => {
     const trips = days.flatMap((day) => day.trips).filter((trip) => trip.status === 'completed' && trip.passenger === person);
@@ -203,16 +205,19 @@ export default function Earnings() {
                 />
                 <View style={styles.sentActions}>
                   <Button
-                    label="Abrir chat"
+                    label="Abrir o WhatsApp"
                     icon="chat"
                     size="sm"
                     variant="surface"
-                    onPress={() => router.push({ pathname: '/chat/[id]', params: { id: passengerIdOf(passenger) } })}
+                    onPress={() => sendTo(phoneOf(passenger), '')}
                   />
-                  <Button label="Desfazer envio" icon="undo" size="sm" variant="ghost" destructive onPress={() => {
-                      removeMessage(passengerIdOf(passenger), key);
-                      setChargeSent(key, null);
-                    }}
+                  <Button
+                    label="Marcar como não enviada"
+                    icon="undo"
+                    size="sm"
+                    variant="ghost"
+                    destructive
+                    onPress={() => setChargeSent(key, null)}
                   />
                 </View>
               </Block>
@@ -228,8 +233,8 @@ export default function Earnings() {
                 <Button label="Gerar cobrança" icon="request_quote" variant="light" onPress={() => setPreview(true)} />
                 <Text variant="small" tone="secondary" style={styles.chargeHint}>
                   {paidCount > 0
-                    ? `Envia no chat de ${firstName} as viagens de ${name} ainda não pagas, com data, horário e valor, o total e sua chave Pix.`
-                    : `Envia no chat de ${firstName} as viagens de ${name}, com data, horário e valor, o total e sua chave Pix.`}
+                    ? `Abre o WhatsApp de ${firstName} com as viagens de ${name} ainda não pagas, com data, horário e valor, o total e sua chave Pix.`
+                    : `Abre o WhatsApp de ${firstName} com as viagens de ${name}, com data, horário e valor, o total e sua chave Pix.`}
                 </Text>
               </>
             )}
@@ -252,11 +257,12 @@ export default function Earnings() {
             router.push('/pix');
           }}
           onSend={() => {
+            // O texto é o mesmo que a prévia mostra: o WhatsApp abre com ele escrito e o
+            // motorista toca em enviar. Marcar como enviada é dele — nós não temos como saber.
             const lines = chargeLines.map(({ date, trip }) => `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')} · ${trip.time} — ${formatPrice(trip.priceCents)}`);
-            sendMessage(
-              passengerIdOf(passenger),
-              [`Cobrança de ${name}`, ...lines, `Total: ${formatPrice(chargeTotal)}`, `Pix: ${pixKey}`].join('\n'),
-              key,
+            void sendTo(
+              phoneOf(passenger),
+              [`Olá, ${firstName}! Estas são as suas viagens de ${name}:`, ...lines, `Total: ${formatPrice(chargeTotal)}`, `Pix: ${pixKey}`].join('\n'),
             );
             setChargeSent(key, new Date());
             setPreview(false);
