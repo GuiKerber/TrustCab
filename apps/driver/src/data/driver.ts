@@ -27,5 +27,9 @@ export function useDriver() {
     plan,
     // Liberado hoje? Vale para o teste e para o mês pago: é a mesma pergunta.
     open: isOpen(plan, todayISO()),
+    // Trancar o app é diferente de perguntar se está liberado: só tranca quando o plano é
+    // conhecido. Enquanto carrega, e se a leitura falhar, o app segue aberto — ninguém pode
+    // perder a agenda do dia porque o celular ficou sem sinal na hora errada.
+    locked: !loading && !error && !isOpen(plan, todayISO()),
   };
 }

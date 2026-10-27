@@ -20,7 +20,7 @@ export function LoginScreen({
   onSignIn,
   dev,
 }: {
-  // Nome lido pelo leitor de tela (ex.: "TrustCab Driver").
+  // Nome lido pelo leitor de tela (ex.: "TrustCab").
   brand: string;
   // Três linhas; a do meio fica apagada.
   headline: [string, string, string];

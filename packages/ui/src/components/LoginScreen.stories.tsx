@@ -9,7 +9,7 @@ const meta = {
   component: LoginScreen,
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen' },
-  args: { brand: 'TrustCab Driver', headline: ['Dirija para', 'quem você', 'conhece.'], onSignIn: fn() },
+  args: { brand: 'TrustCab', headline: ['Dirija para', 'quem você', 'conhece.'], onSignIn: fn() },
 } satisfies Meta<typeof LoginScreen>;
 
 export default meta;

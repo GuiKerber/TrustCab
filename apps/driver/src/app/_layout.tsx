@@ -11,6 +11,7 @@ import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { isOpen, newPlan, todayISO, type Plan } from '@trustcab/core';
 import { colors, ErrorState } from '@trustcab/ui';
 import { mergeRemote, resetProfile, setCurrentUid, useProfile } from '@/data/profile';
 import { AuthProvider, useAuth } from '@trustcab/core/auth';
@@ -67,6 +68,10 @@ function Routes() {
   if (status === 'loading') return null;
   const signedIn = status === 'signedIn';
 
+  // Só tranca com o plano em mãos. Enquanto o perfil não chega, o app continua aberto: ninguém
+  // pode perder a agenda do dia porque o celular ficou sem sinal na hora errada.
+  const locked = Boolean(remote) && !isOpen((remote?.plan as Plan) ?? newPlan(), todayISO());
+
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.ground } }}>
       <Stack.Protected guard={!signedIn}>
@@ -75,17 +80,25 @@ function Routes() {
       <Stack.Protected guard={signedIn && !onboarded}>
         <Stack.Screen name="onboarding" />
       </Stack.Protected>
+      {/* Plano vencido: o app some e sobra a porta fechada. Assinar e Configurações continuam de pé
+          nos dois estados — um para voltar, o outro porque sair da própria conta não pode depender
+          de estar pagando. */}
+      <Stack.Protected guard={signedIn && onboarded && locked}>
+        <Stack.Screen name="locked" />
+      </Stack.Protected>
       <Stack.Protected guard={signedIn && onboarded}>
+        <Stack.Screen name="plan" />
+        <Stack.Screen name="settings" />
+      </Stack.Protected>
+      <Stack.Protected guard={signedIn && onboarded && !locked}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="requests" />
         <Stack.Screen name="passenger/[id]" />
         <Stack.Screen name="pix" />
         <Stack.Screen name="vehicle" />
-        <Stack.Screen name="settings" />
         <Stack.Screen name="link" />
         <Stack.Screen name="phone" />
         <Stack.Screen name="hours" />
-        <Stack.Screen name="plan" />
         <Stack.Screen name="trip/[id]" />
       </Stack.Protected>
     </Stack>

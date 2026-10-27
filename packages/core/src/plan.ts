@@ -26,6 +26,8 @@ export function trialEnd(startISO: string, days = TRIAL_DAYS) {
   return new Date(Date.UTC(y, m - 1, d + days - 1)).toISOString().slice(0, 10);
 }
 
+// Dias cheios depois de hoje. É nessa contagem que o aviso do fim do teste é disparado: zero
+// quer dizer "vence hoje", não "já venceu".
 export function daysLeft(plan: Plan, todayISO: string) {
   if (!plan.until) return 0;
   const day = (iso: string) => {
@@ -33,6 +35,12 @@ export function daysLeft(plan: Plan, todayISO: string) {
     return Date.UTC(y, m - 1, d);
   };
   return Math.round((day(plan.until) - day(todayISO)) / 86_400_000);
+}
+
+// Dias que ainda dá para usar, contando hoje. É este o número que vai para a tela: no primeiro
+// dia o teste de 30 dias precisa dizer 30, e não 29, senão a manchete desmente o texto embaixo.
+export function daysOfAccess(plan: Plan, todayISO: string) {
+  return daysLeft(plan, todayISO) + 1;
 }
 
 // Liberado hoje? Vale para o teste e para o mês pago: é a mesma pergunta.
@@ -45,10 +53,11 @@ export function isEnding(plan: Plan, todayISO: string) {
   return isOpen(plan, todayISO) && left <= WARN_DAYS;
 }
 
-// Quando o plano vence, o que para é a entrada de trabalho novo: o link deixa de aceitar
-// pedidos e ele não confirma agenda nova. O que já está combinado continua à mostra, ele
-// continua avisando e concluindo as viagens e continua vendo o histórico — tirar o acesso ao
-// que ele já construiu não cobra ninguém, só castiga.
+// Quando o plano vence, o app fecha: sem assinatura não se vê agenda, não se recebe pedido e
+// não se confirma viagem. Sobra o caminho de volta (assinar) e o de saída (excluir a conta).
+//
+// Os dados ficam guardados esperando. O motorista volta a combinar as caronas pelo WhatsApp dele,
+// como fazia antes, e ao assinar encontra tudo onde deixou.
 export const canReceiveRequests = isOpen;
 export const canConfirmAgenda = isOpen;
 

@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { daysLeft, priceLabel, SUPPORT_PHONE, todayISO, TRIAL_DAYS } from '@trustcab/core';
+import { daysOfAccess, priceLabel, SUPPORT_PHONE, todayISO, TRIAL_DAYS } from '@trustcab/core';
 import { Banner, Block, Button, colors, FormScreen, Icon, Label, size, spacing, Text } from '@trustcab/ui';
 
 import { useDriver } from '@/data/driver';
@@ -17,33 +17,28 @@ const INCLUDED = [
 
 // O plano: um mês inteiro liberado, depois R$ 19,90 por mês.
 //
-// Vencer não tranca o app. O que para é a entrada de trabalho novo — o link deixa de aceitar
-// pedido e ele não confirma agenda nova. O que já está combinado continua à mostra, ele continua
-// avisando e concluindo as viagens e continua vendo o histórico. Tirar de alguém o acesso ao que
-// essa pessoa construiu não faz ninguém pagar; só castiga.
+// Vencendo, o app fecha e sobra a tela de locked.tsx. Esta tela continua alcançável de lá, porque
+// é por ela que a pessoa volta. Nada é apagado: assinar de novo devolve tudo como estava.
 export default function PlanScreen() {
   const { name, plan, open } = useDriver();
   const [error, setError] = useState<string | null>(null);
   const today = todayISO();
-  const left = daysLeft(plan, today);
+  const restam = daysOfAccess(plan, today);
   const price = priceLabel();
 
   const titulo = !open
     ? 'acabou'
     : plan.status === 'active'
       ? 'em dia'
-      : left === 0
+      : restam === 1
         ? 'acaba hoje'
-        : left === 1
+        : restam === 2
           ? 'acaba amanhã'
-          : `${left} dias`;
+          : `${restam} dias`;
 
   const falar = async () => {
     setError(null);
-    if (!SUPPORT_PHONE) {
-      setError('O WhatsApp de cobrança ainda não está configurado neste app.');
-      return;
-    }
+    if (!SUPPORT_PHONE) return;
     const result = await sendTo(
       SUPPORT_PHONE,
       `Oi! Aqui é o ${name}. Quero continuar com o TrustCab depois do mês grátis. Como faço para pagar?`,
@@ -56,7 +51,9 @@ export default function PlanScreen() {
       backLabel="Voltar"
       onBack={() => router.back()}
       footer={
-        plan.status === 'active' ? null : (
+        // Sem número de cobrança não existe conversa para abrir. Um botão que só sabe dizer que
+        // não funciona é pior do que botão nenhum: parece defeito do app de quem está olhando.
+        plan.status === 'active' || !SUPPORT_PHONE ? null : (
           <Button label="Falar sobre o pagamento" icon="chat" variant="light" onPress={falar} />
         )
       }>
@@ -69,7 +66,7 @@ export default function PlanScreen() {
           {plan.status === 'active'
             ? `Sua assinatura está ativa. ${price} por mês.`
             : !open
-              ? `O mês grátis acabou. Para o link voltar a receber pedidos, a assinatura é ${price} por mês.`
+              ? `O mês grátis acabou. Para voltar a usar o TrustCab, a assinatura é ${price} por mês.`
               : `Você tem ${TRIAL_DAYS} dias com tudo liberado para ver se funciona para você. Depois são ${price} por mês.`}
         </Text>
       </View>
@@ -78,8 +75,8 @@ export default function PlanScreen() {
         <Banner
           icon="lock"
           tone="warning"
-          title="Seu link parou de receber pedidos"
-          text="Quem abrir ele vê que você não está aceitando agora. Tudo o que já estava combinado continua valendo, e você continua avisando e concluindo as viagens."
+          title="O app está fechado"
+          text="Sem assinatura você não vê a agenda, não recebe pedidos e não confirma viagens. Seus passageiros, seu histórico e suas contas continuam guardados esperando você voltar."
         />
       ) : null}
 
