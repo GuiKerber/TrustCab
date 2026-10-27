@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { bookingShortUrl, daysLeft, formatPhone, priceLabel, todayISO, weekdayList } from '@trustcab/core';
+import { bookingShortUrl, daysOfAccess, formatPhone, priceLabel, todayISO, weekdayList } from '@trustcab/core';
 import { colors, Label, layout, ListRow, spacing, Text } from '@trustcab/ui';
 
 import { TopBar } from '@/components/TopBar';
@@ -17,7 +17,7 @@ export default function Profile() {
   const profile = useProfile();
   const { phone, slug, slots, plan, open } = useDriver();
   const name = user?.displayName ?? driver.firstName;
-  const left = daysLeft(plan, todayISO());
+  const restam = daysOfAccess(plan, todayISO());
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -99,9 +99,9 @@ export default function Profile() {
                 ? `Assinatura ativa · ${priceLabel()} por mês`
                 : !open
                   ? 'Mês grátis encerrado · seu link não recebe pedidos'
-                  : left === 0
+                  : restam === 1
                     ? 'Seu mês grátis acaba hoje'
-                    : `Mês grátis · ${left} dias`
+                    : `Mês grátis · ${restam} dias`
             }
             pending={!open}
             first

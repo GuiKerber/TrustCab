@@ -18,7 +18,9 @@ import { addDays, daysBetween, TIMEZONE, todayISO } from './slots';
 // que o calendário já responde é guardar duas verdades e torcer para que elas batam.
 
 export const TRIAL_DAYS = 30;
-const WARN_AT = [7, 3, 1, 0];
+// Contados como a tela conta: dias que ainda dá para usar, incluindo hoje. Uma semana de
+// avanço, depois três dias, depois a véspera e o último dia.
+const WARN_AT = [7, 3, 2, 1];
 
 // Conta nova começa o teste no dia em que nasce, contando o primeiro dia.
 export const onUserCreated = onDocumentCreated('users/{uid}', async (event) => {
@@ -50,11 +52,15 @@ export const warnPlanEnding = onSchedule(
     for (const doc of users.docs) {
       const plan = doc.get('plan') ?? {};
       if (plan.status === 'active') continue;
-      const left = daysBetween(today, plan.until);
-      if (!WARN_AT.includes(left)) continue;
+      const restam = daysBetween(today, plan.until) + 1;
+      if (!WARN_AT.includes(restam)) continue;
 
       const title =
-        left === 0 ? 'Seu mês grátis acaba hoje' : left === 1 ? 'Seu mês grátis acaba amanhã' : `Seu mês grátis acaba em ${left} dias`;
+        restam === 1
+          ? 'Seu mês grátis acaba hoje'
+          : restam === 2
+            ? 'Seu mês grátis acaba amanhã'
+            : `Seu mês grátis acaba em ${restam} dias`;
       await pushToUser(doc.id, {
         channel: 'viagens',
         title,

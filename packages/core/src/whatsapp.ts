@@ -5,7 +5,7 @@
 // Regra que mantém o produto de pé: toda mensagem termina com o link da resposta mais provável.
 // Sem isso, o passageiro responde em texto solto e o motorista vira o sincronizador manual.
 
-import { bookingUrl, whatsappShareUrl } from './links';
+import { bookingUrl } from './links';
 import { dayLong, weekdayList, WEEKDAY_LONG } from './slots';
 
 export type MessageAgenda = {
@@ -93,12 +93,6 @@ export function monthlyCharge(
   const plural = trips === 1 ? 'viagem' : 'viagens';
   return `${passengerName}, fechando ${monthLabel}: ${trips} ${plural}, total ${totalLabel}.${pix}`;
 }
-
-// ─── Atalhos prontos ─────────────────────────────────────────────────────────
-// Devolvem o endereço já montado: é só abrir.
-
-// Sem destinatário: o WhatsApp pergunta para quem mandar.
-export const linkToShare = (driverName: string, slug: string) => whatsappShareUrl(shareLink(driverName, slug));
 
 // Dia da semana escrito por extenso, para a mensagem não falar "1".
 export const weekdayName = (weekday: number) => WEEKDAY_LONG[weekday];

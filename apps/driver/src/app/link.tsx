@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { bookingShortUrl, linkToShare } from '@trustcab/core';
+import { bookingShortUrl, shareLink } from '@trustcab/core';
 import { rotateLink } from '@trustcab/core/db';
 import { Banner, Block, Button, ConfirmDialog, FormScreen, Label, spacing, Text } from '@trustcab/ui';
 
@@ -15,7 +15,7 @@ import { shareText } from '@/data/whatsapp';
 // Gerar outro link desativa o anterior na hora. Serve para quando o endereço foi parar num grupo
 // onde não devia — e é por isso que a confirmação diz exatamente isso, em vez de "tem certeza?".
 export default function LinkScreen() {
-  const { uid, name, phone, slug, open } = useDriver();
+  const { uid, name, phone, slug } = useDriver();
   const [busy, setBusy] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +37,7 @@ export default function LinkScreen() {
   const compartilhar = async () => {
     if (!slug) return;
     setError(null);
-    const result = await shareText(linkToShare(name.split(' ')[0] || 'seu motorista', slug));
+    const result = await shareText(shareLink(name.split(' ')[0] || 'seu motorista', slug));
     if (!result.ok) setError(result.message);
   };
 
@@ -86,16 +86,6 @@ export default function LinkScreen() {
           title="Falta seu WhatsApp"
           text="É por ele que o passageiro fala com você depois de pedir. Sem o número, o link não sai."
           actions={[{ label: 'Cadastrar agora', icon: 'edit', onPress: () => router.push('/phone') }]}
-        />
-      ) : null}
-
-      {!open ? (
-        <Banner
-          icon="lock"
-          tone="warning"
-          title="Seu link está fechado"
-          text="O mês acabou e o link parou de aceitar pedidos novos. O que já está combinado continua valendo."
-          actions={[{ label: 'Ver o plano', icon: 'workspace_premium', onPress: () => router.push('/plan') }]}
         />
       ) : null}
 

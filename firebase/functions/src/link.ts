@@ -52,7 +52,15 @@ export const rotateLink = onCall(async (request) => {
 
   const batch = db.batch();
   if (user.slug) {
-    batch.update(db.doc(`links/${user.slug}`), { active: false, revokedAt: FieldValue.serverTimestamp() });
+    // Marca, não atualiza: se o endereço antigo tiver sumido do banco, "update" derruba o lote
+    // inteiro e o motorista fica sem conseguir gerar link nenhum. Escrevendo por cima, o endereço
+    // velho passa a responder "saiu do ar" mesmo que não exista mais — que é o recado certo para
+    // quem guardou o link antigo.
+    batch.set(
+      db.doc(`links/${user.slug}`),
+      { active: false, revokedAt: FieldValue.serverTimestamp() },
+      { merge: true },
+    );
   }
   batch.set(db.doc(`links/${slug}`), {
     driverId: uid,
