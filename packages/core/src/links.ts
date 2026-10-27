@@ -6,8 +6,10 @@ export const HOST = 'trustcab-9bab6.web.app';
 export const TERMS_URL = `https://${HOST}/termos.html`;
 export const PRIVACY_URL = `https://${HOST}/privacidade.html`;
 
-// Versão dos termos aceita no login. Subir este número faz o app pedir o aceite de novo.
-export const TERMS_VERSION = 1;
+// Versão dos termos que o documento publicado traz no topo. É gravada no perfil no momento do
+// aceite, para ficar registrado o que a pessoa leu — e só isso: ainda não existe tela que peça o
+// aceite de novo quando este número sobe. Quem já tem conta continua com a versão antiga gravada.
+export const TERMS_VERSION = 3;
 
 // O WhatsApp do TrustCab: é por ele que o motorista acerta a mensalidade enquanto não existe um
 // meio de pagamento ligado ao app. Só os dígitos, DDD + número.
