@@ -73,6 +73,6 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.ground },
   topBar: { paddingHorizontal: layout.screenPadding, paddingTop: spacing[8] },
   content: { paddingHorizontal: layout.screenPadding, paddingTop: spacing[20], paddingBottom: spacing[40], gap: spacing[20] },
-  list: { gap: spacing[2] },
+  list: { gap: spacing[4] },
   empty: { gap: spacing[8], paddingHorizontal: spacing[4] },
 });

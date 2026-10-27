@@ -1,0 +1,8 @@
+{
+  "hosting": {
+    "site": "trustcab-driver-demo",
+    "public": "apps/driver/dist",
+    "ignore": ["**/node_modules/**"],
+    "rewrites": [{ "source": "**", "destination": "/index.html" }]
+  }
+}

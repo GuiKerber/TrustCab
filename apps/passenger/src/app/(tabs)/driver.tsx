@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Linking, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { formatPhone, formatPrice, formatPriceShort, longDate, monthName, useNow, useSyncState } from '@trustcab/core';
+import { formatPhone, formatPrice, formatPriceShort, longDate, monthName, reportText, reportUrl, useNow, useSyncState } from '@trustcab/core';
 import { Banner, Block, Button, colors, ConfirmDialog, Icon, IconButton, Label, layout, radius, ScreenStatus, size, spacing, Text, TripOptions } from '@trustcab/ui';
 
 import { TopBar } from '@/components/TopBar';
@@ -21,6 +21,7 @@ export default function DriverTab() {
   const routines = useRoutines();
   const [options, setOptions] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const [reporting, setReporting] = useState(false);
   const [justLeft, setJustLeft] = useState<string | null>(null);
   const thisMonth = useMonthTrips(new Date(now.getFullYear(), now.getMonth(), 1), now);
   const nextMonth = useMonthTrips(new Date(now.getFullYear(), now.getMonth() + 1, 1), now);
@@ -178,8 +179,21 @@ export default function DriverTab() {
         onClose={() => setOptions(false)}
         options={[
           { key: 'call', label: `Ligar para ${first} · ${formatPhone(driver.phone)}`, icon: 'call', onPress: () => Linking.openURL(`tel:${driver.phone}`) },
+          { key: 'report', label: `Denunciar ${first}`, icon: 'flag', onPress: () => setReporting(true) },
           { key: 'leave', label: 'Sair da rede', icon: 'person_remove', destructive: true, onPress: () => setLeaving(true) },
         ]}
+      />
+      <ConfirmDialog
+        visible={reporting}
+        title={`Denunciar ${first}?`}
+        text={reportText(first)}
+        confirmLabel="Escrever denúncia"
+        confirmIcon="flag"
+        onConfirm={() => {
+          setReporting(false);
+          Linking.openURL(reportUrl({ reported: driver.name }));
+        }}
+        onClose={() => setReporting(false)}
       />
       <ConfirmDialog
         visible={leaving}
@@ -207,13 +221,13 @@ const styles = StyleSheet.create({
   headRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing[12], paddingHorizontal: spacing[4], paddingTop: spacing[20] },
   headText: { flex: 1, gap: spacing[4] },
   car: { flexDirection: 'row', alignItems: 'center', gap: spacing[16] },
-  carText: { flex: 1, gap: spacing[2] },
+  carText: { flex: 1, gap: spacing[4] },
   stats: { flexDirection: 'row', gap: spacing[8] },
   stat: { flex: 1, minHeight: size.statCardMinHeight, borderRadius: radius.card, padding: spacing[20], justifyContent: 'space-between' },
   statWide: { flex: layout.statWideFlex },
   section: { gap: spacing[8] },
-  slot: { gap: spacing[6] },
+  slot: { gap: spacing[8] },
   slotHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: spacing[12] },
-  waiting: { flexDirection: 'row', alignItems: 'center', gap: spacing[6] },
+  waiting: { flexDirection: 'row', alignItems: 'center', gap: spacing[8] },
   alignStart: { alignSelf: 'flex-start' },
 });

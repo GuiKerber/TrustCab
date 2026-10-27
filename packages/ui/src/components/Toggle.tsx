@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[12],
     borderRadius: radius.sm,
   },
-  text: { flex: 1, gap: spacing[2] },
+  text: { flex: 1, gap: spacing[4] },
   control: { alignItems: 'center', gap: spacing[4], minWidth: size.toggle.width },
   track: {
     width: size.toggle.width,
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     borderWidth: borderWidth.strong,
     borderColor: colors.textSecondary,
     justifyContent: 'center',
-    paddingHorizontal: spacing[2],
+    paddingHorizontal: spacing[4],
     backgroundColor: colors.ground,
   },
   trackHover: { borderColor: colors.text },

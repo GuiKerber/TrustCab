@@ -17,6 +17,7 @@ function userCard(data: DocumentData | undefined): Card {
     phone: data?.phone ?? null,
     vehicle: data?.vehicle ?? null,
     notificationsEnabled: data?.notificationsEnabled ?? false,
+    pix: data?.pix ?? null,
   };
 }
 
@@ -97,7 +98,7 @@ export const onUserUpdated = onDocumentUpdated('users/{uid}', async (event) => {
   const before = event.data?.before.data();
   const after = event.data?.after.data();
   if (!before || !after) return;
-  const keys = ['name', 'photoURL', 'phone', 'vehicle', 'notificationsEnabled'];
+  const keys = ['name', 'photoURL', 'phone', 'vehicle', 'notificationsEnabled', 'pix'];
   if (keys.every((k) => JSON.stringify(before[k] ?? null) === JSON.stringify(after[k] ?? null))) return;
 
   const uid = event.params.uid;
@@ -109,7 +110,8 @@ export const onUserUpdated = onDocumentUpdated('users/{uid}', async (event) => {
   const batch = db().batch();
   connections.docs.forEach((doc) => batch.update(doc.ref, { [field]: card }));
   if (after.role === 'driver' && after.inviteToken) {
-    batch.update(db().doc(`invites/${after.inviteToken}`), { driver: card });
+    const { pix: _pix, ...semPix } = card;
+    batch.update(db().doc(`invites/${after.inviteToken}`), { driver: semPix });
   }
   await batch.commit();
 });

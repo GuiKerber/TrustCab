@@ -88,7 +88,7 @@ function RetryButton({ onPress }: { onPress: () => void }) {
 }
 
 const styles = StyleSheet.create({
-  system: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: spacing[6], paddingHorizontal: spacing[20] },
+  system: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: spacing[8], paddingHorizontal: spacing[20] },
   systemText: { textAlign: 'center', flexShrink: 1 },
   row: { alignItems: 'flex-start', gap: spacing[4] },
   rowMine: { alignItems: 'flex-end' },
@@ -99,12 +99,12 @@ const styles = StyleSheet.create({
   // Palavra ou link sem espaço não estoura a bolha.
   text: { flexShrink: 1 },
   meta: { flexDirection: 'row', alignItems: 'center', gap: spacing[8] },
-  status: { flexDirection: 'row', alignItems: 'center', gap: spacing[2] },
+  status: { flexDirection: 'row', alignItems: 'center', gap: spacing[4] },
   retry: {
     minHeight: size.touchTarget,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing[6],
+    gap: spacing[8],
     paddingHorizontal: spacing[12],
     borderRadius: radius.sm,
   },

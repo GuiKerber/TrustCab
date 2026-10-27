@@ -92,7 +92,7 @@ export function TripSheet({
       onCancel={onCancel}
       origin={origin}
       completedBody={<PixCharge price={price} firstName={firstName} paid={paid} />}
-      footer={({ dark, onCard, muted, actionVariant }) => (
+      footer={({ dark, onCard, muted, actionVariant, close }) => (
         <>
           {needsSetup ? (
             <Banner
@@ -155,13 +155,25 @@ export function TripSheet({
                     </Text>
                   </View>
                 ) : null}
-                <Button
-                  label={paidByPassenger ? 'Confirmar pagamento' : 'Marcar como pago'}
-                  icon="paid"
-                  variant="light"
-                  onPress={() => onPaid(trip, true)}
-                  accessibilityHint={`Use quando ${firstName} pagar. A viagem sai da cobrança do mês.`}
-                />
+                {/* Pagou agora, ou fica para a cobrança do mês: as duas saídas lado a lado,
+                    para nenhuma das duas ser a única e obrigar a fechar a folha na mão. */}
+                <View style={styles.actions}>
+                  <Button
+                    label={paidByPassenger ? 'Confirmar pagamento' : 'Marcar como pago'}
+                    icon="paid"
+                    variant="light"
+                    style={styles.mainAction}
+                    onPress={() => onPaid(trip, true)}
+                    accessibilityHint={`Use quando ${firstName} pagar. A viagem sai da cobrança do mês.`}
+                  />
+                  <Button
+                    label="Cobrar depois"
+                    variant="surface"
+                    style={styles.mainAction}
+                    onPress={close}
+                    accessibilityHint={`A viagem entra na cobrança do mês de ${firstName}`}
+                  />
+                </View>
               </View>
             )
           ) : null}
@@ -238,7 +250,7 @@ const styles = StyleSheet.create({
   actions: { flexDirection: 'row', alignItems: 'center', gap: spacing[8] },
   mainAction: { flex: 1 },
   locked: { gap: spacing[8] },
-  lockedText: { flexDirection: 'row', alignItems: 'center', gap: spacing[6] },
+  lockedText: { flexDirection: 'row', alignItems: 'center', gap: spacing[8] },
   paidRow: { flexDirection: 'row', alignItems: 'center', gap: spacing[8] },
   paidText: { flex: 1 },
   charge: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing[20] },

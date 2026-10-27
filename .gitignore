@@ -42,3 +42,6 @@ yarn-error.*
 
 # app antigo (mobile/) tem repositório próprio e não entra nos builds
 mobile/
+
+# build de demonstração gerado localmente
+apps/driver/dist-demo/

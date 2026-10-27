@@ -13,9 +13,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors, ErrorState } from '@trustcab/ui';
 import { setOnline } from '@/data/chat';
-import { resetProfile, useProfile } from '@/data/profile';
+import { mergeRemote, resetProfile, setCurrentUid, useProfile } from '@/data/profile';
 import { AuthProvider, useAuth } from '@trustcab/core/auth';
 import { useOnline } from '@trustcab/core';
+import { useProfileDoc } from '@trustcab/core/db';
 import { useNotificationLinks } from '@/lib/notifications';
 
 SplashScreen.preventAutoHideAsync();
@@ -47,10 +48,20 @@ export function ErrorBoundary({ error, retry }: { error: Error; retry: () => Pro
 // Sem sessão, só o login existe. Com sessão e sem primeiro acesso feito, o onboarding. Depois, o app inteiro.
 // A splash some quando a sessão é conhecida.
 function Routes() {
-  const { status } = useAuth();
+  const { status, user } = useAuth();
   const { onboarded } = useProfile();
   const online = useOnline();
   useNotificationLinks();
+
+  // Com conta, o perfil é criado no Firestore no primeiro acesso e carro e Pix passam a vir
+  // de lá. É isso que faz o passageiro conectado ver a troca de carro sem ninguém avisar.
+  const { profile: remote } = useProfileDoc(user, 'driver');
+  useEffect(() => {
+    setCurrentUid(user?.uid ?? null);
+  }, [user]);
+  useEffect(() => {
+    mergeRemote(remote ? { vehicle: remote.vehicle, pix: remote.pix } : null);
+  }, [remote]);
 
   // O que ficou "Enviando…" sem internet sai quando a conexão volta.
   useEffect(() => {
@@ -82,6 +93,7 @@ function Routes() {
         <Stack.Screen name="vehicle" />
         <Stack.Screen name="settings" />
         <Stack.Screen name="invite-link" />
+        <Stack.Screen name="plan" />
         <Stack.Screen name="trip/[id]" />
       </Stack.Protected>
     </Stack>

@@ -24,7 +24,7 @@ const meta = {
   },
   argTypes: {
     size: { control: 'inline-radio', options: ['md', 'sm'] },
-    variant: { control: 'select', options: ['ink', 'light', 'accent', 'surface', 'ghost', 'danger'] },
+    variant: { control: 'select', options: ['ink', 'light', 'surface', 'ghost', 'danger'] },
   },
 } satisfies Meta<typeof Button>;
 
@@ -60,7 +60,7 @@ export const Perigo: Story = { args: { variant: 'danger', label: 'Excluir conta'
 export const Variantes: Story = {
   render: (args) => (
     <View style={styles.column}>
-      {(['light', 'accent', 'surface', 'ghost', 'danger'] as const).map((variant) => (
+      {(['light', 'surface', 'ghost', 'danger'] as const).map((variant) => (
         <View key={variant} style={styles.row}>
           <Text variant="label" tone="secondary" style={styles.caption}>
             {variant}

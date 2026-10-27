@@ -94,18 +94,22 @@ export const fonts = {
   display: 'InterTight_700Bold',
 } as const;
 
-export const fontSize = { xs: 11, sm: 14, md: 16, lg: 20, xl: 30, '2xl': 40, '3xl': 56, '4xl': 88 } as const;
+// Régua de 4: todo tamanho é múltiplo de 4. "sm" (14) é a única exceção da escala, documentada:
+// é o tamanho de apoio (endereços, dicas) e não cabe nem em 12 (ilegível em endereço longo) nem em 16
+// (some a hierarquia contra o corpo de texto).
+export const fontSize = { xs: 12, sm: 14, md: 16, lg: 20, xl: 28, '2xl': 40, '3xl': 56, '4xl': 88 } as const;
 // Títulos grandes usam linha justa (editorial). O Android recorta as letras quando a linha é menor que a fonte
 // (a Inter Tight precisa de ~1,22× o tamanho), então lá a linha dos tamanhos grandes cresce; iOS e web mantêm a justa.
+// Toda linha é múltiplo de 4, e no Android é o menor múltiplo de 4 que ainda respeita esse piso.
 const android = Platform.OS === 'android';
 export const lineHeight = {
-  xs: 14,
-  sm: 19,
-  md: 22,
-  lg: 26,
-  xl: android ? 37 : 34,
-  '2xl': android ? 49 : 42,
-  '3xl': android ? 68 : 56,
+  xs: 16,
+  sm: 20,
+  md: 24,
+  lg: 28,
+  xl: android ? 36 : 32,
+  '2xl': android ? 52 : 44,
+  '3xl': android ? 72 : 56,
   '4xl': android ? 108 : 84,
 } as const;
 export const letterSpacing = {
@@ -141,11 +145,12 @@ export const type = {
 } satisfies Record<string, TextStyle>;
 
 // ─── 4. Espaço, raio, borda, opacidade ───────────────────────────────────────
-export const spacing = { 2: 2, 4: 4, 6: 6, 8: 8, 12: 12, 16: 16, 20: 20, 28: 28, 40: 40, 56: 56 } as const;
+// Régua de 4: todo espaço é múltiplo de 4.
+export const spacing = { 4: 4, 8: 8, 12: 12, 16: 16, 20: 20, 28: 28, 40: 40, 56: 56 } as const;
 
 // Pílulas e círculos não têm token: o raio é sempre metade da altura do elemento (ex.: size.button.md / 2).
 // Um raio "infinito" (999) é ignorado pelo Android em formas que não são quadradas e deixa o canto reto.
-export const radius = { xs: 2, joined: 4, sm: 8, md: 14, blockSm: 18, block: 24, card: 32 } as const;
+export const radius = { joined: 4, sm: 8, md: 16, blockSm: 20, block: 24, card: 32 } as const;
 
 export const borderWidth = { hairline: 1, strong: 2 } as const;
 
@@ -159,13 +164,13 @@ export const gradient = { routeFade: { start: 0.2, end: 0.8, tail: 0.2 } } as co
 export const size = {
   // Alvo de toque mínimo de qualquer controle
   touchTarget: 48,
-  icon: { sm: 18, md: 20, lg: 22, xl: 40, '2xl': 64 },
+  icon: { sm: 16, md: 20, lg: 24, xl: 40, '2xl': 64 },
   button: { sm: 44, md: 56 },
   iconButton: { sm: 36, md: 48 },
-  badge: 10,
+  badge: 12,
   // Contador de não lidas (pílula com número)
   badgeCount: 20,
-  dot: { xs: 5, sm: 6, md: 8, lg: 10, xl: 14 },
+  dot: { xs: 4, md: 8, lg: 12, xl: 16 },
   handle: { width: 40, height: 4 },
   tabSlot: { width: 64, height: 44 },
   tabItem: 56,
@@ -194,8 +199,8 @@ export const size = {
   // Círculo da seta no percurso
   routeBubble: 44,
   // Espessura da rua no desenho do percurso
-  routeStroke: 14,
-  routeMinHeight: 150,
+  routeStroke: 16,
+  routeMinHeight: 152,
   // QR Code Pix: grande o bastante para a câmera do passageiro ler de longe
   qr: 240,
   stack: { card: 236, peek: 116 },

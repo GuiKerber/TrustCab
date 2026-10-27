@@ -16,7 +16,9 @@ export function routeStep(progress: RouteProgress) {
 // "onCard": traços escuros sobre cartão claro. "onDark": traços claros sobre o cartão escuro (viagem encerrada).
 export const ROUTE_PALETTES = {
   onCard: { stroke: colors.ink, faint: colors.inkFaint, halo: colors.inkLine, bubble: colors.tintOnCard, arrow: colors.ink },
-  onDark: { stroke: colors.text, faint: colors.lineStrong, halo: colors.lineStrong, bubble: colors.surfaceRaised, arrow: colors.orange },
+  // A bolha usa o mesmo tingimento nos dois tons: branco a 45% clareia o cartão, seja ele colorido
+  // ou escuro. Antes, no escuro, ela era "surfaceRaised" — a mesma cor do cartão encerrado, invisível.
+  onDark: { stroke: colors.text, faint: colors.lineStrong, halo: colors.lineStrong, bubble: colors.tintOnCard, arrow: colors.ink },
 } as const;
 
 export type RouteTone = keyof typeof ROUTE_PALETTES;
@@ -68,7 +70,11 @@ export function RouteMap({ progress, tone, cardColor }: { progress: RouteProgres
   const palette = ROUTE_PALETTES[tone];
   const reduceMotion = useReducedMotion();
   const [box, setBox] = useState({ width: 0, height: 0 });
-  const scaleX = box.width / ART.width;
+  // A rua encosta em x=108 de 115, ou seja 7 unidades da borda do desenho — mas a bolha
+  // da seta precisa de metade da própria largura (22) para caber. Com o desenho ocupando
+  // a largura toda, a bolha vazava e aparecia cortada. Então o desenho encolhe o tanto
+  // que for preciso para a bolha caber inteira dentro da caixa, sem sair da rua.
+  const scaleX = box.width ? Math.min(box.width / ART.width, (box.width - BUBBLE / 2) / ARROW.location.x) : 0;
   const artHeight = scaleX ? box.height / scaleX : 0;
   const scaleY = artHeight / ART.height;
 
@@ -102,7 +108,7 @@ export function RouteMap({ progress, tone, cardColor }: { progress: RouteProgres
       importantForAccessibility="no-hide-descendants">
       {box.width ? (
         <>
-          <Svg width="100%" height="100%" viewBox={`0 0 ${ART.width} ${artHeight}`}>
+          <Svg width={ART.width * scaleX} height="100%" viewBox={`0 0 ${ART.width} ${artHeight}`}>
             <Defs>
               {/* A rua some nas pontas: começa transparente, fica forte no meio e desbota no fim. */}
               <LinearGradient id="route-fade" x1="0" y1="0" x2="0" y2={artHeight} gradientUnits="userSpaceOnUse">

@@ -3,6 +3,7 @@ export * from './chat';
 export * from './format';
 export * from './links';
 export * from './network';
+export * from './report';
 export * from './rules';
 export * from './sample';
 export * from './store';

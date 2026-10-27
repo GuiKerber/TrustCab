@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   slotActive: { backgroundColor: colors.surface },
   badge: {
     position: 'absolute',
-    top: spacing[6],
+    top: spacing[8],
     right: spacing[12],
     width: size.badge,
     height: size.badge,

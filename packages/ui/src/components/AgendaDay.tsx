@@ -105,9 +105,9 @@ const styles = StyleSheet.create({
   dayFull: { backgroundColor: colors.surface },
   dayEmpty: { borderWidth: borderWidth.hairline, borderColor: colors.line },
   daySelected: { borderWidth: borderWidth.strong, borderColor: colors.text },
-  dayHead: { width: size.agendaDayNumber, gap: spacing[2] },
+  dayHead: { width: size.agendaDayNumber, gap: spacing[4] },
   free: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', gap: spacing[8] },
-  freeDot: { width: size.dot.xl, height: size.dot.xl, borderRadius: size.dot.xl / 2, backgroundColor: colors.surface, marginBottom: spacing[2] },
+  freeDot: { width: size.dot.xl, height: size.dot.xl, borderRadius: size.dot.xl / 2, backgroundColor: colors.surface, marginBottom: spacing[4] },
   trips: { flex: 1, gap: spacing[4], justifyContent: 'center' },
   trip: {
     minHeight: layout.touchTarget,

@@ -43,7 +43,7 @@ export const VistaDoPassageiro: Story = {
 
 export const Lista: Story = {
   render: (args) => (
-    <View style={{ gap: spacing[2] }}>
+    <View style={{ gap: spacing[4] }}>
       <ConversationRow {...args} first lastRow={false} />
       <ConversationRow {...args} name="Júlia Rocha" color={colors.cards[1]} unread={0} first={false} lastRow={false} />
       <ConversationRow {...args} name="Pedro Lima" color={colors.cards[2]} unread={3} first={false} lastRow />

@@ -3,10 +3,16 @@ import { formatPrice, startOfDay } from './sample';
 // Máscaras dos campos e a conta das datas de uma rotina. Iguais nos dois apps.
 
 // "730" → "07:30"; aceita só números enquanto a pessoa digita.
+// Hora primeiro, que é como se escreve e se fala: 09:56 começa pelo 0 e pelo 9.
+// Antes os dois últimos dígitos eram sempre os minutos, então o número entrava pela direita e
+// empurrava o resto — digitar "095" dava "00:95", e a pessoa precisava levar o cursor para o começo.
+// Com três dígitos, se os dois primeiros não formam hora possível, o primeiro é a hora: "830" → 08:30.
 export function maskTime(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 4);
   if (digits.length <= 2) return digits;
-  return `${digits.slice(0, digits.length - 2).padStart(2, '0')}:${digits.slice(-2)}`;
+  const horaDeUmDigito = digits.length === 3 && Number(digits.slice(0, 2)) > 23;
+  const corte = horaDeUmDigito ? 1 : 2;
+  return `${digits.slice(0, corte).padStart(2, '0')}:${digits.slice(corte)}`;
 }
 
 // null = horário válido.

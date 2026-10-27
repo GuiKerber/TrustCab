@@ -46,8 +46,10 @@ export function PassengerCardContent({ name, dark, subtitle, month }: PassengerC
         <Text variant="bodyMedium" tone={tone}>
           Ver detalhes
         </Text>
-        <View style={[styles.arrow, { backgroundColor: dark ? colors.surfaceRaised : colors.ink }]}>
-          <Icon name="north_east" size={size.icon.sm} color={colors.text} />
+        {/* Sobre o cartão escuro o círculo inverte: claro com a seta em tinta. Com "surfaceRaised"
+            ele ficava exatamente da cor do cartão e desaparecia. */}
+        <View style={[styles.arrow, { backgroundColor: dark ? colors.text : colors.ink }]}>
+          <Icon name="north_east" size={size.icon.sm} color={dark ? colors.ink : colors.text} />
         </View>
       </View>
     </>
@@ -56,8 +58,8 @@ export function PassengerCardContent({ name, dark, subtitle, month }: PassengerC
 
 const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing[12] },
-  who: { flex: 1, gap: spacing[2], paddingTop: spacing[4] },
-  total: { alignItems: 'flex-end', gap: spacing[2] },
+  who: { flex: 1, gap: spacing[4], paddingTop: spacing[4] },
+  total: { alignItems: 'flex-end', gap: spacing[4] },
   foot: {
     marginTop: 'auto',
     flexDirection: 'row',

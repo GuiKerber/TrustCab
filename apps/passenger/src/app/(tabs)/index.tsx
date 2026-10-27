@@ -3,7 +3,10 @@ import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { dayKey, isSameDay, relativeDay, startOfDay, useNow, useSyncState } from '@trustcab/core';
+import { dayKey, isSameDay, startOfDay, useNow, useSyncState, weekdayTitle } from '@trustcab/core';
+
+// Quantos dias a faixa da Home mostra: uma semana, começando em hoje.
+const WEEK_DAYS = 7;
 import { Banner, Button, cardColor, colors, DaySlider, isClosed, layout, ScreenStatus, spacing, Text, TripStack, type CardOrigin } from '@trustcab/ui';
 
 import { OpenTripSheet } from '@/components/OpenTripSheet';
@@ -30,13 +33,13 @@ export default function Home() {
   const thisMonth = useMonthTrips(new Date(now.getFullYear(), now.getMonth(), 1), now);
   const nextMonth = useMonthTrips(new Date(now.getFullYear(), now.getMonth() + 1, 1), now);
   const allDays = [...thisMonth, ...nextMonth];
-  const days = allDays.filter((day) => day.date >= startOfDay(now));
+  // A Home dá a visão da semana, não do mês: sete dias a partir de hoje.
+  const days = allDays.filter((day) => day.date >= startOfDay(now)).slice(0, WEEK_DAYS);
   const selectedDay = allDays.find((day) => isSameDay(day.date, selected));
 
   // Ordem de embarque; encerradas vão para o fim.
   const trips = [...(selectedDay?.trips ?? [])].sort((a, b) => Number(isClosed(a)) - Number(isClosed(b)) || a.time.localeCompare(b.time));
-  const dayTitle = relativeDay(selected, now);
-  const titleVariant = dayTitle.includes('/') ? 'displaySm' : 'display';
+  const dayTitle = weekdayTitle(selected, now);
   const openTrip = open ? (trips.find((t) => t.id === open.id) ?? null) : null;
   const waiting = allDays.filter((day) => day.date >= startOfDay(now)).flatMap((day) => day.trips).filter((t) => t.status === 'requested').length;
 
@@ -59,7 +62,10 @@ export default function Home() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <TopBar title={`Olá, ${me.firstName}`} />
+        <TopBar
+          title={`Olá, ${me.firstName}`}
+          action={driver ? { icon: 'add', label: 'Pedir viagens', onPress: () => router.push('/request') } : undefined}
+        />
 
         {!driver ? (
           <Banner
@@ -78,16 +84,13 @@ export default function Home() {
         ) : null}
 
         <View style={styles.title}>
-          <Text variant={titleVariant}>{dayTitle}</Text>
-          <Text variant={titleVariant} tone="secondary">
+          <Text variant="display">{dayTitle}</Text>
+          <Text variant="display" tone="secondary">
             {trips.length === 1 ? '1 viagem' : `${trips.length} viagens`}
           </Text>
           <Text variant="bodyMedium" tone="secondary" style={styles.subtitle}>
             {trips.length === 0 ? 'Dia livre' : driver ? `Com ${driver.name.split(' ')[0]}` : 'Nenhuma viagem pela frente'}
           </Text>
-          {driver ? (
-            <Button label="Pedir viagens" icon="add" size="sm" variant="surface" onPress={() => router.push('/request')} style={styles.request} />
-          ) : null}
         </View>
 
         <DaySlider days={days} selected={selected} today={now} onSelect={setSelected} />

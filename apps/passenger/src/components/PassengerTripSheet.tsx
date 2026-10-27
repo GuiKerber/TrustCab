@@ -110,7 +110,7 @@ export function PassengerTripSheet({
       onCancel={onCancel}
       origin={origin}
       completedBody={<PayPanel price={price} driver={driver} first={first} payment={payment} />}
-      footer={({ onCard }) => (
+      footer={({ onCard, muted }) => (
         <>
           {trip.status === 'arrived' ? (
             <>
@@ -123,7 +123,15 @@ export function PassengerTripSheet({
               <Button label="Estou descendo" icon="directions_walk" variant="ink" onCard={onCard} onPress={() => onComingDown(trip)} />
             </>
           ) : moment ? (
-            <Banner onCard={onCard} icon={moment.icon} title={moment.title(first)} text={moment.text(first)} />
+            // Agendada não é novidade: a folha inteira já diz que a viagem existe e está marcada.
+            // Fica só a frase do que vem a seguir; o aviso em caixa volta quando há mudança de estado.
+            trip.status === 'scheduled' ? (
+              <Text variant="small" tone={muted}>
+                {moment.text(first)}
+              </Text>
+            ) : (
+              <Banner onCard={onCard} icon={moment.icon} title={moment.title(first)} text={moment.text(first)} />
+            )
           ) : null}
           {trip.status === 'completed' ? (
             payment === 'due' ? (

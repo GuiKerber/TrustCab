@@ -1,3 +1,8 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { setPix as remoteSetPix, setVehicle as remoteSetVehicle } from '@trustcab/core/db';
+
+import type { Plan } from './plan';
 import { inviteShortUrl, TERMS_VERSION } from '@trustcab/core';
 import { randomUUID } from 'expo-crypto';
 import { useSyncExternalStore } from 'react';
@@ -55,6 +60,8 @@ export type Profile = {
   notifications: Record<NotificationKind, boolean>;
   // Parte final do link de convite. Gerar um novo invalida o anterior.
   inviteToken: string;
+  // Plano da conta: grátis (até três passageiros) ou pago (sem limite).
+  plan: Plan;
 };
 
 // Mesmo formato do token que o servidor gera: 8 caracteres, sem letras e números fáceis de confundir.
@@ -72,22 +79,59 @@ const initial: Profile = {
   termsAcceptedAt: null,
   notifications: Object.fromEntries(Object.keys(NOTIFICATIONS).map((kind) => [kind, true])) as Profile['notifications'],
   inviteToken: newToken(),
+  plan: 'free',
 };
+
+// O perfil é a única coisa que precisa sobreviver a fechar o app: sem ele, a sessão do
+// Google volta logada (o Firebase guarda a dela no AsyncStorage) mas o "onboarded" volta
+// falso, e o primeiro acesso recomeça do zero a cada abertura.
+const CHAVE = 'trustcab.driver.profile';
 
 let profile: Profile = initial;
 const listeners = new Set<() => void>();
+// Até a leitura do disco terminar, ninguém pode gravar por cima do que está salvo.
+let carregado = false;
+
+AsyncStorage.getItem(CHAVE)
+  .then((bruto) => {
+    // Campos novos de versões futuras entram pelo "initial"; o que estava salvo manda no resto.
+    if (bruto) emit({ ...initial, ...(JSON.parse(bruto) as Partial<Profile>) });
+  })
+  .catch(() => {})
+  .finally(() => {
+    carregado = true;
+  });
 
 function emit(next: Profile) {
   profile = next;
   listeners.forEach((listener) => listener());
+  if (carregado) AsyncStorage.setItem(CHAVE, JSON.stringify(next)).catch(() => {});
+}
+
+// Quem está logado agora. O layout do app avisa quando a sessão muda. Com uid, carro e Pix
+// moram no Firestore — é de lá que a Function onUserUpdated os espalha para os passageiros
+// conectados. Sem uid (sessão de desenvolvimento, sem conta) tudo fica local, como antes.
+let uid: string | null = null;
+
+export function setCurrentUid(next: string | null) {
+  uid = next;
 }
 
 export function setPix(pix: Profile['pix']) {
   emit({ ...profile, pix });
+  if (uid) remoteSetPix(uid, pix).catch(() => {});
 }
 
 export function setVehicle(vehicle: Vehicle | null) {
   emit({ ...profile, vehicle });
+  if (uid) remoteSetVehicle(uid, vehicle).catch(() => {});
+}
+
+// O que vem do banco manda: é o mesmo dado que o passageiro está vendo.
+export function mergeRemote(remote: { vehicle: Vehicle | null; pix: Profile['pix'] } | null) {
+  if (!remote) return;
+  if (JSON.stringify(remote.vehicle) === JSON.stringify(profile.vehicle) && JSON.stringify(remote.pix) === JSON.stringify(profile.pix)) return;
+  emit({ ...profile, vehicle: remote.vehicle, pix: remote.pix });
 }
 
 export function acceptTerms() {
@@ -175,4 +219,9 @@ export function plateError(plate: string) {
 // Texto do convite que sai pelo WhatsApp.
 export function inviteMessage(firstName: string, driverName: string, token: string) {
   return `Oi, ${firstName || '…'}! Sou ${driverName} e agora organizo minhas corridas pelo TrustCab. Entre pelo meu link para marcar suas viagens comigo: ${inviteShortUrl(token)}`;
+}
+
+// Assinar ou voltar para o grátis. Com a cobrança real, quem chama isto é a confirmação da loja.
+export function setPlan(plan: Plan) {
+  emit({ ...profile, plan });
 }

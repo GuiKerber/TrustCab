@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   stackCard: { position: 'absolute', left: 0, right: 0 },
   rows: { gap: spacing[8] },
   chatRow: { flexDirection: 'row', alignItems: 'center', gap: spacing[12], minHeight: size.personCardMinHeight },
-  lines: { flex: 1, gap: spacing[6] },
+  lines: { flex: 1, gap: spacing[8] },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
-  cell: { width: `${100 / 7}%`, padding: spacing[2] },
+  cell: { width: `${100 / 7}%`, padding: spacing[4] },
 });

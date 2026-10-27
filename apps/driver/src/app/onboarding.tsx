@@ -66,7 +66,7 @@ export default function Onboarding() {
             na hora certa
           </Text>
           <Text variant="body" tone="secondary" style={styles.lead}>
-            O celular vai pedir sua permissão. Com ela, você fica sabendo de:
+            Você fica sabendo de:
           </Text>
         </View>
         <View style={styles.list}>
@@ -98,19 +98,7 @@ export default function Onboarding() {
       backLabel="Voltar para o carro"
       onBack={back}
       trailing={progress}
-      footer={
-        <>
-          <Button label="Salvar e continuar" icon="arrow_forward" variant="light" onPress={() => form.save() && next()} />
-          <Button
-            label="Fazer depois"
-            size="sm"
-            variant="ghost"
-            onPress={next}
-            style={styles.center}
-            accessibilityHint="Você cadastra depois pelo Perfil. Até lá, não dá para começar viagens."
-          />
-        </>
-      }>
+      footer={<Button label="Salvar e continuar" icon="arrow_forward" variant="light" onPress={() => form.save() && next()} />}>
       <View style={styles.head}>
         <Text variant="display">{isVehicle ? 'Seu' : 'Sua chave'}</Text>
         <Text variant="display" tone="secondary">
@@ -123,9 +111,6 @@ export default function Onboarding() {
         </Text>
       </View>
       {form.fields}
-      <Text variant="small" tone="secondary">
-        Carro e chave Pix são obrigatórios para começar viagens.
-      </Text>
     </FormScreen>
   );
 }

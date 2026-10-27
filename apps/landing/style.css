@@ -1,0 +1,826 @@
+/* ==========================================================================
+   TrustCab · landing do motorista
+
+   Tema claro, no formato da referência: a maquete 3D fica sobre o fundo da
+   própria página — a tela do canvas é transparente e só as sombras aparecem no
+   chão. Por isso o fundo daqui e a névoa da cena precisam ser a mesma cor.
+
+   As fontes e as cores de produto (amarelo, pastéis dos cartões, tinta) são as
+   do design system do app, em trustcab/packages/ui/src/theme/tokens.ts. O resto
+   da página é a escala clara que a referência pede.
+
+   Tema único claro, de propósito: a maquete é uma cena iluminada de dia, e
+   inverter a página deixaria o 3D fora do lugar. Toda cor é explícita.
+   ========================================================================== */
+
+:root {
+  /* ---- fundo e superfícies ---- */
+  --bg: #ffffff;
+  --bg-soft: #f2f2ef;
+  --bg-deep: #e4e4e0;
+
+  /* ---- tinta ---- */
+  --ink: #141414;
+  --ink-2: rgba(20, 20, 20, 0.62);
+  --ink-3: rgba(20, 20, 20, 0.38);
+  --line: rgba(20, 20, 20, 0.12);
+  --line-strong: rgba(20, 20, 20, 0.24);
+
+  /* ---- produto ---- */
+  --yellow: #f4e04d;
+  --lilac: #c9b8f4;
+  --sky: #b8ddea;
+  --peach: #f2cba2;
+  --mint: #c6e4c9;
+  --orange: #f26a2e;
+  --surface-dark: #1f1f1f;
+  --raised-dark: #2a2a2a;
+  --text-on-dark: #f2f2ee;
+  --text-on-dark-2: #9c9c95;
+
+  /* ---- tipografia ---- */
+  --font-display: "Inter Tight", "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* ---- medida ---- */
+  --pad: 16px;
+  --gap: 8px;
+  --r-sm: 8px;
+  --r-md: 16px;
+  --r-block: 24px;
+  --r-card: 32px;
+  --tap: 48px;
+  --shell: 1280px;
+
+  /* ---- movimento ---- */
+  --fast: 150ms;
+  --base: 220ms;
+  --slow: 300ms;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  color-scheme: light;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.1px;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* A barra de rolagem do navegador nunca aparece como padrão. */
+* { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+*::-webkit-scrollbar { width: 6px; height: 6px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 3px; }
+
+img, svg, canvas { max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: var(--r-sm); }
+
+/* Grão por cima de tudo: tira o chapado do fundo liso e encosta a página na
+   textura dos renders de referência. Fica acima do conteúdo, mas não recebe
+   clique. */
+body::after {
+  content: "";
+  position: fixed; inset: 0; z-index: 30; pointer-events: none;
+  opacity: 0.5; mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.sr {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+
+.ms {
+  font-family: "Material Symbols Rounded";
+  font-weight: normal; font-style: normal; line-height: 1; letter-spacing: normal;
+  font-size: 20px; flex: none;
+  -webkit-font-feature-settings: "liga";
+  font-variation-settings: "opsz" 20;
+}
+
+/* ─────────────────────────── escala tipográfica ─────────────────────────── */
+.t-label {
+  font-family: var(--font-body); font-weight: 500;
+  font-size: 12px; line-height: 16px; letter-spacing: 0.9px;
+  text-transform: uppercase; margin: 0;
+}
+.t-small { font-size: 14px; line-height: 20px; letter-spacing: 0; margin: 0; }
+.t-body { font-size: 16px; line-height: 24px; margin: 0; }
+.t-body-md { font-size: 16px; line-height: 24px; font-weight: 500; margin: 0; }
+.t-heading { font-size: 20px; line-height: 28px; font-weight: 500; letter-spacing: -0.4px; }
+.t-displaysm {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 40px; line-height: 44px; letter-spacing: -1.4px; margin: 0;
+}
+.t-display {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 56px; line-height: 56px; letter-spacing: -2.2px; margin: 0;
+}
+.t-dim { color: var(--text-on-dark-2); }
+.t-ink2 { color: var(--ink-2); }
+
+.eyebrow {
+  font-weight: 500; font-size: 12px; line-height: 16px;
+  letter-spacing: 0.9px; text-transform: uppercase;
+  color: var(--ink-3); margin: 0;
+}
+
+/* ──────────────────────── revelação dos textos ──────────────────────────── */
+/* Cada linha do título sobe por dentro de um recorte, como nas peças do Uber.
+   O recorte leva folga em cima e embaixo para não comer acento nem a perna do
+   "q", e a margem negativa devolve essa folga ao layout. */
+.linha { display: block; overflow: hidden; padding: 0.1em 0 0.18em; margin: -0.1em 0 -0.18em; }
+.linha > span { display: block; will-change: transform; }
+
+@keyframes subirLinha { from { transform: translateY(128%); } to { transform: translateY(0); } }
+@keyframes surgir { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* backwards, e não forwards: o estado escondido só existe enquanto a animação
+   espera a vez. Fora dela o texto está no lugar — se o JS não rodar, nada
+   some. */
+.hero__title .linha > span { animation: subirLinha var(--slow) var(--ease) backwards; }
+.hero__title .linha:nth-child(2) > span { animation-delay: 80ms; }
+.hero__lead { animation: surgir var(--base) var(--ease) 160ms backwards; }
+.hero .btn { animation: surgir var(--base) var(--ease) 220ms backwards; }
+.hero__note { animation: surgir var(--base) var(--ease) 280ms backwards; }
+
+.chapter.is-on h2 .linha > span { animation: subirLinha var(--slow) var(--ease) backwards; }
+.chapter.is-on h2 .linha:nth-child(2) > span { animation-delay: 80ms; }
+.chapter.is-on .chapter__text p:not(.eyebrow) { animation: surgir var(--base) var(--ease) 170ms backwards; }
+
+/* Os títulos fora da história esperam entrar na tela. O estado escondido
+   depende da classe que o script põe na raiz: sem script, sem esconder. */
+.js .close__title .linha > span, .js .faq__title .linha > span { transform: translateY(128%); }
+.close__title.is-on .linha > span, .faq__title.is-on .linha > span {
+  animation: subirLinha var(--slow) var(--ease) forwards;
+}
+.close__title.is-on .linha:nth-child(2) > span { animation-delay: 80ms; }
+
+/* ────────────────────────────── botões ──────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--gap);
+  min-height: var(--tap); padding: 0 20px;
+  border: 0; border-radius: calc(var(--tap) / 2);
+  font-family: var(--font-body); font-size: 16px; font-weight: 500; line-height: 24px;
+  white-space: nowrap; cursor: pointer;
+  transition: opacity var(--fast) var(--ease), transform var(--fast) var(--ease);
+}
+.btn--sm { min-height: 44px; border-radius: 22px; padding: 0 16px; font-size: 14px; }
+.btn--grow { flex: 1; }
+/* Na página clara o botão cheio é tinta; dentro das telas do app ele continua
+   sendo o do produto. */
+.btn--light { background: var(--ink); color: var(--bg-soft); }
+.btn--ink { background: var(--ink); color: var(--text-on-dark); }
+.btn--ghost { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line-strong); }
+.ui--sheet .btn--light { background: var(--text-on-dark); color: var(--ink); }
+.ui--sheet .btn--ghost { color: var(--text-on-dark); box-shadow: inset 0 0 0 1px rgba(242, 242, 238, 0.28); }
+.ui--trip .btn--ghost { color: var(--ink); box-shadow: inset 0 0 0 1px rgba(20, 20, 20, 0.14); }
+a.btn:hover { opacity: 0.9; }
+a.btn:active { opacity: 0.84; transform: translateY(1px); }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 32px; padding: 0 12px; border-radius: 16px;
+  background: var(--raised-dark); color: var(--text-on-dark-2);
+  font-size: 14px; line-height: 20px;
+}
+.chip .ms { font-size: 16px; font-variation-settings: "opsz" 20; }
+
+/* ─────────────────────────────── navegação ──────────────────────────────── */
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px); z-index: 20;
+  background: var(--bg);
+}
+.nav {
+  position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0; z-index: 20;
+  background: linear-gradient(to bottom, var(--bg) 42%, rgba(255, 255, 255, 0));
+}
+.nav__in {
+  max-width: var(--shell); margin: 0 auto;
+  padding-left: max(var(--pad), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--pad), env(safe-area-inset-right, 0px));
+  padding-block: 16px 28px;
+  display: flex; align-items: center; gap: 20px;
+}
+.nav .btn { margin-left: auto; }
+
+.marca { display: inline-flex; align-items: center; gap: 10px; }
+.marca__icone { width: 34px; height: 34px; border-radius: 10px; display: block; flex: none; }
+.marca__nome {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 19px; letter-spacing: -0.6px;
+}
+.marca--sm .marca__icone { width: 26px; height: 26px; border-radius: 8px; }
+.marca--sm .marca__nome { font-size: 15px; }
+
+/* ──────────────────────────────── abertura ──────────────────────────────── */
+.hero { position: relative; z-index: 2; }
+.hero__in {
+  max-width: 760px; margin: 0 auto;
+  padding-left: max(var(--pad), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--pad), env(safe-area-inset-right, 0px));
+  padding-block: 132px 56px;
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+  text-align: center;
+}
+.hero__title {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(40px, 9vw, 88px);
+  line-height: 1.02;
+  letter-spacing: clamp(-3.6px, -0.4vw, -1.4px);
+  text-wrap: balance; margin: 0;
+}
+.hero__lead { max-width: 46ch; color: var(--ink-2); margin: 0; }
+/* O que o botão entrega, logo embaixo dele: o leitor decide baixar sabendo que
+   é um APK e que começa de graça. */
+.hero__note {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin: 0; font-size: 14px; color: var(--ink-2);
+}
+.hero__note .ms { font-size: 18px; color: var(--ink-3); }
+
+
+/* ──────────────────────── a viagem: cena fixa + capítulos ───────────────── */
+.story { position: relative; height: 400vh; }
+.story__stage {
+  position: sticky; top: 0;
+  height: 100vh; height: 100dvh;
+  overflow: hidden;
+  background: var(--bg);
+}
+/* A tela é transparente: o fundo da página é o chão da maquete, e o que se vê
+   dela são os volumes e as sombras. */
+.story__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+/* Enquanto a primeira zona é fundida, a thread fica presa. O aviso aparece
+   antes disso começar, para a página não parecer travada. */
+.story__loading {
+  position: absolute; inset: 0; z-index: 1;
+  display: grid; place-items: center; margin: 0;
+  font-size: 12px; font-weight: 500; letter-spacing: 0.9px;
+  text-transform: uppercase; color: var(--ink-3);
+  background: var(--bg);
+  transition: opacity var(--slow) var(--ease), visibility var(--slow) var(--ease);
+}
+.story__stage[data-pronto="sim"] .story__loading { opacity: 0; visibility: hidden; }
+
+.story__fallback {
+  position: absolute; inset: auto 0 24px; text-align: center;
+  color: var(--ink-2); font-size: 14px; margin: 0; padding-inline: var(--pad);
+}
+
+/* O véu sobe do pé da tela na cor do fundo: o texto fica legível sem apagar a
+   maquete, e a cena se dissolve na página em vez de terminar numa linha. O
+   segundo degradê, curto, faz o mesmo no topo: com a página branca o chão da
+   maquete encostaria nela num corte reto, que é o que se via no hero. */
+.story__stage::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(to top, var(--bg) 3%, rgba(255, 255, 255, 0.86) 34%, rgba(255, 255, 255, 0) 68%),
+    linear-gradient(to bottom, var(--bg) 0, rgba(255, 255, 255, 0) 11%);
+}
+
+.story__grid {
+  position: absolute; inset: 0; z-index: 2;
+  max-width: var(--shell); margin: 0 auto;
+  padding-left: max(var(--pad), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--pad), env(safe-area-inset-right, 0px));
+  padding-block: 96px 40px;
+  display: grid; grid-template-rows: auto 1fr; gap: 20px;
+}
+
+/* ---- trilha dos quatro capítulos ---- */
+.track { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; align-self: start; }
+.track__item a {
+  display: inline-flex; align-items: baseline; gap: 8px;
+  min-height: 36px; padding: 6px 12px; border-radius: 18px;
+  color: var(--ink-3);
+  transition: color var(--base) var(--ease), background var(--base) var(--ease);
+}
+.track__n {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 12px; letter-spacing: 0.4px; color: var(--ink-3);
+  transition: color var(--base) var(--ease);
+}
+.track__t { font-size: 14px; }
+.track__item.is-on a { color: var(--bg-soft); background: var(--ink); }
+.track__item.is-on .track__n { color: rgba(242, 246, 248, 0.6); }
+.track__item:not(.is-on) a:hover { color: var(--ink); }
+
+/* ---- o capítulo ---- */
+.chapters { position: relative; min-height: 0; }
+.chapter {
+  position: absolute; inset: 0;
+  display: grid; align-content: end; gap: 28px;
+  opacity: 0; visibility: hidden;
+  transition: opacity var(--slow) var(--ease), visibility var(--slow) var(--ease);
+}
+.chapter.is-on { opacity: 1; visibility: visible; }
+
+.chapter__text { display: grid; gap: 12px; max-width: 44ch; min-width: 0; container-type: inline-size; }
+.chapter__text h2 {
+  font-family: var(--font-display); font-weight: 700;
+  /* Nunca passa do tamanho de projeto, mas encolhe se a coluna nao couber a
+     linha mais longa escrita no HTML. Cada <span class="linha"> tem de caber
+     numa linha so: se uma quebrar, aquele titulo fica com tres linhas e os
+     outros com duas, e ai ou o bloco pula ou o paragrafo se afasta do titulo.
+     10.6cqw e a largura que a linha mais longa pede, com 5% de folga. */
+  font-size: min(clamp(28px, 4.4vw, 56px), 10.6cqw);
+  line-height: 1.04;
+  letter-spacing: clamp(-2.2px, -0.22vw, -1px);
+  text-wrap: balance; margin: 0;
+}
+/* O bloco é ancorado embaixo, então o parágrafo guarda o pior caso dos quatro
+   — quatro linhas de 24px — senão o título sobe e desce a cada troca. A folga
+   que sobra cai depois da última linha, onde não há nada: a distância do
+   título até o parágrafo é sempre os 12px do gap. O título não reserva nada,
+   porque agora são sempre duas linhas. */
+.chapter__text p:not(.eyebrow) { color: var(--ink-2); margin: 0; max-width: 44ch; min-height: 96px; }
+/* O cartão da direita não troca por corte: o que sai desce e encolhe, o que
+   entra sobe para o lugar logo depois — o texto da esquerda fica parado. */
+.chapter__ui {
+  display: flex; justify-content: flex-start; min-width: 0;
+  transform: translateY(28px) scale(0.98); transform-origin: 50% 85%;
+  transition: transform var(--slow) var(--ease);
+}
+.chapter.is-on .chapter__ui { transform: none; transition-delay: 90ms; }
+
+/* ──────────────────────── superfícies reais do app ──────────────────────── */
+/* São as telas do produto, nos mesmos tokens. Sobre o fundo claro elas ficam
+   como recortes do aplicativo pousados na maquete, com a mesma sombra macia
+   que os volumes 3D têm. */
+.ui {
+  width: 100%; max-width: 360px; min-width: 0;
+  border-radius: var(--r-card); padding: 20px;
+  display: grid; gap: 12px;
+  box-shadow: 0 24px 50px rgba(28, 44, 60, 0.18), 0 4px 12px rgba(28, 44, 60, 0.08);
+}
+.ui--sheet { background: var(--surface-dark); color: var(--text-on-dark); }
+.ui--trip { background: var(--yellow); color: var(--ink); }
+.ui__row { display: flex; flex-wrap: wrap; gap: var(--gap); }
+.ui__actions { display: flex; align-items: center; gap: var(--gap); margin-top: 4px; }
+
+/* ---- pilha de cartões do dia ---- */
+.stack { width: 100%; max-width: 360px; min-width: 0; display: grid; gap: var(--gap); }
+.card {
+  border-radius: var(--r-card); padding: 20px;
+  display: grid; gap: 16px; color: var(--ink);
+  box-shadow: 0 18px 38px rgba(28, 44, 60, 0.16), 0 3px 10px rgba(28, 44, 60, 0.07);
+}
+.card { min-height: 212px; }
+.stack .card { position: relative; }
+/* Cada cartão cobre o anterior até a faixa do topo: sobra o rótulo, o nome e
+   o horário, que é o que a pilha do app mostra. O último abre inteiro. */
+.stack .card + .card { margin-top: -136px; }
+.card--yellow { background: var(--yellow); }
+.card--lilac { background: var(--lilac); }
+.card--done { background: var(--raised-dark); color: var(--text-on-dark); }
+.card--done .t-label, .card--done .t-small { color: var(--text-on-dark-2); }
+.card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.card__headtext { display: grid; gap: 4px; padding-top: 4px; min-width: 0; }
+.card__head .t-label { opacity: 0.7; }
+.card__head .t-display { font-size: 40px; line-height: 44px; letter-spacing: -1.4px; }
+.card__body { display: grid; gap: 4px; min-width: 0; }
+.card__body .t-small { opacity: 0.7; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card--done .card__body .t-small { opacity: 1; }
+.card__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.card__arrow {
+  display: grid; place-items: center;
+  width: var(--tap); height: var(--tap); border-radius: 50%;
+  background: var(--ink); color: var(--text-on-dark); flex: none;
+}
+.card--done .card__arrow { background: var(--text-on-dark); color: var(--ink); }
+.card__arrow .ms { font-size: 16px; }
+
+/* ---- folha da viagem ---- */
+.trip__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.trip__head .t-display { font-size: 40px; line-height: 44px; letter-spacing: -1.4px; }
+
+.route { list-style: none; margin: 0; padding: 0; display: grid; }
+.stop { display: grid; grid-template-columns: 24px 1fr; align-items: start; gap: 12px; }
+.stop__node {
+  width: 24px; height: 24px; border-radius: 50%;
+  display: grid; place-items: center; background: rgba(20, 20, 20, 0.14);
+}
+.stop__node::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ink-2); }
+.stop.is-done .stop__node::after { width: 12px; height: 12px; background: var(--ink); }
+.stop__text { display: grid; gap: 2px; min-width: 0; }
+.stop__text .t-body { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.leg { display: grid; grid-template-columns: 24px 1fr; align-items: center; gap: 12px; padding: 4px 0; }
+.leg::before {
+  content: ""; justify-self: center;
+  width: 2px; height: 28px; border-radius: 1px; background: rgba(20, 20, 20, 0.14);
+}
+.leg.is-now::before { background: var(--ink); }
+
+.metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 4px; border-top: 1px solid rgba(20, 20, 20, 0.14); }
+.metric { display: grid; gap: 2px; min-width: 0; }
+.metric .t-displaysm { font-size: 28px; line-height: 32px; letter-spacing: -1px; }
+
+/* ---- cobrança do mês ---- */
+.bill { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.bill__row {
+  display: grid; grid-template-columns: 1fr auto 20px; align-items: center; gap: 12px;
+  min-height: 40px; padding: 0 12px; border-radius: 4px; background: var(--raised-dark);
+}
+.bill__row:first-child { border-radius: var(--r-md) var(--r-md) 4px 4px; }
+.bill__row:last-child { border-radius: 4px 4px var(--r-md) var(--r-md); }
+.bill__when { color: var(--text-on-dark-2); }
+.bill__val { font-variant-numeric: tabular-nums; }
+/* Pago nunca é só a cor: o valor fica riscado e ganha o check ao lado. */
+.bill__row.is-paid .bill__when, .bill__row.is-paid .bill__val {
+  color: var(--text-on-dark-2); text-decoration: line-through;
+}
+.bill__check { font-size: 20px; color: var(--text-on-dark); }
+
+/* ─────────────────────────────── fecho ──────────────────────────────────── */
+.close { position: relative; z-index: 2; background: var(--bg); }
+.close__in {
+  max-width: var(--shell); margin: 0 auto;
+  padding-left: max(var(--pad), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--pad), env(safe-area-inset-right, 0px));
+  padding-block: 112px 96px;
+  display: grid; gap: 48px;
+}
+.close__head { display: grid; gap: 20px; justify-items: start; }
+.close__title {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(32px, 6vw, 72px); line-height: 1.03;
+  letter-spacing: clamp(-2.6px, -0.3vw, -1.4px);
+  text-wrap: balance; margin: 0;
+}
+.close__lead { max-width: 52ch; color: var(--ink-2); margin: 0; }
+
+/* ---- os três painéis, linha a linha ---- */
+/* As seis linhas são as mesmas, na mesma ordem, nos dois planos: dá para
+   correr o olho na horizontal e achar a diferença — que é só a primeira. O
+   terceiro painel guarda o único botão da seção. Em 1280 (--shell) as três
+   colunas caem em 410,67px, que é a medida do Figma. */
+.planos {
+  width: 100%;
+  display: grid; gap: var(--gap);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  align-items: stretch;
+}
+.plano {
+  display: flex; flex-direction: column;
+  padding: 32px; border-radius: var(--r-card);
+  background: var(--bg-soft); color: var(--ink); min-width: 0;
+}
+.plano__marca {
+  font-size: 28px; font-variation-settings: "opsz" 24;
+  color: var(--ink); margin-bottom: 20px;
+}
+.plano__nome {
+  margin: 0; font-family: var(--font-display); font-weight: 700;
+  font-size: 24px; line-height: 28px; letter-spacing: -0.9px;
+}
+.plano__nota { margin: 6px 0 0; font-size: 14px; line-height: 20px; color: var(--ink-2); max-width: 32ch; }
+/* O /mês leva line-height próprio: herdando os 52px do preço, um texto de
+   16px ganha meia entrelinha enorme e estica a caixa só no cartão pago — eram
+   os 11px que tiravam as seis linhas de registro entre um cartão e o outro. */
+.plano__preco {
+  margin: 28px 0 0;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 48px; line-height: 52px; letter-spacing: -2px;
+}
+.plano__ciclo {
+  margin-left: 6px; line-height: 1;
+  font-family: var(--font-body); font-size: 16px; font-weight: 500;
+  letter-spacing: -0.1px; color: var(--ink-2);
+}
+
+.specs { margin: 24px 0 0; display: grid; }
+.spec {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  min-height: 44px; padding: 6px 0;
+  border-top: 1px solid var(--line);
+  font-size: 14px; line-height: 20px;
+}
+.spec dt { display: flex; align-items: center; gap: 10px; color: var(--ink-2); min-width: 0; }
+.spec dt .ms { font-size: 18px; color: var(--ink-3); flex: none; }
+.spec dd { margin: 0; text-align: right; color: var(--ink); }
+/* A linha onde os planos se separam vem em tinta cheia e em peso nos dois
+   cartões: a diferença se acha sem ler palavra por palavra. */
+.spec--chave dt, .spec--chave dt .ms { color: var(--ink); }
+.spec--chave dd { font-weight: 600; }
+
+.plano__cta { margin-top: 28px; width: 100%; }
+
+/* O pago só troca o fundo: a tinta é a mesma dos dois lados, então a linha que
+   muda continua sendo achada pelo texto e pelo peso, não pela cor do cartão. */
+.plano--pro { background: var(--yellow); }
+
+/* ---- o painel do aparelho ---- */
+/* Fundo do Figma: a foto, o degradê por cima dela, o aparelho cortado pela
+   borda de baixo e o botão por cima de tudo. */
+.plano--app {
+  position: relative; overflow: clip;
+  align-items: center; justify-content: flex-end;
+  background: var(--surface-dark); color: var(--text-on-dark);
+  container-type: inline-size;
+}
+.painel__foto {
+  position: absolute; top: 0; left: calc(50% + 78.17px);
+  transform: translateX(-50%);
+  width: 565px; height: 354px; pointer-events: none;
+}
+.painel__foto img { width: 100%; height: 100%; max-width: none; object-fit: cover; display: block; }
+.painel__foto::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgba(20, 20, 20, 0.5), var(--surface-dark));
+}
+
+/* O aparelho passa da área e é a borda do cartão que corta, igual ao Figma:
+   por isso aqui não há overflow, e o botão vem depois no HTML para ficar por
+   cima do que sobrou. */
+/* Em três colunas a altura vem dos planos ao lado e sobram exatamente os
+   414,67px do Figma. Quando os cartões empilham, esse cartão fica sozinho na
+   linha e não teria altura nenhuma — o mínimo guarda a mesma proporção do
+   aparelho, que é 1,342 vez a largura dele. */
+.fone__area {
+  position: relative; z-index: 1;
+  flex: 1 1 0; min-height: min(134.24cqw, 414.67px); width: 100%;
+  display: flex; align-items: flex-start; justify-content: center;
+}
+.fone {
+  position: relative; flex: none;
+  width: min(100%, 308.908px); aspect-ratio: 308.908 / 638.119;
+  container-type: inline-size;
+}
+.fone__corpo {
+  position: absolute; inset: 0;
+  background: #000;
+  border: 1.4085cqw solid #292826;
+  border-radius: 21.6893cqw;
+}
+
+.fone__tela {
+  position: absolute; inset: 2.8271cqw 2.8212cqw;
+  border-radius: 15.8623cqw; overflow: hidden;
+}
+.fone__tela img { width: 100%; height: 100%; max-width: none; object-fit: cover; display: block; }
+
+/* A ilha dinâmica e as duas lentes, nas mesmas casas do Figma. */
+.fone__ilha {
+  position: absolute; background: #000; border-radius: 999px;
+  top: 6.724cqw; left: 33.9946cqw;
+  width: 28.9701cqw; height: 8.3335cqw;
+}
+.fone__lente-aro, .fone__lente, .fone__risco { position: absolute; max-width: none; }
+.fone__lente-aro { top: 9.0263cqw; left: 55.8898cqw; width: 4.1109cqw; height: 4.177cqw; }
+.fone__lente { top: 9.9091cqw; left: 56.7593cqw; width: 2.3528cqw; height: 2.4315cqw; opacity: 0.7; }
+.fone__risco {
+  top: 9.9839cqw; left: 57.8434cqw; width: 0; height: 2.2822cqw;
+  display: flex; align-items: center; justify-content: center;
+}
+.fone__risco img { flex: none; max-width: none; width: 2.2822cqw; height: 0.1891cqw; transform: rotate(90deg); }
+
+/* O fio de luz da quina do aparelho: dois, um deles desfocado. */
+.fone__brilho {
+  position: absolute; left: -1.4082cqw; top: -1.1751cqw;
+  width: 100cqw; height: 206.1031cqw;
+  border: 0.2347cqw solid #fff; border-radius: 21.6893cqw;
+}
+.fone__brilho--difuso { top: -0.9388cqw; height: 205.8681cqw; filter: blur(0.2347cqw); }
+
+/* As marcas da antena na quina. */
+.fone__faixa {
+  position: absolute;
+  background: linear-gradient(to bottom, rgba(249, 249, 249, 0.65), rgba(228, 228, 227, 0.35));
+}
+.fone__faixa--topo { left: 75.1227cqw; top: -1.4082cqw; width: 1.1686cqw; height: 1.4049cqw; }
+.fone__faixa--base { left: 18.3097cqw; top: 203.7597cqw; width: 1.1751cqw; height: 1.4049cqw; }
+.fone__faixa--dir-a, .fone__faixa--dir-b, .fone__faixa--esq-a, .fone__faixa--esq-b {
+  background: linear-gradient(to right, rgba(249, 249, 249, 0.65), rgba(228, 228, 227, 0.35));
+  height: 1.1783cqw;
+}
+.fone__faixa--dir-a { left: 97.1907cqw; top: 19.9509cqw; width: 1.1719cqw; }
+.fone__faixa--dir-b { left: 97.1907cqw; top: 180.2705cqw; width: 1.4017cqw; }
+.fone__faixa--esq-a { left: -1.4082cqw; top: 19.9509cqw; width: 1.4017cqw; }
+.fone__faixa--esq-b { left: -1.4082cqw; top: 180.2705cqw; width: 1.4017cqw; }
+
+/* Silencioso, volume e o botão lateral. */
+.fone__bt { position: absolute; max-width: none; width: 0.7041cqw; }
+.fone__bt--silencioso { left: -2.1139cqw; top: 38.9663cqw; height: 7.5116cqw; }
+.fone__bt--mais { left: -2.1139cqw; top: 53.9902cqw; height: 15.2583cqw; }
+.fone__bt--menos { left: -2.1139cqw; top: 73.708cqw; height: 15.2583cqw; }
+.fone__bt--lado { left: 98.5925cqw; top: 64.5532cqw; height: 24.4131cqw; transform: scaleX(-1); }
+
+/* Apaga o pé do aparelho dentro do painel, para ele não terminar num corte. */
+.fone__esfuma {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  bottom: -108.33px; width: 364px; height: 209px; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(32, 33, 33, 0), var(--surface-dark));
+}
+
+.plano--app .plano__cta {
+  position: relative; z-index: 2; margin-top: 28px;
+  background: var(--text-on-dark); color: var(--ink);
+  border-radius: var(--r-block);
+}
+
+/* ─────────────────────────────── dúvidas ────────────────────────────────── */
+/* <details> nativo: abre no teclado, abre sem JS e o sinal gira de + para ×,
+   então o estado não depende só da cor. */
+.faq { position: relative; z-index: 2; background: var(--bg); border-top: 1px solid var(--line); }
+.faq__in {
+  max-width: var(--shell); margin: 0 auto;
+  padding-left: max(var(--pad), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--pad), env(safe-area-inset-right, 0px));
+  padding-block: 88px;
+  display: grid; gap: 36px;
+}
+.faq__title {
+  margin: 0; font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(28px, 4.6vw, 48px); line-height: 1.04;
+  letter-spacing: clamp(-1.8px, -0.2vw, -1px); text-wrap: balance;
+}
+.faq__lado { display: grid; gap: 20px; justify-items: start; align-content: start; }
+.faq__nota { margin: 0; max-width: 34ch; color: var(--ink-2); font-size: 15px; line-height: 22px; }
+.faq__btn { margin-top: 4px; }
+.faq__btn:hover { background: var(--bg-soft); }
+.faq__btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.faq__lista { display: grid; border-top: 1px solid var(--line); }
+.qa { border-bottom: 1px solid var(--line); }
+.qa summary {
+  list-style: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  min-height: var(--tap); padding: 12px 0;
+  font-size: 18px; line-height: 26px; font-weight: 500; letter-spacing: -0.3px;
+}
+.qa summary::-webkit-details-marker { display: none; }
+.qa summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: var(--r-sm); }
+.qa summary:hover .qa__p { color: var(--ink-2); }
+.qa__p { transition: color var(--fast) var(--ease); }
+.qa__sinal {
+  font-size: 22px; color: var(--ink-3); flex: none;
+  transition: transform var(--base) var(--ease), color var(--base) var(--ease);
+}
+.qa[open] .qa__sinal { transform: rotate(45deg); color: var(--ink); }
+.qa__r { margin: 0 0 20px; max-width: 64ch; color: var(--ink-2); }
+
+/* ────────────────────────── formulário de feedback ──────────────────────── */
+/* <dialog> nativo: prende o foco, fecha no Esc e escurece o fundo sozinho. */
+.modal {
+  width: min(520px, calc(100vw - 32px)); max-height: calc(100dvh - 32px);
+  margin: auto; padding: 0; border: 0; border-radius: var(--r-block);
+  background: var(--bg); color: var(--ink);
+  box-shadow: 0 32px 80px rgba(20, 20, 20, 0.28);
+}
+.modal::backdrop { background: rgba(20, 20, 20, 0.52); }
+.modal[open] { animation: surgir var(--base) var(--ease); }
+.modal__cx { display: grid; gap: 20px; padding: 24px; }
+.modal__topo { display: flex; align-items: start; justify-content: space-between; gap: 16px; }
+.modal__t {
+  margin: 0; font-family: var(--font-display); font-weight: 700;
+  font-size: 24px; line-height: 28px; letter-spacing: -0.9px;
+}
+.modal__x {
+  flex: none; display: grid; place-items: center;
+  width: 44px; height: 44px; margin: -10px -10px 0 0;
+  border: 0; border-radius: 50%; background: transparent; color: var(--ink-2);
+  cursor: pointer; transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
+}
+.modal__x:hover { background: var(--bg-soft); color: var(--ink); }
+.modal__x:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.modal__lead { margin: -8px 0 0; color: var(--ink-2); font-size: 15px; line-height: 22px; }
+.modal__pe { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--gap); }
+.modal__pe .btn { flex: 1 1 auto; }
+
+.campos { display: grid; gap: 16px; }
+.campo { display: grid; gap: 6px; margin: 0; }
+.campo label { font-size: 14px; line-height: 20px; font-weight: 500; }
+.campo__op { font-weight: 400; color: var(--ink-3); }
+.campo input, .campo textarea {
+  width: 100%; min-height: var(--tap); padding: 12px 14px;
+  border: 1px solid var(--line-strong); border-radius: var(--r-md);
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 24px;
+  transition: border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+}
+.campo textarea { resize: vertical; }
+.campo input:hover, .campo textarea:hover { border-color: var(--ink-3); }
+.campo input:focus-visible, .campo textarea:focus-visible {
+  outline: 0; border-color: var(--ink); box-shadow: 0 0 0 3px rgba(20, 20, 20, 0.14);
+}
+.campo input:disabled, .campo textarea:disabled { background: var(--bg-soft); color: var(--ink-3); cursor: not-allowed; }
+/* O erro não é só a borda vermelha: vem o texto dizendo o que fazer. */
+.campo__erro[hidden] { display: none; }
+.campo__erro { display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 18px; color: var(--orange); }
+.campo__erro::before { content: "error"; font-family: "Material Symbols Rounded"; font-size: 16px; }
+.campo.tem-erro input, .campo.tem-erro textarea { border-color: var(--orange); }
+
+/* ─────────────────────────────── rodapé ─────────────────────────────────── */
+/* A marca em 3D no lugar das colunas de links, e embaixo só o contato — em
+   corpo grande, com ar em volta. */
+.foot { position: relative; z-index: 2; background: var(--bg); }
+.foot__cena { position: relative; height: clamp(240px, 38vw, 440px); }
+.foot__tela { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+/* A cena dissolve na página pela borda de baixo, como a maquete da história. */
+.foot__cena::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to top, var(--bg) 2%, rgba(255, 255, 255, 0) 26%);
+}
+.foot__in {
+  max-width: var(--shell); margin: 0 auto; container-type: inline-size;
+  padding-left: max(var(--pad), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--pad), env(safe-area-inset-right, 0px));
+  padding-block: 40px 80px;
+  display: grid; justify-items: center; text-align: center;
+}
+/* O nome do app no corpo maior da página inteira. Nunca quebra em duas
+   linhas: o teto em cqw é a largura que a palavra pede na coluna, com folga. */
+.foot__nome {
+  margin: 0; font-family: var(--font-display); font-weight: 700;
+  font-size: min(clamp(60px, 21vw, 288px), 30cqw);
+  line-height: 0.92; letter-spacing: -0.05em; color: var(--ink);
+}
+.foot__base {
+  max-width: var(--shell); margin: 0 auto;
+  padding-left: max(var(--pad), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--pad), env(safe-area-inset-right, 0px));
+  padding-block: 20px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--line);
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+  font-size: 13px; line-height: 20px; color: var(--ink-2);
+}
+/* Alvo de toque de 44px: o link é pequeno, a área de clique não. */
+.foot__contato {
+  display: inline-flex; align-items: center; min-height: var(--tap);
+  color: var(--ink); transition: color var(--fast) var(--ease);
+}
+.foot__contato:hover { color: var(--ink-2); }
+.foot__contato:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: var(--r-sm); }
+
+/* ───────────────────────────── telas largas ─────────────────────────────── */
+@media (min-width: 900px) {
+  .nav__links { display: flex; }
+  .nav__in { padding-block: 20px 32px; }
+  .hero__in { padding-block: 128px 40px; }
+  .story__grid { padding-block: 120px 56px; }
+  .track { flex-direction: column; gap: 2px; }
+  .track__item a { min-width: 180px; }
+  /* O texto embaixo à esquerda, a tela do app à direita: a maquete fica com o
+     meio livre, que é por onde o percurso passa. */
+  .chapter { grid-template-columns: minmax(0, 1fr) minmax(0, 420px); align-items: end; gap: 40px; }
+  .chapter__ui { justify-content: flex-end; align-self: center; }
+  .story { height: 440vh; }
+
+  .close__in { padding-block: 128px 112px; gap: 56px; }
+  .faq__in { grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 64px; padding-block: 112px; }
+  .foot__in { padding-block: 64px 112px; }
+}
+
+@media (min-width: 1100px) {
+  .story__grid { grid-template-columns: 200px minmax(0, 1fr); grid-template-rows: 1fr; gap: 40px; }
+  /* A coluna inteira é do título; a medida de leitura fica só no parágrafo. */
+  .chapter__text { max-width: none; }
+  .track { align-self: start; }
+  .chapter { grid-template-columns: minmax(0, 1fr) minmax(0, 420px); }
+}
+
+/* ───────────────────────────── telas estreitas ──────────────────────────── */
+@media (max-width: 899px) {
+  .chapter { align-content: end; gap: 20px; }
+  .chapter__ui { order: -1; justify-content: center; }
+  .ui, .stack { max-width: 300px; }
+  .ui { padding: 16px; }
+  .card { padding: 16px; }
+  .card__head .t-display, .trip__head .t-display { font-size: 32px; line-height: 36px; letter-spacing: -1px; }
+  .bill__row:nth-child(3) { display: none; }
+  .metrics { grid-template-columns: 1fr; }
+  .stack .card:nth-child(3) { display: none; }
+
+  .plano { padding: 24px; }
+  .plano__preco { font-size: 40px; line-height: 44px; letter-spacing: -1.6px; margin-top: 24px; }
+  .qa summary { font-size: 16px; line-height: 24px; }
+}
+
+@media (max-width: 420px) {
+  .ui, .stack { max-width: 100%; }
+  .track__item a { padding: 6px 10px; }
+  .track__t { font-size: 13px; }
+}
+
+/* ─────────────────────────── movimento reduzido ─────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

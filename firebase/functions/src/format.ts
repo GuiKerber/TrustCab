@@ -30,6 +30,9 @@ export type Card = {
   phone: string | null;
   vehicle: { model: string; color: string; plate: string } | null;
   notificationsEnabled: boolean;
+  // Só vai na cópia que fica dentro da conexão, nunca na do convite: quem tem o código
+  // ainda não é da rede e não precisa da chave de pagamento de ninguém.
+  pix?: { type: string; key: string } | null;
 };
 
 function weekdays(days: number[]) {

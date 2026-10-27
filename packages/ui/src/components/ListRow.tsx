@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
   },
   first: { borderTopLeftRadius: radius.block, borderTopRightRadius: radius.block },
   last: { borderBottomLeftRadius: radius.block, borderBottomRightRadius: radius.block },
-  text: { flex: 1, gap: spacing[2] },
+  text: { flex: 1, gap: spacing[4] },
   value: { flexDirection: 'row', alignItems: 'center', gap: spacing[4] },
   valueText: { flex: 1 },
 });

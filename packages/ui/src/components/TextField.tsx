@@ -64,10 +64,10 @@ export function TextField({ label, hint, error, disabled = false, ref, ...input 
 }
 
 const styles = StyleSheet.create({
-  wrapper: { gap: spacing[6] },
+  wrapper: { gap: spacing[8] },
   disabled: { opacity: opacity.disabled },
   box: { minHeight: size.field, borderRadius: radius.blockSm, backgroundColor: colors.surface, justifyContent: 'center' },
   input: { ...type.body, color: colors.text, paddingHorizontal: spacing[16], minHeight: size.field, outlineWidth: 0 },
-  message: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing[6] },
+  message: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing[8] },
   messageText: { flex: 1 },
 });

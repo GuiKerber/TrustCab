@@ -1,4 +1,4 @@
-import { createStore, TERMS_VERSION } from '@trustcab/core';
+import { createPersistedStore, TERMS_VERSION } from '@trustcab/core';
 
 // Seus dados no app: telefone (opcional), primeiro acesso e quais avisos receber.
 // Vira escrita no Firestore quando o app for ligado ao backend.
@@ -32,7 +32,8 @@ const initial: Profile = {
   notifications: Object.fromEntries(Object.keys(NOTIFICATIONS).map((kind) => [kind, true])) as Profile['notifications'],
 };
 
-const store = createStore<Profile>(initial);
+// Guardado no aparelho: o telefone e o primeiro acesso são da pessoa, não dados de exemplo.
+const store = createPersistedStore<Profile>('trustcab.passenger.profile', initial);
 
 export const useProfile = store.use;
 

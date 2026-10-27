@@ -48,7 +48,7 @@ export function stateOpacity({ pressed, hovered, disabled }: { pressed: boolean;
 
 export type ButtonSize = 'sm' | 'md';
 // danger: só para o que não tem volta, como excluir a conta.
-export type ButtonVariant = 'ink' | 'light' | 'accent' | 'surface' | 'ghost' | 'danger';
+export type ButtonVariant = 'ink' | 'light' | 'surface' | 'ghost' | 'danger';
 
 function buttonPalette(variant: ButtonVariant, onCard: boolean, destructive: boolean) {
   const fg = destructive ? colors.orange : undefined;
@@ -57,8 +57,6 @@ function buttonPalette(variant: ButtonVariant, onCard: boolean, destructive: boo
       return { bg: colors.ink, fg: fg ?? colors.text };
     case 'light':
       return { bg: colors.text, fg: fg ?? colors.ink };
-    case 'accent':
-      return { bg: colors.cards[0], fg: colors.ink };
     case 'surface':
       return { bg: colors.surface, fg: fg ?? colors.text };
     case 'ghost':

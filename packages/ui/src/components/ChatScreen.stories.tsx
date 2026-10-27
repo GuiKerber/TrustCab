@@ -24,7 +24,7 @@ const meta = {
   component: ChatScreen,
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen' },
-  args: { name: 'Carlos Mendes', color: colors.cards[0], messages, now, viewer: 'passenger', onBack: fn(), onCall: fn(), onSend: fn(), onRetry: fn() },
+  args: { name: 'Carlos Mendes', color: colors.cards[0], messages, now, viewer: 'passenger', onBack: fn(), onCall: fn(), onReport: fn(), onSend: fn(), onRetry: fn() },
 } satisfies Meta<typeof ChatScreen>;
 
 export default meta;

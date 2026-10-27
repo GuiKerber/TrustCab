@@ -145,6 +145,6 @@ const styles = StyleSheet.create({
   // Cartões escuros precisam de um contorno para a borda da pilha continuar visível.
   cardDark: { borderWidth: borderWidth.hairline, borderColor: colors.lineStrong },
   // O cartão corta o que passa da borda, então o anel de foco fica por dentro.
-  focusInset: { outlineOffset: -spacing[6] },
+  focusInset: { outlineOffset: -spacing[8] },
   press: { flex: 1, borderRadius: radius.card, paddingHorizontal: spacing[20], paddingTop: spacing[16], paddingBottom: spacing[20] },
 });

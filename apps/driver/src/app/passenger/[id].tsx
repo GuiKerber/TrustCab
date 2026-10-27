@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Block, borderWidth, Button, colors, focusRing, Icon, IconButton, Label, layout, radius, size, spacing, stateOpacity, Text, TripOptions, useInteraction } from '@trustcab/ui';
+import { Block, borderWidth, Button, colors, ConfirmDialog, focusRing, Icon, IconButton, Label, layout, radius, size, spacing, stateOpacity, Text, TripOptions, useInteraction } from '@trustcab/ui';
 import {
   passengerMonths,
   setPassengerStatus,
@@ -15,9 +15,11 @@ import {
   type PassengerWithState,
   type RequestDecision,
 } from '@/data/passengers';
-import { formatPhone, formatPrice, formatPriceShort, driver, longDate, monthName, relativeDay, sampleHistory, samplePassengers, sampleTripRequests, type TripRequest } from '@trustcab/core';
+import { formatPhone, formatPrice, formatPriceShort, driver, longDate, monthName, relativeDay, reportText, reportUrl, sampleHistory, samplePassengers, sampleTripRequests, type TripRequest } from '@trustcab/core';
 import { inviteMessage, useProfile } from '@/data/profile';
 import { useTripSignals } from '@/data/tripSignals';
+import { approve, decline, useNetwork } from '@/data/network';
+import { useAuth } from '@trustcab/core/auth';
 
 const capitalize = (text: string) => `${text[0].toUpperCase()}${text.slice(1)}`;
 
@@ -33,10 +35,14 @@ export default function PassengerScreen() {
   const store = usePassengerStore();
   const signals = useTripSignals();
   const [options, setOptions] = useState(false);
+  const [reporting, setReporting] = useState(false);
   // Estado anterior à última ação, para o "Desfazer".
   const [undo, setUndo] = useState<PassengerState | null>(null);
 
-  const passenger = withState(base, store).find((p) => p.id === id);
+  const { user } = useAuth();
+  // Com conta, a pessoa vem da rede do Firestore: é a mesma conexão que ela está vendo do outro lado.
+  const rede = useNetwork(user?.uid ?? null);
+  const passenger = (rede.connected ? rede.passengers : withState(base, store)).find((p) => p.id === id);
 
   if (!passenger) {
     return (
@@ -64,7 +70,8 @@ export default function PassengerScreen() {
     setUndo(null);
   };
 
-  const status = STATUS[passenger.state];
+  // Quem pediu para entrar lê diferente de quem você convidou: um espera a sua resposta, o outro a dele.
+  const status = passenger.asked ? { ...STATUS.invited, label: 'Pediu para entrar', since: 'Pediu' } : STATUS[passenger.state];
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -98,7 +105,13 @@ export default function PassengerScreen() {
             now={now}
           />
         ) : null}
-        {passenger.state === 'invited' ? <Invited passenger={passenger} firstName={firstName} onCancel={() => act('cancelled')} /> : null}
+        {passenger.state === 'invited' ? (
+          passenger.asked ? (
+            <Asked passenger={passenger} firstName={firstName} />
+          ) : (
+            <Invited passenger={passenger} firstName={firstName} onCancel={() => act('cancelled')} />
+          )
+        ) : null}
         {RESTORE[passenger.state] && !undo ? (
           <Button label={RESTORE[passenger.state]!.label} icon="undo" variant="light" onPress={() => act(RESTORE[passenger.state]!.to)} />
         ) : null}
@@ -110,12 +123,65 @@ export default function PassengerScreen() {
         onClose={() => setOptions(false)}
         options={[
           { key: 'call', label: `Ligar para ${firstName}`, icon: 'call', onPress: () => Linking.openURL(`tel:${passenger.phone}`) },
+          { key: 'report', label: `Denunciar ${firstName}`, icon: 'flag' as const, onPress: () => setReporting(true) },
           ...(passenger.state === 'active'
             ? [{ key: 'end', label: 'Encerrar conexão', icon: 'person_remove' as const, destructive: true, onPress: () => act('ended') }]
             : []),
         ]}
       />
+      <ConfirmDialog
+        visible={reporting}
+        title={`Denunciar ${firstName}?`}
+        text={reportText(firstName)}
+        confirmLabel="Escrever denúncia"
+        confirmIcon="flag"
+        onConfirm={() => {
+          setReporting(false);
+          Linking.openURL(reportUrl({ reported: passenger.name }));
+        }}
+        onClose={() => setReporting(false)}
+      />
     </SafeAreaView>
+  );
+}
+
+// Quem entrou pelo seu link e espera a sua resposta. É a decisão que faltava: até aqui, quem abrisse
+// o link entrava na rede sozinho. Enquanto você não decide, a pessoa não pede viagem nem vê sua agenda.
+function Asked({ passenger, firstName }: { passenger: PassengerWithState; firstName: string }) {
+  const [sending, setSending] = useState<'approve' | 'decline' | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const decide = (action: 'approve' | 'decline') => async () => {
+    setSending(action);
+    setError(null);
+    try {
+      await (action === 'approve' ? approve(passenger.id) : decline(passenger.id));
+    } catch {
+      setError('Não deu para responder agora. Confira a internet e tente de novo.');
+    } finally {
+      setSending(null);
+    }
+  };
+
+  return (
+    <>
+      <Block style={styles.info}>
+        <Label>WhatsApp</Label>
+        <Text variant="heading">{formatPhone(passenger.phone)}</Text>
+        <Text variant="small" tone="secondary">
+          {`${firstName} entrou pelo seu link e espera você aprovar. Aprovando, ela passa a pedir viagens com você.`}
+        </Text>
+      </Block>
+      {error ? (
+        <Text variant="small" tone="orange" accessibilityLiveRegion="polite">
+          {error}
+        </Text>
+      ) : null}
+      <View style={styles.requestActions}>
+        <Button label="Aprovar" icon="check" variant="light" style={styles.requestApprove} loading={sending === 'approve'} onPress={decide('approve')} />
+        <Button label="Recusar" size="sm" variant="ghost" destructive loading={sending === 'decline'} onPress={decide('decline')} />
+      </View>
+    </>
   );
 }
 
@@ -388,7 +454,7 @@ function Invited({ passenger, firstName, onCancel }: { passenger: PassengerWithS
 }
 
 const styles = StyleSheet.create({
-  requestPrice: { alignItems: 'flex-end', gap: spacing[2] },
+  requestPrice: { alignItems: 'flex-end', gap: spacing[4] },
   safe: { flex: 1, backgroundColor: colors.ground },
   content: { paddingHorizontal: layout.screenPadding, paddingTop: spacing[8], paddingBottom: spacing[40], gap: spacing[20] },
   topBar: { flexDirection: 'row', justifyContent: 'space-between' },
@@ -418,7 +484,7 @@ const styles = StyleSheet.create({
     gap: spacing[4],
   },
   section: { gap: spacing[12] },
-  table: { gap: spacing[2] },
+  table: { gap: spacing[4] },
   row: {
     minHeight: size.button.md,
     flexDirection: 'row',
@@ -437,7 +503,7 @@ const styles = StyleSheet.create({
   requests: { gap: layout.gap },
   request: { gap: spacing[8], padding: spacing[16] },
   requestHead: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: spacing[12] },
-  requestWhen: { gap: spacing[2] },
+  requestWhen: { gap: spacing[4] },
   requestActions: { flexDirection: 'row', alignItems: 'center', gap: spacing[8], marginTop: spacing[4] },
   requestApprove: { flex: 1 },
   requestDone: { flexDirection: 'row', alignItems: 'center', gap: spacing[8], marginTop: spacing[4] },

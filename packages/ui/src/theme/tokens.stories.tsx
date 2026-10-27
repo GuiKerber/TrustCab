@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   typeRow: { gap: spacing[4], paddingBottom: spacing[16], borderBottomWidth: borderWidth.hairline, borderColor: colors.line },
   measureRow: { flexDirection: 'row', alignItems: 'center', gap: spacing[12], minHeight: size.touchTarget },
   measureLabel: { flex: 1 },
-  bar: { height: size.dot.md, backgroundColor: colors.cards[0], borderRadius: radius.xs },
+  bar: { height: size.dot.md, backgroundColor: colors.cards[0], borderRadius: radius.joined },
   opacityBar: { width: size.iconButton.md },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[16] },
   radiusItem: { gap: spacing[8], alignItems: 'center' },

@@ -13,11 +13,15 @@ export function FadeScroll({
   background,
   style,
   contentContainerStyle,
+  onTop,
 }: {
   children: ReactNode;
   background: string;
   style?: ViewStyle;
   contentContainerStyle?: ViewStyle;
+  // Avisa quando a rolagem está (ou deixa de estar) no topo. Quem põe esta área
+  // dentro de um gesto de arrastar usa isso para só arrastar a partir do topo.
+  onTop?: (atTop: boolean) => void;
 }) {
   const [box, setBox] = useState(0);
   const [content, setContent] = useState(0);
@@ -30,7 +34,11 @@ export function FadeScroll({
         showsVerticalScrollIndicator={false}
         onLayout={(event) => setBox(event.nativeEvent.layout.height)}
         onContentSizeChange={(_, height) => setContent(height)}
-        onScroll={(event) => setOffset(event.nativeEvent.contentOffset.y)}
+        onScroll={(event) => {
+          const y = event.nativeEvent.contentOffset.y;
+          setOffset(y);
+          onTop?.(y <= 0);
+        }}
         scrollEventThrottle={gesture.scrollThrottle}
         contentContainerStyle={contentContainerStyle}>
         {children}

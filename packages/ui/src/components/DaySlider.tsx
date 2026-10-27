@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing[6],
+    gap: spacing[8],
   },
   daySelected: { backgroundColor: colors.text },
   dayActive: { backgroundColor: colors.surface },

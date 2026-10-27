@@ -1,13 +1,17 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Button, CardStack, colors, layout, PassengerCardContent, Pills, ScreenStatus, size, spacing, Text } from '@trustcab/ui';
+import { CardStack, colors, EmptyState, Icon, layout, PassengerCardContent, Pills, ScreenStatus, size, spacing, Text } from '@trustcab/ui';
 import { TopBar } from '@/components/TopBar';
 import { formatPrice, longDate, monthName, relativeDay, sampleHistory, sampleMonthDays, samplePassengers, sampleTripRequests, startOfDay, useNow, useSyncState } from '@trustcab/core';
 import { passengerMonths, pendingRequests, usePassengerStore, withApprovedTrips, withState, type PassengerWithState } from '@/data/passengers';
 import { useTripSignals } from '@/data/tripSignals';
+import { canInvite, FREE_PASSENGERS, seatsLeft } from '@/data/plan';
+import { useProfile } from '@/data/profile';
+import { useNetwork } from '@/data/network';
+import { useAuth } from '@trustcab/core/auth';
 
 type Tab = 'active' | 'pending' | 'ended';
 
@@ -25,6 +29,8 @@ export default function Passengers() {
   const store = usePassengerStore();
   const signals = useTripSignals();
   const sync = useSyncState();
+  const profile = useProfile();
+  const { user } = useAuth();
   const [tab, setTab] = useState<Tab>('active');
 
   // Quem volta do convite cai direto nos pendentes.
@@ -32,7 +38,15 @@ export default function Passengers() {
     if (params.tab) setTab(params.tab);
   }, [params.tab]);
 
-  const all = withState(base, store);
+  // Com conta, a rede vem do Firestore e é a mesma que o passageiro está vendo do outro lado.
+  // Sem conta (demonstração), continuam os exemplos locais.
+  const rede = useNetwork(user?.uid ?? null);
+  const all = rede.connected ? rede.passengers : withState(base, store);
+  // O limite do plano grátis conta quem está na rede mais os convites em aberto.
+  const used = all.filter((p) => p.state === 'active' || p.state === 'invited').length;
+  const livre = canInvite(profile.plan, used);
+  // Sem vaga, convidar leva para o plano em vez de abrir o convite e falhar depois.
+  const convidar = () => router.push(livre ? '/invite' : '/plan');
   const active = all.filter((p) => p.state === 'active');
   const pending = all.filter((p) => p.state === 'invited');
   const ended = all.filter((p) => p.state === 'ended');
@@ -70,7 +84,7 @@ export default function Passengers() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <TopBar title="Passageiros" />
+        <TopBar title="Passageiros" action={{ icon: 'person_add', label: 'Convidar passageiro', onPress: convidar }} />
 
         <View style={styles.invite}>
           <Text variant="display">Sua rede</Text>
@@ -80,7 +94,18 @@ export default function Passengers() {
           <Text variant="body" tone="secondary" style={styles.inviteText}>
             Convide quem já anda com você. A pessoa entra pelo seu link e pede as viagens; você aprova uma por uma.
           </Text>
-          <Button label="Convidar passageiro" icon="person_add" variant="light" onPress={() => router.push('/invite')} style={styles.inviteButton} />
+          {/* O limite só aparece quando chega perto de doer. Antes disso é ruído. */}
+          {profile.plan === 'free' && used >= FREE_PASSENGERS - 1 ? (
+            <Pressable onPress={() => router.push('/plan')} accessibilityRole="button" accessibilityLabel={`${used} de ${FREE_PASSENGERS} passageiros no plano grátis. Ver planos.`} style={styles.seats}>
+              <Icon name={livre ? 'info' : 'lock'} size={size.icon.sm} color={colors.orange} />
+              <Text variant="small" tone="orange" style={styles.seatsText}>
+                {livre
+                  ? `${used} de ${FREE_PASSENGERS} passageiros do plano grátis. Resta ${seatsLeft(profile.plan, used)}.`
+                  : `Plano grátis cheio: ${FREE_PASSENGERS} passageiros. Assine para convidar mais.`}
+              </Text>
+              <Icon name="chevron_right" size={size.icon.sm} color={colors.orange} />
+            </Pressable>
+          ) : null}
         </View>
 
         <Pills
@@ -113,7 +138,7 @@ export default function Passengers() {
               }}
             />
           ) : (
-            <Empty title="Nenhum passageiro ativo." text="Quem aceitar seu convite aparece aqui." />
+            <EmptyState icon="group" title="Ninguém na sua rede ainda" text="Convide quem já anda com você. A pessoa entra pelo seu link e começa a pedir viagens." action={{ label: 'Convidar passageiro', icon: 'person_add', onPress: convidar }} />
           )
         ) : tab === 'pending' ? (
           pending.length > 0 ? (
@@ -122,15 +147,15 @@ export default function Passengers() {
             sizes={size.passengerStack}
             keyOf={(p) => p.id}
             colorOf={() => colors.cardDone}
-            accessibilityLabelOf={(p) => `${p.name}: convite enviado ${relativeDay(p.since, now).toLowerCase()}`}
+            accessibilityLabelOf={(p) => `${p.name}: ${p.asked ? 'pediu para entrar' : 'convite enviado'} ${relativeDay(p.since, now).toLowerCase()}`}
             accessibilityHint="Abre a página do convite"
             onOpen={(p) => open(p)}
             renderCard={(p, { dark }) => (
-              <PassengerCardContent name={p.name} dark={dark} subtitle={`Convite enviado · ${relativeDay(p.since, now).toLowerCase()}`} />
+              <PassengerCardContent name={p.name} dark={dark} subtitle={`${p.asked ? 'Pediu para entrar' : 'Convite enviado'} · ${relativeDay(p.since, now).toLowerCase()}`} />
             )}
           />
         ) : (
-          <Empty title="Nenhum convite esperando resposta." text="Os convites que você mandar e ainda não forem aceitos aparecem aqui." />
+          <EmptyState icon="mail" title="Nenhum convite esperando" text="Os convites que você mandar aparecem aqui até a pessoa aceitar." action={{ label: 'Convidar passageiro', icon: 'person_add', onPress: convidar }} />
           )
         ) : ended.length > 0 ? (
           <CardStack
@@ -146,23 +171,10 @@ export default function Passengers() {
             )}
           />
         ) : (
-          <Empty title="Nenhuma conexão encerrada." text="Quem você tirar da sua rede aparece aqui, com o histórico, e pode ser reativado." />
+          <EmptyState icon="person_off" title="Nenhuma conexão encerrada" text="Quem você tirar da rede fica aqui com o histórico, e dá para reativar quando quiser." />
         )}
       </ScrollView>
     </SafeAreaView>
-  );
-}
-
-function Empty({ title, text }: { title: string; text: string }) {
-  return (
-    <View style={styles.empty}>
-      <Text variant="heading" tone="secondary">
-        {title}
-      </Text>
-      <Text variant="small" tone="secondary">
-        {text}
-      </Text>
-    </View>
   );
 }
 
@@ -176,6 +188,6 @@ const styles = StyleSheet.create({
   },
   invite: { paddingHorizontal: spacing[4], paddingTop: spacing[28], paddingBottom: spacing[20] },
   inviteText: { marginTop: spacing[12] },
-  inviteButton: { marginTop: spacing[20], alignSelf: 'flex-start' },
-  empty: { paddingTop: spacing[20], paddingHorizontal: spacing[4], gap: spacing[8] },
+  seats: { marginTop: spacing[16], flexDirection: 'row', alignItems: 'center', gap: spacing[8] },
+  seatsText: { flex: 1 },
 });

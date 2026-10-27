@@ -68,6 +68,6 @@ const styles = StyleSheet.create({
   onDark: { backgroundColor: colors.surface },
   onCard: { backgroundColor: colors.tintOnCard },
   row: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing[12] },
-  text: { flex: 1, gap: spacing[2] },
+  text: { flex: 1, gap: spacing[4] },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[8], paddingLeft: size.icon.md + spacing[12] },
 });

@@ -81,6 +81,6 @@ const styles = StyleSheet.create({
   },
   chipOn: { backgroundColor: colors.text, borderColor: colors.text },
   chipActive: { backgroundColor: colors.surface },
-  error: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing[6] },
+  error: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing[8] },
   errorText: { flex: 1 },
 });

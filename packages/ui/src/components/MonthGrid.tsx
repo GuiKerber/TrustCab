@@ -14,7 +14,7 @@ export function tripDotColor(trip: Trip, index: number) {
   return trip.status === 'cancelled' ? colors.lineStrong : colors.cards[index % colors.cards.length];
 }
 
-export function TripDots({ trips, dot = size.dot.sm }: { trips: Trip[]; dot?: number }) {
+export function TripDots({ trips, dot = size.dot.md }: { trips: Trip[]; dot?: number }) {
   const extra = trips.length - MAX_DOTS;
   return (
     <View style={styles.dots}>
@@ -121,22 +121,22 @@ function DayCell({
 }
 
 const styles = StyleSheet.create({
-  wrapper: { gap: spacing[6] },
+  wrapper: { gap: spacing[8] },
   row: { flexDirection: 'row' },
   weekday: { width: `${100 / 7}%`, alignItems: 'center', paddingVertical: spacing[4] },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
-  slot: { width: `${100 / 7}%`, padding: spacing[2] },
+  slot: { width: `${100 / 7}%`, padding: spacing[4] },
   cell: {
     height: size.calendarCell,
     borderRadius: radius.md,
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'flex-end',
-    paddingBottom: spacing[6],
+    paddingBottom: spacing[8],
     gap: spacing[4],
   },
   cellToday: { borderWidth: borderWidth.strong, borderColor: colors.orange },
   cellSelected: { borderWidth: borderWidth.strong, borderColor: colors.text },
   cellActive: { backgroundColor: colors.surfaceRaised },
-  dots: { flexDirection: 'row', alignItems: 'center', gap: spacing[2], minHeight: size.dot.md },
+  dots: { flexDirection: 'row', alignItems: 'center', gap: spacing[4], minHeight: size.dot.md },
 });

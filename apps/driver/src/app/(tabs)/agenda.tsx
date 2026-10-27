@@ -51,8 +51,9 @@ export default function Agenda() {
     scroll.current?.scrollTo({ y: 0, animated: false });
   };
 
+  // Tocar num dia é um atalho para rolar até ele, não uma seleção que fica. O dia continua
+  // visível no topo da lista, e para voltar basta rolar de novo — marcar a célula não acrescenta nada.
   const selectDay = (date: Date) => {
-    setSelected(date);
     const y = dayY.current[dayKey(date)];
     if (y != null) scroll.current?.scrollTo({ y: listY.current + y - spacing[8], animated: true });
   };
@@ -75,7 +76,7 @@ export default function Agenda() {
           <IconButton name="chevron_right" label="Próximo mês" onPress={() => changeMonth(1)} disabled={offset >= RANGE} />
         </View>
 
-        <MonthGrid days={days} selected={selected} today={now} onSelect={selectDay} />
+        <MonthGrid days={days} selected={null} today={now} onSelect={selectDay} />
 
         <View style={styles.list} onLayout={(event) => (listY.current = event.nativeEvent.layout.y)}>
           {days.map(({ date, trips }) => (
@@ -84,7 +85,7 @@ export default function Agenda() {
                 date={date}
                 trips={trips}
                 today={now}
-                selected={selected ? isSameDay(date, selected) : false}
+                selected={false}
                 onOpen={(trip, index) => setOpen({ id: trip.id, date, color: cardColor(trip, index) })}
               />
             </View>
@@ -123,6 +124,6 @@ const styles = StyleSheet.create({
     gap: spacing[20],
   },
   monthNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  monthTitle: { alignItems: 'center', gap: spacing[2] },
-  list: { gap: spacing[6], marginTop: spacing[8] },
+  monthTitle: { alignItems: 'center', gap: spacing[4] },
+  list: { gap: spacing[8], marginTop: spacing[8] },
 });

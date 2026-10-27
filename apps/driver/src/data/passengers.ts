@@ -50,14 +50,16 @@ export function usePassengerStore() {
 }
 
 // Lista final: exemplos + convites feitos agora, com o estado atual de cada um.
-export function withState(base: Passenger[], current: Store) {
+export function withState(base: Passenger[], current: Store): PassengerWithState[] {
   return [...current.invited, ...base].map((passenger) => ({
     ...passenger,
     state: (current.status[passenger.id] ?? passenger.status) as PassengerState,
   }));
 }
 
-export type PassengerWithState = ReturnType<typeof withState>[number];
+// "asked" separa as duas coisas que caem em Pendentes: convite que você mandou e ninguém usou ainda,
+// e pedido de quem entrou pelo link e espera a sua aprovação. Só o segundo existe no Firestore.
+export type PassengerWithState = Passenger & { state: PassengerState; asked?: boolean };
 
 // Pedidos que ainda esperam sua decisão.
 export function pendingRequests(requests: TripRequest[], current: Store) {

@@ -3,7 +3,7 @@ import { useEffect, useMemo } from 'react';
 import { Linking, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { samplePassengers, useNow } from '@trustcab/core';
+import { reportUrl, samplePassengers, useNow } from '@trustcab/core';
 import { ChatScreen, colors, IconButton, layout, spacing, Text } from '@trustcab/ui';
 
 import { markRead, retryMessage, sendMessage, useChat } from '@/data/chat';
@@ -52,6 +52,7 @@ export default function Conversation() {
       viewer="driver"
       onBack={() => router.back()}
       onCall={ended ? undefined : () => Linking.openURL(`tel:${passenger.phone}`)}
+      onReport={() => Linking.openURL(reportUrl({ reported: passenger.name }))}
       onSend={(text) => sendMessage(passenger.id, text)}
       onRetry={(messageId) => retryMessage(passenger.id, messageId)}
       closedText={ended ? `Você encerrou a conexão com ${passenger.name.split(' ')[0]}. O histórico continua aqui, mas não dá para mandar mensagens.` : undefined}

@@ -58,3 +58,16 @@ export const PREVIOUS_STATUS: Partial<Record<TripStatus, { status: TripStatus; l
   completed: { status: 'in_progress', label: 'Voltar para não concluída' },
   cancelled: { status: 'scheduled', label: 'Reativar viagem' },
 };
+
+// Tempo mostrado na folha da viagem. Antes do embarque ele conta até a partida; ao chegar
+// zera, porque você já está lá; e ao começar a viagem recomeça, agora contando até o destino.
+// Hoje os dois trechos usam o mesmo número: só existe um tempo por viagem até o backend
+// calcular cada perna pelo Google Maps.
+export function tripEta(trip: Trip, override?: string) {
+  // Quem passa um rótulo próprio (o passageiro, com "Tempo de viagem") está falando da
+  // duração do trajeto, da partida ao destino — essa não zera nunca.
+  if (override) return { label: override, value: `${trip.etaMinutes} min` };
+  const label = isClosed(trip) ? 'Tempo estimado' : 'Chegada em';
+  if (trip.status === 'arrived') return { label, value: 'Agora' };
+  return { label, value: `${trip.etaMinutes} min` };
+}

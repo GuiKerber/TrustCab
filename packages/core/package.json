@@ -7,7 +7,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./auth": "./src/auth/index.ts",
-    "./notifications": "./src/notifications.ts"
+    "./notifications": "./src/notifications.ts",
+    "./db": "./src/db/index.ts"
   },
   "peerDependencies": {
     "expo-network": "*",

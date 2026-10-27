@@ -1,3 +1,4 @@
+import type { AndroidSymbol } from 'expo-symbols';
 import { useRef, useState } from 'react';
 import { KeyboardAvoidingView, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,9 +8,10 @@ import type { Message } from '@trustcab/core';
 import { borderWidth, colors, layout, radius, size, spacing, type } from '../theme/tokens';
 
 import { Avatar } from './Avatar';
-import { IconButton } from './Button';
+import { Button, IconButton } from './Button';
 import { MessageBubble } from './MessageBubble';
 import { OfflineNotice } from './OfflineNotice';
+import { TripOptions } from './TripOptions';
 import { Icon, Text } from './ui';
 
 // Conversa, igual nos dois apps: suas mensagens à direita (claras), as da outra pessoa à esquerda, avisos no centro.
@@ -23,9 +25,11 @@ export function ChatScreen({
   onBack,
   backLabel = 'Voltar para as conversas',
   onCall,
+  onReport,
   onSend,
   onRetry,
   closedText,
+  action,
 }: {
   name: string;
   color: string;
@@ -36,11 +40,16 @@ export function ChatScreen({
   // O passageiro chega aqui direto pelo chat do topo (sem lista), então o "voltar" muda de nome.
   backLabel?: string;
   onCall?: () => void;
+  // Denunciar a pessoa da conversa. Fica no topo, junto do conteúdo denunciado.
+  onReport?: () => void;
   onSend: (text: string) => void;
   onRetry: (id: string) => void;
   closedText?: string;
+  // Ação que a conversa habilita agora (ex.: confirmar o pagamento da cobrança do mês).
+  action?: { label: string; icon?: AndroidSymbol; note?: string; onPress: () => void };
 }) {
   const [draft, setDraft] = useState('');
+  const [showOptions, setShowOptions] = useState(false);
   const [focused, setFocused] = useState(false);
   const scroll = useRef<ScrollView>(null);
   const first = name.split(' ')[0];
@@ -61,6 +70,9 @@ export function ChatScreen({
           {name}
         </Text>
         {onCall ? <IconButton name="call" label={`Ligar para ${first}`} onPress={onCall} /> : null}
+        {/* Denunciar é raro e sério: sai do topo, onde ficava a um toque de distância, e passa
+            para os três pontos, junto das outras ações fora do caminho. */}
+        {onReport ? <IconButton name="more_horiz" label={`Mais opções da conversa com ${first}`} onPress={() => setShowOptions(true)} /> : null}
       </View>
       <View style={styles.offline}>
         <OfflineNotice />
@@ -83,6 +95,19 @@ export function ChatScreen({
             messages.map((message) => <MessageBubble key={message.id} message={message} now={now} viewer={viewer} onRetry={() => onRetry(message.id)} />)
           )}
         </ScrollView>
+
+        {/* Ação ligada ao que chegou na conversa (a cobrança do mês, por exemplo): fica acima do
+            campo de mensagem, onde a pessoa já está olhando, em vez de mandá-la para outra tela. */}
+        {action ? (
+          <View style={styles.action}>
+            {action.note ? (
+              <Text variant="small" tone="secondary">
+                {action.note}
+              </Text>
+            ) : null}
+            <Button label={action.label} icon={action.icon} variant="light" onPress={action.onPress} />
+          </View>
+        ) : null}
 
         {closedText ? (
           <View style={styles.closed} accessibilityLiveRegion="polite">
@@ -109,6 +134,12 @@ export function ChatScreen({
           </View>
         )}
       </KeyboardAvoidingView>
+      <TripOptions
+        visible={showOptions}
+        title={name}
+        options={onReport ? [{ key: 'report', label: `Denunciar `, icon: 'flag', destructive: true, onPress: onReport }] : []}
+        onClose={() => setShowOptions(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -139,6 +170,7 @@ const styles = StyleSheet.create({
     borderTopColor: colors.line,
   },
   closedText: { flex: 1 },
+  action: { paddingHorizontal: layout.screenPadding, paddingTop: spacing[12], gap: spacing[8] },
   composer: {
     flexDirection: 'row',
     alignItems: 'flex-end',

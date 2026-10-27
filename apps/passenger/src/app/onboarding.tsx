@@ -104,7 +104,7 @@ export default function Onboarding() {
           quando descer
         </Text>
         <Text variant="body" tone="secondary" style={styles.lead}>
-          O celular vai pedir sua permissão. Com ela, você fica sabendo de:
+          Você fica sabendo de:
         </Text>
       </View>
       <View style={styles.list}>

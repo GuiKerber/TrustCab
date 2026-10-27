@@ -10,7 +10,7 @@ import { TopBar } from '@/components/TopBar';
 import { useTripActions } from '@/components/useTripActions';
 import { usePassengerStore, withApprovedTrips, withoutEnded, withState } from '@/data/passengers';
 import { missingSetup, useProfile } from '@/data/profile';
-import { type Day, dayKey, formatPrice, isForgotten, isSameDay, relativeDay, sampleMonth, sampleMonthDays, samplePassengers, sampleTripRequests, startOfDay, type Trip, useNow, useSyncState } from '@trustcab/core';
+import { type Day, dayKey, formatPrice, isForgotten, isSameDay, sampleMonth, sampleMonthDays, samplePassengers, sampleTripRequests, startOfDay, type Trip, useNow, useSyncState, weekdayTitle } from '@trustcab/core';
 import { useTripSignals } from '@/data/tripSignals';
 import { useTripNotifications } from '@/lib/notifications';
 
@@ -18,6 +18,8 @@ import { useTripNotifications } from '@/lib/notifications';
 const FORGOTTEN_LOOKBACK_DAYS = 7;
 // Quantos dias para frente as notificações de "Hora de sair" ficam agendadas.
 const NOTIFY_AHEAD_DAYS = 7;
+// Quantos dias a faixa da Home mostra: uma semana, começando em hoje.
+const WEEK_DAYS = 7;
 
 // Home: título editorial, dias e a pilha de cartões das viagens do dia. A tela rola; puxar um cartão é segurar e arrastar.
 // Ao abrir o app, pergunta sobre viagens que passaram do horário sem conclusão.
@@ -60,14 +62,14 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [now, month, requests, passengers, people, signals]);
 
-  const days = allDays.filter((day) => day.date >= startOfDay(now) && day.date.getMonth() === now.getMonth());
+  // A Home dá a visão da semana, não do mês: sete dias a partir de hoje.
+  const days = allDays.filter((day) => day.date >= startOfDay(now)).slice(0, WEEK_DAYS);
   const selectedDay = allDays.find((day) => isSameDay(day.date, selected));
 
   // Ordem de embarque: quem vem primeiro fica no topo; concluídas e canceladas vão para o fim.
   const trips = [...(selectedDay?.trips ?? [])].sort((a, b) => Number(isClosed(a)) - Number(isClosed(b)) || a.time.localeCompare(b.time));
   // Hoje, Amanhã e Ontem ficam no tamanho grande; datas ("Domingo, 20/09") descem um tamanho para caber numa linha.
-  const dayTitle = relativeDay(selected, now);
-  const titleVariant = dayTitle.includes('/') ? 'displaySm' : 'display';
+  const dayTitle = weekdayTitle(selected, now);
   const openTrip = open ? (trips.find((t) => t.id === open.id) ?? null) : null;
   // Ganho do dia: só viagens concluídas. Dia futuro ainda não tem ganho.
   const earned = trips.filter((t) => t.status === 'completed').reduce((sum, t) => sum + t.priceCents, 0);
@@ -117,8 +119,8 @@ export default function Home() {
         ) : null}
 
         <View style={styles.title}>
-          <Text variant={titleVariant}>{dayTitle}</Text>
-          <Text variant={titleVariant} tone="secondary">
+          <Text variant="display">{dayTitle}</Text>
+          <Text variant="display" tone="secondary">
             {trips.length === 1 ? '1 viagem' : `${trips.length} viagens`}
           </Text>
           <Text variant="bodyMedium" tone="secondary" style={styles.total}>

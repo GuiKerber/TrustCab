@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
   list: { gap: spacing[8] },
   item: { backgroundColor: colors.surface, borderRadius: radius.block, padding: spacing[16], gap: spacing[8] },
   itemHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: spacing[12] },
-  itemWhen: { flex: 1, gap: spacing[2] },
+  itemWhen: { flex: 1, gap: spacing[4] },
   actions: { flexDirection: 'row', gap: spacing[8], marginTop: spacing[4] },
   grow: { flex: 1 },
   center: { alignSelf: 'center' },

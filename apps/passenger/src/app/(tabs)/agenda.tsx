@@ -104,6 +104,6 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.ground },
   content: { paddingHorizontal: layout.screenPadding, paddingTop: spacing[8], paddingBottom: layout.scrollEnd, gap: spacing[20] },
   monthNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  monthTitle: { alignItems: 'center', gap: spacing[2] },
-  list: { gap: spacing[6], marginTop: spacing[8] },
+  monthTitle: { alignItems: 'center', gap: spacing[4] },
+  list: { gap: spacing[8], marginTop: spacing[8] },
 });

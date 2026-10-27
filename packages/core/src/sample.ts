@@ -249,6 +249,19 @@ export function shortDate(date: Date) {
   return `${date.getDate()} de ${MONTHS[date.getMonth()].slice(0, 3)}`;
 }
 
+// Título do dia na Home. Só dia da semana, nunca data: a Home mostra uma semana,
+// e dentro de sete dias o nome do dia não tem ambiguidade. Datas ("Sex, 23/10") eram
+// longas demais e obrigavam o título a trocar de tamanho, quebrando a tipografia.
+const WEEKDAY_FULL = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+
+export function weekdayTitle(date: Date, now: Date) {
+  const diff = Math.round((startOfDay(date).getTime() - startOfDay(now).getTime()) / 86_400_000);
+  if (diff === 0) return 'Hoje';
+  if (diff === 1) return 'Amanhã';
+  if (diff === -1) return 'Ontem';
+  return WEEKDAY_FULL[date.getDay()];
+}
+
 export function relativeDay(date: Date, now: Date) {
   const diff = Math.round((startOfDay(date).getTime() - startOfDay(now).getTime()) / 86_400_000);
   if (diff === 0) return 'Hoje';

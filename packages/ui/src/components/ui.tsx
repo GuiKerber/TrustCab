@@ -95,5 +95,5 @@ const styles = StyleSheet.create({
   block: { overflow: 'hidden' },
   blockPadded: { padding: spacing[20] },
   pressed: { opacity: opacity.pressed },
-  handle: { alignSelf: 'center', width: size.handle.width, height: size.handle.height, borderRadius: radius.xs },
+  handle: { alignSelf: 'center', width: size.handle.width, height: size.handle.height, borderRadius: radius.joined },
 });

@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { BackHandler, Platform, StyleSheet, View } from 'react-native';
 
-import { formatPrice, maskMoney, maskTime, moneyToCents, shortDate, timeError, useNow } from '@trustcab/core';
+import { formatPrice, maskMoney, maskTime, moneyToCents, monthName, shortDate, timeError, useNow } from '@trustcab/core';
 import { Banner, Block, borderWidth, Button, Checkbox, colors, FormScreen, IconButton, Label, radius, spacing, Text, TextField } from '@trustcab/ui';
 
 import { myDriver, useConnections } from '@/data/connections';
@@ -247,6 +247,12 @@ export default function RequestTrips() {
 
   const isLast = step === REVIEW - 1;
   const nextDay = WEEKDAYS[step + 1];
+  // A próxima vez que esse dia da semana acontece, para a pessoa saber de que data se trata.
+  const dayDate = (() => {
+    const date = new Date(now);
+    date.setDate(date.getDate() + ((dayInfo.day - now.getDay() + 7) % 7));
+    return `${date.getDate()} de ${monthName(date)}`;
+  })();
 
   return (
     <FormScreen
@@ -254,12 +260,7 @@ export default function RequestTrips() {
       backLabel={step === 0 ? 'Sair sem pedir' : `Voltar para ${WEEKDAYS[step - 1].name}`}
       onBack={back}
       footer={
-        <View style={styles.actions}>
-          {isLast ? null : (
-            <Button label="Continuar" variant="surface" onPress={goNext} accessibilityHint={`Vai para ${nextDay.name}`} style={styles.grow} />
-          )}
-          <Button label="Finalizar" variant="light" onPress={finish} accessibilityHint="Mostra a semana para você revisar e enviar" style={styles.grow} />
-        </View>
+        <Button label="Finalizar" variant="light" onPress={finish} accessibilityHint="Mostra a semana para você revisar e enviar" />
       }>
       <View style={styles.head}>
         <Text variant="display">Pedir</Text>
@@ -272,11 +273,29 @@ export default function RequestTrips() {
       </View>
 
       <View style={styles.field}>
-        <View>
-          <Label>{`Dia ${step + 1} de ${REVIEW}`}</Label>
-          <Text variant="title" accessibilityRole="header">
-            {capitalize(dayInfo.name)}
-          </Text>
+        {/* Mesma navegação da agenda: setas nas laterais e o dia no meio. Com elas, o
+            "Continuar" do rodapé virou repetição e saiu — sobrou só o "Finalizar". */}
+        <View style={styles.dayNav}>
+          <IconButton
+            name="chevron_left"
+            label={step === 0 ? 'Dia anterior' : `Voltar para ${WEEKDAYS[step - 1].name}`}
+            onPress={() => setStep(step - 1)}
+            disabled={step === 0}
+          />
+          <View style={styles.dayTitle} accessibilityLiveRegion="polite">
+            <Text variant="title" accessibilityRole="header">
+              {capitalize(dayInfo.name)}
+            </Text>
+            <Text variant="small" tone="secondary">
+              {dayDate}
+            </Text>
+          </View>
+          <IconButton
+            name="chevron_right"
+            label={isLast ? 'Próximo dia' : `Ir para ${nextDay.name}`}
+            onPress={goNext}
+            disabled={isLast}
+          />
         </View>
 
         {list.map((draft, index) => {
@@ -341,5 +360,7 @@ const styles = StyleSheet.create({
   reviewTrip: { gap: spacing[8] },
   summary: { gap: spacing[4] },
   actions: { flexDirection: 'row', gap: spacing[8] },
+  dayNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing[12] },
+  dayTitle: { flex: 1, alignItems: 'center' },
   grow: { flex: 1 },
 });

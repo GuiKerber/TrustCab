@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TrustCab · Plano de reformulação</title>
+<meta name="description" content="Plano de reformulação do MVP do TrustCab: o lado do motorista fica no app, o lado do passageiro vai para o WhatsApp.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700&family=Inter:wght@400;700&display=swap">
+<style>
+:root{
+  --canvas:#ffffff;
+  --text:#000d10;
+  --muted:#6b6b72;
+  --ash:#8e8e95;
+  --line:#d5d3d4;
+  --band:#0f0f1c;
+  --footer:#000d10;
+  --on-band:#ffffff;
+  --on-band-muted:#8e8e95;
+  --band-line:rgba(255,255,255,.18);
+  --clay:#bc7155;
+  --on-clay:#000d10;
+  --btn-bg:#000d10;
+  --btn-fg:#ffffff;
+  --sky-top:#dce6eb;
+  --sky-bottom:#f5f0e8;
+  --focus:#000d10;
+  --font-display:"Inter Tight","Neue Haas Grotesk Display","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --font-body:Inter,"Helvetica Neue",Helvetica,Arial,sans-serif;
+  --text-caption:17px;
+  --text-body:18px;
+  --text-subheading:23px;
+  --text-heading-sm:30px;
+  --text-heading:37px;
+  --text-heading-lg:52px;
+  --text-display:63px;
+  --text-display-xl:131px;
+  --radius-full:1000px;
+  --gap:16px;
+  --pad:22px;
+  --section-gap:80px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --canvas:#0f0f1c;
+    --text:#ffffff;
+    --muted:#8e8e95;
+    --line:rgba(255,255,255,.16);
+    --band:#151623;
+    --btn-bg:#ffffff;
+    --btn-fg:#000d10;
+    --sky-top:#151623;
+    --sky-bottom:#0f0f1c;
+    --focus:#ffffff;
+  }
+}
+:root[data-theme="dark"]{
+  --canvas:#0f0f1c;
+  --text:#ffffff;
+  --muted:#8e8e95;
+  --line:rgba(255,255,255,.16);
+  --band:#151623;
+  --btn-bg:#ffffff;
+  --btn-fg:#000d10;
+  --sky-top:#151623;
+  --sky-bottom:#0f0f1c;
+  --focus:#ffffff;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+@media (prefers-reduced-motion: no-preference){html{scroll-behavior:smooth}}
+body{margin:0;background:var(--canvas);color:var(--text);font-family:var(--font-body);font-size:var(--text-body);line-height:1.61;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-underline-offset:3px}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+p{margin:0}
+ul,ol{margin:0;padding:0}
+.skip{position:absolute;left:16px;top:-60px;background:var(--btn-bg);color:var(--btn-fg);padding:13px 22px;border-radius:var(--radius-full);font-weight:700;z-index:5}
+.skip:focus{top:16px}
+.wrap{max-width:1200px;margin-inline:auto;padding-inline:var(--pad)}
+.eyebrow{font-size:var(--text-caption);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);line-height:1.2}
+.muted{color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* Hero */
+.hero{background:linear-gradient(180deg,var(--sky-top),var(--sky-bottom));padding-block:31px 68px}
+.hero-bar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:var(--gap);font-size:var(--text-caption)}
+.pill{display:inline-flex;align-items:center;min-height:44px;padding:0 22px;border-radius:var(--radius-full);border:1px solid var(--text);font-weight:700;font-size:var(--text-caption)}
+.hero-grid{display:grid;gap:31px;margin-top:59px;align-items:end}
+/* O PRD usa piso de 88px porque a marca dele tem quatro letras. "Sem app." tem
+   oito e passa 366px nesse piso, que não cabe num celular de 375. 20vw é a
+   maior escala em que a palavra ainda cabe na coluna em 320px. */
+.wordmark{font-family:var(--font-display);font-weight:700;font-size:clamp(56px,20vw,var(--text-display-xl));letter-spacing:-.02em;line-height:.8;margin:0}
+.hero h1{font-family:var(--font-display);font-weight:700;font-size:clamp(37px,5.4vw,var(--text-display));letter-spacing:-.02em;line-height:1;margin:0;text-wrap:balance}
+.lede{max-width:62ch;margin-top:38px}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:var(--gap) 31px;margin:52px 0 0;padding:0}
+.meta div{border-top:1px solid var(--text);padding-top:13px}
+.meta dt{font-size:var(--text-caption);color:var(--muted);line-height:1.3}
+.meta dd{margin:4px 0 0;font-weight:700;line-height:1.3}
+@media (min-width:900px){.hero-grid{grid-template-columns:auto 1fr}.hero h1{justify-self:end;text-align:right;max-width:12ch}}
+/* Bands */
+.band{background:var(--band);color:var(--on-band);--muted:var(--on-band-muted);--line:var(--band-line);--text:#ffffff;--focus:#ffffff;--btn-bg:#ffffff;--btn-fg:#000d10}
+.thesis{padding-block:var(--section-gap)}
+.thesis-grid{display:grid;gap:31px}
+.thesis blockquote{margin:0;font-family:var(--font-display);font-weight:700;font-size:clamp(30px,4.2vw,var(--text-heading-lg));letter-spacing:-.01em;line-height:1.05;text-wrap:balance}
+.thesis p{color:var(--on-band-muted);max-width:56ch;margin-top:31px}
+@media (min-width:900px){.thesis-grid{grid-template-columns:1fr 1.6fr}}
+/* Layout */
+.layout{display:grid;gap:52px;padding-block:var(--section-gap)}
+.toc{font-size:var(--text-caption)}
+.toc ol{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:0 22px;margin-top:13px}
+.toc a{display:block;padding-block:11px;color:var(--muted);text-decoration:none;line-height:1.3;border-top:1px solid var(--line)}
+.toc a:hover{color:var(--text)}
+@media (min-width:1024px){
+  .layout{grid-template-columns:200px minmax(0,1fr);gap:80px}
+  .toc{position:sticky;top:31px;align-self:start}
+  .toc ol{grid-template-columns:1fr}
+  .toc a{padding-block:8px}
+}
+main{display:flex;flex-direction:column;gap:119px;min-width:0}
+section{scroll-margin-top:31px}
+.sec-head{display:grid;gap:13px;margin-bottom:38px}
+h2{font-family:var(--font-display);font-weight:700;font-size:clamp(37px,4.6vw,var(--text-heading-lg));letter-spacing:-.01em;line-height:1;margin:0;text-wrap:balance}
+h3{font-family:var(--font-display);font-weight:700;font-size:var(--text-subheading);letter-spacing:-.01em;line-height:1.15;margin:0;text-wrap:balance}
+h4{font-size:var(--text-body);font-weight:700;margin:0;line-height:1.3}
+.prose{display:grid;gap:var(--gap);max-width:68ch}
+.stack{display:grid;gap:52px}
+/* Feature blocks */
+.blocks{display:grid;gap:38px 52px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.block{border-top:1px solid var(--line);padding-top:21px;display:grid;gap:13px;align-content:start}
+.block > p{color:var(--muted)}
+.list{list-style:none;display:grid;gap:10px}
+.list li{position:relative;padding-left:22px}
+.list li::before{content:"";position:absolute;left:0;top:.72em;width:8px;height:2px;background:currentColor}
+.list.muted li{color:var(--muted)}
+.note{border:1px solid var(--text);padding:var(--pad);display:grid;gap:8px;max-width:68ch}
+.note strong{font-size:var(--text-caption);letter-spacing:.06em;text-transform:uppercase}
+.note.wide{max-width:none}
+/* Requirements */
+.req-group{display:grid;gap:13px}
+.req-group + .req-group{margin-top:52px}
+.req-list{list-style:none;border-bottom:1px solid var(--line)}
+.req{display:grid;grid-template-columns:72px minmax(0,1fr) 132px;grid-template-areas:"id body chip";gap:6px 22px;padding-block:17px;border-top:1px solid var(--line)}
+.req-id{grid-area:id;font-size:var(--text-caption);font-weight:700;font-variant-numeric:tabular-nums;line-height:1.7}
+.req-body{grid-area:body;display:grid;gap:4px}
+.req-body strong{font-weight:700}
+.req-body p{color:var(--muted)}
+.req .chip{grid-area:chip;justify-self:end}
+@media (max-width:640px){
+  .req{grid-template-columns:1fr auto;grid-template-areas:"id chip" "body body"}
+}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:2px 13px;border-radius:var(--radius-full);font-size:var(--text-caption);font-weight:700;line-height:1.2;white-space:nowrap;border:1px solid var(--text)}
+.chip-must{background:var(--btn-bg);color:var(--btn-fg);border-color:var(--btn-bg)}
+.chip-should{background:transparent;color:var(--text)}
+.chip-later{background:transparent;color:var(--muted);border-style:dashed;border-color:var(--muted)}
+/* Tables */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:680px;font-size:var(--text-caption);line-height:1.45}
+th{text-align:left;font-weight:700;padding:13px 22px 13px 0;border-bottom:1px solid var(--text);vertical-align:bottom}
+td{padding:13px 22px 13px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{font-weight:700}
+td .muted{display:block}
+/* Diagrams */
+figure{margin:0;display:grid;gap:13px}
+.diagram{overflow-x:auto;border-block:1px solid var(--line);padding-block:22px}
+.diagram svg{display:block;width:100%;min-width:880px;height:auto;color:var(--text)}
+figcaption{color:var(--muted);font-size:var(--text-caption);max-width:68ch}
+.d-node{fill:var(--canvas);stroke:currentColor;stroke-width:1.5}
+.d-strong{fill:var(--text);stroke:var(--text);stroke-width:1.5}
+.d-text{fill:currentColor;font:700 14px var(--font-body)}
+.d-text-inv{fill:var(--canvas);font:700 14px var(--font-body)}
+.d-sub{fill:currentColor;font:400 12px var(--font-body)}
+.d-sub-inv{fill:var(--canvas);font:400 12px var(--font-body)}
+.d-label{fill:var(--muted);font:400 13px var(--font-body)}
+.d-edge{stroke:currentColor;stroke-width:1.5;fill:none}
+.d-lane-label{fill:var(--muted);font:700 12px var(--font-body);letter-spacing:.08em}
+/* Fluxos antes/depois */
+.swap{display:grid;gap:0;border-top:1px solid var(--line)}
+.swap > div{display:grid;grid-template-columns:1fr;gap:6px 31px;padding-block:22px;border-bottom:1px solid var(--line)}
+.swap h4{grid-column:1 / -1}
+.swap .antes p,.swap .depois p{margin-top:4px}
+.swap .antes{color:var(--muted)}
+.swap .eyebrow{font-size:13px}
+@media (min-width:760px){
+  .swap > div{grid-template-columns:200px 1fr 1fr}
+  .swap h4{grid-column:1;align-self:start}
+}
+/* Decisions */
+.decisions{padding-block:var(--section-gap)}
+.decisions .sec-head{margin-bottom:52px}
+.decision{display:grid;gap:13px 31px;border-top:1px solid var(--band-line);padding-block:31px}
+.decision-id{font-size:var(--text-caption);font-weight:700;font-variant-numeric:tabular-nums;color:var(--on-band-muted)}
+.decision h3{max-width:36ch}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px 31px;margin-top:13px;list-style:none}
+.opts li{border-top:1px solid var(--band-line);padding-top:13px;display:grid;gap:4px;align-content:start}
+.opts p{color:var(--on-band-muted)}
+.suggest{margin-top:16px;font-weight:700}
+.suggest span{color:var(--on-band-muted);font-weight:400}
+@media (min-width:900px){.decision{grid-template-columns:90px minmax(0,1fr)}}
+/* Phases */
+.phases{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:38px 52px}
+.phases li{border-top:2px solid var(--text);padding-top:17px;display:grid;gap:10px;align-content:start}
+.phases .eyebrow{color:var(--text)}
+/* Footer */
+.foot{background:var(--footer);color:#ffffff;padding-block:52px}
+.foot-grid{display:grid;gap:22px;align-items:end}
+.foot .wordmark{font-size:clamp(64px,12vw,var(--text-display));color:#ffffff}
+.foot p{color:#8e8e95;font-size:var(--text-caption);max-width:60ch}
+@media (min-width:900px){.foot-grid{grid-template-columns:auto 1fr}.foot p{justify-self:end;text-align:right}}
+</style>
+
+<a class="skip" href="#conteudo">Pular para o conteúdo</a>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-bar">
+      <span class="eyebrow">TrustCab · Plano de reformulação do MVP</span>
+      <span class="pill">Proposta v0.1 · 27 out 2026</span>
+    </div>
+    <div class="hero-grid">
+      <p class="wordmark" aria-hidden="true">Sem app.</p>
+      <h1>O passageiro não baixa nada.</h1>
+    </div>
+    <p class="lede">O lado do motorista continua sendo um app Android. O lado do passageiro deixa de ser um app e passa a acontecer onde ele já está: na conversa do WhatsApp com o motorista, com páginas web abertas por link quando precisar preencher algo. Este documento é um delta sobre o <a href="prd.html">PRD v0.2</a> — usa os mesmos códigos de requisito e diz quais morrem, quais mudam e quais nascem.</p>
+    <dl class="meta">
+      <div><dt>Lado do motorista</dt><dd>App Android, sem mudança de forma</dd></div>
+      <div><dt>Lado do passageiro</dt><dd>WhatsApp + páginas web</dd></div>
+      <div><dt>Instalação do passageiro</dt><dd>Nenhuma</dd></div>
+      <div><dt>Custo por mensagem</dt><dd>R$ 0 na fase 1</dd></div>
+      <div><dt>Decisão central</dt><dd>R-01, o trilho das mensagens</dd></div>
+    </dl>
+  </div>
+</header>
+
+<section class="band thesis" aria-label="Tese da reformulação">
+  <div class="wrap thesis-grid">
+    <p class="eyebrow">Tese da reformulação</p>
+    <div>
+      <blockquote>O app deixa de ser o lugar onde o passageiro mora. Passa a ser só o lugar onde o motorista trabalha.</blockquote>
+      <p>A hipótese mais frágil do PRD era “passageiros aceitam instalar um app quando o convite vem de alguém que conhecem”. Em vez de testá-la, esta proposta desvia dela: o passageiro nunca instala nada. Isso resolve o funil e cria um custo novo — o motorista passa a ser quem traz para dentro do app o que foi combinado na conversa.</p>
+    </div>
+  </div>
+</section>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="Nesta página">
+    <p class="eyebrow">Nesta página</p>
+    <ol>
+      <li><a href="#resumo">Resumo</a></li>
+      <li><a href="#trilho">O trilho</a></li>
+      <li><a href="#produto">Mudanças de produto</a></li>
+      <li><a href="#fluxos">Mudanças de fluxo</a></li>
+      <li><a href="#mensagens">Catálogo de mensagens</a></li>
+      <li><a href="#preco">Plano e preço</a></li>
+      <li><a href="#metricas">Métricas</a></li>
+      <li><a href="#avaliacao">Avaliação honesta</a></li>
+      <li><a href="#fases">Fases</a></li>
+      <li><a href="#decisoes">Decisões em aberto</a></li>
+    </ol>
+  </nav>
+
+  <main id="conteudo">
+
+    <section id="resumo">
+      <div class="sec-head">
+        <p class="eyebrow">Proposta</p>
+        <h2>Resumo.</h2>
+      </div>
+      <div class="stack">
+        <div class="blocks">
+          <div class="block">
+            <h3>A aposta</h3>
+            <p>Ninguém instala um app para falar com uma pessoa que já está na sua lista de contatos. Se o passageiro não instala, o funil de ativação deixa de ter um app no meio — e o produto passa a depender só do motorista, que é quem tem o problema e quem paga.</p>
+          </div>
+          <div class="block">
+            <h3>O que ganha</h3>
+            <p>O convite cai de sete passos para um. O aviso de chegada passa a chegar pelo canal que nenhum fabricante de celular mata. O passageiro de iPhone, que hoje está fora do produto, entra no primeiro dia. E dois dos subsistemas mais caros do MVP — o chat e a recuperação de convite depois da instalação — deixam de existir.</p>
+          </div>
+          <div class="block">
+            <h3>O que paga</h3>
+            <p>Sem API oficial, o aviso “cheguei” passa de um toque para dois toques e uma troca de app, no exato momento em que o PRD aposta que o valor é percebido. E tudo que o passageiro disser no WhatsApp fora de um link fica invisível para o app: o motorista vira o sincronizador.</p>
+          </div>
+        </div>
+        <div class="note">
+          <strong>O achado que mais pesa</strong>
+          <p>A reformulação troca o atrito de instalação do passageiro pelo atrito de digitação do motorista. Está movendo trabalho de quem não tem incentivo para quem está pagando. Isso pode estar certo — mas é o oposto da promessa original, que era “tirar a contabilidade da frente do motorista”. A regra de design que segura essa troca em pé está em <a href="#fluxos">Mudanças de fluxo</a>: toda mensagem que o TrustCab manda termina com o link da resposta mais provável.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="trilho">
+      <div class="sec-head">
+        <p class="eyebrow">Decisão central</p>
+        <h2>Por onde a mensagem sai.</h2>
+        <p class="muted" style="max-width:68ch">“O passageiro no WhatsApp” pode ser construído de três formas, com custos muito diferentes. Esta é a decisão que define orçamento, prazo e se o produto precisa de um CNPJ.</p>
+      </div>
+
+      <div class="stack">
+        <div class="table-wrap">
+          <table>
+            <caption class="sr-only">Comparação dos três trilhos de mensagem</caption>
+            <thead>
+              <tr><th scope="col">Trilho</th><th scope="col">Como funciona</th><th scope="col">Custo por mensagem</th><th scope="col">Exige</th><th scope="col">Entrega</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>A · Link do WhatsApp<span class="muted">Clique para conversar</span></td>
+                <td>O app monta o texto e abre o WhatsApp do motorista com a mensagem pronta no chat do passageiro. O motorista toca em enviar.</td>
+                <td>R$ 0</td>
+                <td>Nada. Nenhum cadastro, nenhuma verificação, nenhum backend novo.</td>
+                <td>Mensagem do número que o passageiro já conhece. Dois toques e uma troca de app.</td>
+              </tr>
+              <tr>
+                <td>B · Cloud API oficial<span class="muted">Número do TrustCab</span></td>
+                <td>O backend dispara modelos de mensagem aprovados pela Meta. O passageiro responde no mesmo chat.</td>
+                <td>US$ 0,0068 por mensagem de utilidade para o Brasil</td>
+                <td>Conta comercial verificada na Meta — na prática, empresa registrada —, catálogo de modelos aprovados e registro de consentimento.</td>
+                <td>Um toque no app e o aviso sai sozinho. A promessa original, intacta. Mas vindo de um número comercial desconhecido.</td>
+              </tr>
+              <tr>
+                <td>C · Híbrido<span class="muted">Recomendado</span></td>
+                <td>Saída por A (ou B depois). Tudo que o passageiro precisa <em>preencher</em> acontece numa página web aberta por link, sem login.</td>
+                <td>R$ 0 na fase 1</td>
+                <td>As páginas web no Firebase Hosting que já está no ar, e um modelo de token por link.</td>
+                <td>O passageiro não instala nada e ainda devolve dado estruturado. O trilho de saída pode ser trocado depois sem refazer as páginas.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="blocks">
+          <div class="block">
+            <h3>Recomendação: C sobre A</h3>
+            <p>Fase 1 com link do WhatsApp e páginas web: custo zero, sem CNPJ, sem revisão de modelo, e dá para rodar um beta neste mês. Fase 2 troca só o trilho de saída pela API oficial, se e quando a medição mostrar que o segundo toque está sendo esquecido.</p>
+          </div>
+          <div class="block">
+            <h3>Por que nesta ordem</h3>
+            <p>Tudo que é caro e difícil de desfazer no trilho B — verificação comercial, catálogo de modelos, consentimento registrado, custo por mensagem, um número comercial no lugar do número do motorista — compra exatamente uma coisa: um toque a menos para o motorista. Isso vale a pena depois de saber que ele usa o produto, não antes.</p>
+          </div>
+          <div class="block">
+            <h3>O que não entra em discussão</h3>
+            <p>Bibliotecas não oficiais que automatizam o WhatsApp Web violam os termos da plataforma e derrubam números. Aqui o número em risco é o pessoal do motorista, a ferramenta de trabalho dele. Isso é um não, em qualquer fase, por qualquer economia.</p>
+          </div>
+        </div>
+
+        <div class="note">
+          <strong>Verificar antes de construir</strong>
+          <p>O formato <span class="num">wa.me/55DDDNNNNNNNNN?text=</span> com o texto codificado é o recurso “clique para conversar” da própria WhatsApp, mas a página oficial dela exige login e eu não consegui carregá-la — as fontes que confirmam o formato são de terceiros. É um teste de cinco minutos num celular com o app instalado, e precisa ser feito antes de qualquer tela depender dele. O app do motorista já usa a folha de compartilhamento do Android (CV-01), que é o caminho alternativo caso o formato não se confirme.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="produto">
+      <div class="sec-head">
+        <p class="eyebrow">Produto</p>
+        <h2>O que sai, o que muda, o que nasce.</h2>
+        <p class="muted" style="max-width:68ch">Delta sobre os requisitos do PRD v0.2. <span class="chip chip-later">Sai</span> deixa de existir, <span class="chip chip-should">Muda</span> continua com outra forma, <span class="chip chip-must">Entra</span> é novo.</p>
+      </div>
+
+      <div class="req-group">
+        <h3>Sai do produto</h3>
+        <ol class="req-list">
+          <li class="req"><span class="req-id">CH-01<br>a CH-08</span><div class="req-body"><strong>O chat inteiro do passageiro.</strong><p>Bolhas, status de entrega e leitura, “digitando”, mensagens de sistema, canal de notificação de mensagens, responder arrastando. A conversa passa a ser a do WhatsApp. É a maior redução de escopo do plano: era a parte com mais estado e mais casos de borda do MVP.</p></div><span class="chip chip-later">Sai</span></li>
+          <li class="req"><span class="req-id">AC-01<br>AC-02</span><div class="req-body"><strong>Login do passageiro.</strong><p>Entrar com Google e escolha de perfil deixam de existir no lado do passageiro. A identidade dele passa a ser o telefone que o motorista cadastrou mais um token no link. Zero cadastro.</p></div><span class="chip chip-later">Sai</span></li>
+          <li class="req"><span class="req-id">CV-03</span><div class="req-body"><strong>Convite que sobrevive à instalação.</strong><p>App Links verificados, <span class="num">assetlinks.json</span> com a impressão SHA-256 do build, Play Install Referrer, código digitado como plano B. Todo esse subsistema — o mais frágil do MVP — vira código morto, porque não existe mais instalação no meio do caminho.</p></div><span class="chip chip-later">Sai</span></li>
+          <li class="req"><span class="req-id">CV-04<br>CV-05</span><div class="req-body"><strong>Tela de convite e aprovação de conexão.</strong><p>Quem inicia passa a ser o motorista, que digita nome e telefone. Não existe pedido para aprovar: a aprovação é o próprio ato de cadastrar e mandar a primeira mensagem. O risco de “link vazado” desaparece junto.</p></div><span class="chip chip-later">Sai</span></li>
+          <li class="req"><span class="req-id">AC-03</span><div class="req-body"><strong>Permissão de notificação do passageiro.</strong><p>Com ela some o risco “aviso que não chega” do lado do passageiro: o WhatsApp é o único app que a economia de bateria de nenhum fabricante brasileiro ousa estrangular. O risco continua existindo, mas só no lado do motorista.</p></div><span class="chip chip-later">Sai</span></li>
+        </ol>
+      </div>
+
+      <div class="req-group">
+        <h3>Muda de forma</h3>
+        <ol class="req-list">
+          <li class="req"><span class="req-id">AG-01</span><div class="req-body"><strong>Pedir viagens, agora numa página web.</strong><p>O passo a passo de uma tela por dia da semana continua igual, incluindo o “Recorrente” como caixa de seleção na revisão. Só muda onde roda: no navegador do celular, aberto por link, sem login. O app do passageiro já tem <span class="num">react-native-web</span> configurado e já gera build web — não é reescrita.</p></div><span class="chip chip-should">Muda</span></li>
+          <li class="req"><span class="req-id">AV-01<br>AV-02</span><div class="req-body"><strong>“A caminho” e “cheguei”.</strong><p>No trilho A, o toque no app abre o WhatsApp com o texto pronto e o motorista confirma o envio. No trilho B, sai sozinho. O alvo de 48dp na metade inferior da tela continua valendo; o que muda é quantos toques existem depois dele.</p></div><span class="chip chip-should">Muda</span></li>
+          <li class="req"><span class="req-id">AG-06</span><div class="req-body"><strong>Cancelar uma viagem.</strong><p>Pelo lado do passageiro, vira um link anexado ao lembrete da véspera. Sem o link, a exceção chega como texto solto no WhatsApp e o motorista cancela no app pelo que leu — um toque, honesto, mas é o motorista fazendo o trabalho.</p></div><span class="chip chip-should">Muda</span></li>
+          <li class="req"><span class="req-id">PF-02</span><div class="req-body"><strong>Telefone do passageiro passa a ser obrigatório.</strong><p>Era opcional e servia só para o botão “Ligar”. Agora é o endereço do produto: sem ele não há como mandar nada.</p></div><span class="chip chip-should">Muda</span></li>
+          <li class="req"><span class="req-id">AC-04</span><div class="req-body"><strong>Exclusão de dados do passageiro.</strong><p>Não existe conta para excluir, mas existem nome, telefone, endereços e histórico de viagens guardados. Continua precisando de uma página web de exclusão — e agora ela atende alguém que nunca foi usuário do app.</p></div><span class="chip chip-should">Muda</span></li>
+          <li class="req"><span class="req-id">D-06</span><div class="req-body"><strong>Cobrança do mês e “já paguei”.</strong><p>A cobrança passa a chegar na conversa onde a pessoa já lê tudo, com a chave Pix como texto para copiar. O “já paguei” pode voltar por link ou simplesmente como resposta no WhatsApp, com o motorista marcando “recebido” no app. Fica melhor do que era.</p></div><span class="chip chip-should">Muda</span></li>
+        </ol>
+      </div>
+
+      <div class="req-group">
+        <h3>Nasce</h3>
+        <ol class="req-list">
+          <li class="req"><span class="req-id">RF-01</span><div class="req-body"><strong>Cadastro de passageiro pelo motorista: nome e telefone.</strong><p>Substitui todo o fluxo de convite. Validação de telefone brasileiro, aviso de duplicado e um toque para convidar. É a tela que destrava o produto inteiro.</p></div><span class="chip chip-must">Entra</span></li>
+          <li class="req"><span class="req-id">RF-02</span><div class="req-body"><strong>Compositor de mensagem com prévia editável.</strong><p>O app monta o texto de cada evento. Na primeira vez de cada tipo, o motorista vê e pode editar; a escolha dele fica salva como padrão. A voz da mensagem é dele, não nossa — ela sai do número dele.</p></div><span class="chip chip-must">Entra</span></li>
+          <li class="req"><span class="req-id">RF-03</span><div class="req-body"><strong>Páginas web do passageiro, sem login.</strong><p>Convite e confirmação, montar a semana, minha agenda, cancelar uma viagem, já paguei, sair da lista. Vão no Firebase Hosting que já serve a página de convite hoje.</p></div><span class="chip chip-must">Entra</span></li>
+          <li class="req"><span class="req-id">RF-04</span><div class="req-body"><strong>Token de link seguro sem autenticação.</strong><p>Quem tem o link age como aquele passageiro. Precisa de token imprevisível, por passageiro, revogável pelo motorista, e escopo mínimo por ação. É o item de segurança mais importante do plano e não deve ser improvisado.</p></div><span class="chip chip-must">Entra</span></li>
+          <li class="req"><span class="req-id">RF-05</span><div class="req-body"><strong>Saída da lista na primeira mensagem.</strong><p>O passageiro nunca aceitou termos nem política de privacidade — o motorista digitou o telefone dele. A primeira mensagem precisa dizer o que é e oferecer “não quero receber”, com link. Sem isso o produto guarda dado de alguém que nunca disse sim.</p></div><span class="chip chip-must">Entra</span></li>
+          <li class="req"><span class="req-id">RF-06</span><div class="req-body"><strong>Lembrete da véspera, com o link da exceção.</strong><p>Era “desejável” no PRD. Aqui passa a ser obrigatório, porque é o que mantém o app como fonte da verdade: é a mensagem que devolve “amanhã não vou” em forma de dado em vez de texto solto.</p></div><span class="chip chip-must">Entra</span></li>
+        </ol>
+      </div>
+
+      <div class="note">
+        <strong>Ganho que não estava no pedido</strong>
+        <p>O PRD diz “Android (iOS depois)”. Isso significa que todo passageiro de iPhone estava fora do produto — não com uma experiência pior, fora. Com o lado do passageiro na web, ele entra no primeiro dia, sem build, sem loja e sem revisão da Apple. O “iOS depois” passa a valer só para o app do motorista.</p>
+      </div>
+    </section>
+
+    <section id="fluxos">
+      <div class="sec-head">
+        <p class="eyebrow">Fluxos</p>
+        <h2>De sete passos para um.</h2>
+      </div>
+
+      <div class="stack">
+        <figure>
+          <div class="diagram">
+            <svg viewBox="0 0 900 250" role="img" aria-labelledby="t-funil">
+              <title id="t-funil">Comparação do funil de entrada do passageiro: sete passos hoje, um na proposta</title>
+              <text class="d-lane-label" x="0" y="14">HOJE · 7 PASSOS, 2 APPS, 1 LOGIN</text>
+              <g>
+                <rect class="d-node" x="0" y="28" width="112" height="60" rx="4"/>
+                <text class="d-sub" x="56" y="54" text-anchor="middle">Recebe o</text>
+                <text class="d-sub" x="56" y="70" text-anchor="middle">link</text>
+                <rect class="d-node" x="128" y="28" width="112" height="60" rx="4"/>
+                <text class="d-sub" x="184" y="54" text-anchor="middle">Abre a</text>
+                <text class="d-sub" x="184" y="70" text-anchor="middle">prévia</text>
+                <rect class="d-node" x="256" y="28" width="112" height="60" rx="4"/>
+                <text class="d-sub" x="312" y="54" text-anchor="middle">Vai à</text>
+                <text class="d-sub" x="312" y="70" text-anchor="middle">Play Store</text>
+                <rect class="d-node" x="384" y="28" width="112" height="60" rx="4"/>
+                <text class="d-sub" x="440" y="54" text-anchor="middle">Instala o</text>
+                <text class="d-sub" x="440" y="70" text-anchor="middle">app</text>
+                <rect class="d-node" x="512" y="28" width="112" height="60" rx="4"/>
+                <text class="d-sub" x="568" y="54" text-anchor="middle">Entra com</text>
+                <text class="d-sub" x="568" y="70" text-anchor="middle">Google</text>
+                <rect class="d-node" x="640" y="28" width="112" height="60" rx="4"/>
+                <text class="d-sub" x="696" y="54" text-anchor="middle">Pede</text>
+                <text class="d-sub" x="696" y="70" text-anchor="middle">conexão</text>
+                <rect class="d-node" x="768" y="28" width="112" height="60" rx="4"/>
+                <text class="d-sub" x="824" y="54" text-anchor="middle">Espera</text>
+                <text class="d-sub" x="824" y="70" text-anchor="middle">aprovação</text>
+                <path class="d-edge" d="M112 58h16M240 58h16M368 58h16M496 58h16M624 58h16M752 58h16"/>
+              </g>
+              <text class="d-lane-label" x="0" y="148">PROPOSTA · 1 PASSO, NENHUMA INSTALAÇÃO</text>
+              <g>
+                <rect class="d-strong" x="0" y="162" width="424" height="60" rx="4"/>
+                <text class="d-text-inv" x="212" y="188" text-anchor="middle">Recebe a mensagem de quem ele conhece</text>
+                <text class="d-sub-inv" x="212" y="206" text-anchor="middle">o número já está na agenda dele</text>
+                <rect class="d-node" x="456" y="162" width="424" height="60" rx="4"/>
+                <text class="d-text" x="668" y="188" text-anchor="middle">Responde, ou toca no link para preencher</text>
+                <text class="d-sub" x="668" y="206" text-anchor="middle">página web, sem login</text>
+                <path class="d-edge" d="M424 192h32"/>
+              </g>
+            </svg>
+          </div>
+          <figcaption>O segundo passo da proposta é opcional: o passageiro só toca no link quando precisa montar a semana ou cancelar uma viagem. O primeiro passo já basta para a relação existir dentro do produto.</figcaption>
+        </figure>
+
+        <div>
+          <h3 style="margin-bottom:22px">Os cinco fluxos que mudam.</h3>
+          <div class="swap">
+            <div>
+              <h4>Entrada do passageiro</h4>
+              <div class="antes"><p class="eyebrow">Antes</p><p>Link, prévia, loja, instalação, login com Google, pedido de conexão, espera pela aprovação.</p></div>
+              <div class="depois"><p class="eyebrow">Depois</p><p>O motorista digita nome e telefone e toca em “Convidar”. O WhatsApp abre com a mensagem pronta. Ele envia. Pronto.</p></div>
+            </div>
+            <div>
+              <h4>Montar a semana</h4>
+              <div class="antes"><p class="eyebrow">Antes</p><p>O passageiro abre o app e percorre o passo a passo, uma tela por dia, até a revisão.</p></div>
+              <div class="depois"><p class="eyebrow">Depois</p><p>O mesmo passo a passo, na web, aberto pelo link da mensagem. Alternativa que precisa existir junto: o motorista preenche pelo passageiro, a partir da conversa que os dois já estão tendo, e manda para confirmar. Para passageiro idoso ou com pouca familiaridade digital, esse é o único caminho que funciona.</p></div>
+            </div>
+            <div>
+              <h4>O dia da viagem</h4>
+              <div class="antes"><p class="eyebrow">Antes</p><p>Um toque no app, e o push chega pelo Firebase.</p></div>
+              <div class="depois"><p class="eyebrow">Depois</p><p>Trilho A: um toque abre o WhatsApp com o texto pronto, o motorista toca em enviar e volta. Dois toques e uma troca de app. Trilho B: continua um toque. <strong>É aqui que a proposta cobra o preço dela</strong> — e é exatamente o momento que o PRD aponta como o de percepção de valor.</p></div>
+            </div>
+            <div>
+              <h4>A exceção · “amanhã não vou”</h4>
+              <div class="antes"><p class="eyebrow">Antes</p><p>O passageiro cancela a viagem no app e o motorista é notificado. O app sabe.</p></div>
+              <div class="depois"><p class="eyebrow">Depois</p><p>Se vier pelo link do lembrete, o app sabe. Se vier como texto solto no WhatsApp — o que vai acontecer —, o motorista lê e cancela no app. Um toque, mas é ele carregando o dado para dentro.</p></div>
+            </div>
+            <div>
+              <h4>A cobrança do mês</h4>
+              <div class="antes"><p class="eyebrow">Antes</p><p>Folha de cobrança no app, mensagem no chat interno com a chave Pix.</p></div>
+              <div class="depois"><p class="eyebrow">Depois</p><p>A mesma folha, e a mensagem vai para o WhatsApp com total, número de viagens e a chave Pix como texto para copiar. Fica mais perto de como as pessoas pagam de verdade.</p></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="note">
+          <strong>Regra de design que segura o plano em pé</strong>
+          <p>Toda mensagem que o TrustCab manda termina com o link da ação mais provável depois dela. O lembrete da véspera termina com “não vai amanhã?”. A confirmação da agenda termina com “ver sua agenda”. A cobrança termina com “ver o detalhe”. Sem essa regra, o motorista redigita tudo que o passageiro escreveu, e o produto volta a ser a planilha com passos a mais.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="mensagens">
+      <div class="sec-head">
+        <p class="eyebrow">Conteúdo</p>
+        <h2>Catálogo de mensagens.</h2>
+        <p class="muted" style="max-width:68ch">Substitui a tabela de notificações do PRD no lado do passageiro. O texto sai do número do motorista, então fala na voz dele — primeira pessoa, sem nome de produto no meio da frase.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <caption class="sr-only">Mensagens enviadas ao passageiro pelo WhatsApp</caption>
+          <thead>
+            <tr><th scope="col">Evento</th><th scope="col">Texto</th><th scope="col">Link anexado</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Convite</td><td>Oi, {nome}! Agora eu organizo minhas corridas num app. Me conta por aqui os dias e horários que você precisa: {link} — se não quiser receber estas mensagens, é só me dizer.</td><td>Montar a semana</td></tr>
+            <tr><td>Agenda confirmada</td><td>Confirmei: {dias}, às {hora}, {origem} → {destino}, {valor} por viagem.</td><td>Ver sua agenda</td></tr>
+            <tr><td>Outro valor proposto</td><td>Consigo fazer {dias} às {hora} por {valor} a viagem. Tudo bem assim?</td><td>Aceitar o valor</td></tr>
+            <tr><td>Lembrete da véspera</td><td>Amanhã te pego às {hora} na {origem}.</td><td><strong>Não vou amanhã</strong></td></tr>
+            <tr><td>A caminho</td><td>Saí agora, chego aí por volta de {hora}.</td><td>—</td></tr>
+            <tr><td>Cheguei</td><td>Cheguei. {modelo} {cor} · {placa}</td><td>—</td></tr>
+            <tr><td>Viagem cancelada pelo motorista</td><td>Não vou conseguir te levar {dia}, às {hora}. Me chama aqui para combinarmos outro horário.</td><td>—</td></tr>
+            <tr><td>Cobrança do mês</td><td>Fechei {mês}: {n} viagens, {total}. Pix {chave} — é só copiar. Quando pagar, me avisa.</td><td>Ver o detalhe</td></tr>
+            <tr><td>Saída da lista</td><td>Pronto, não te mando mais nada por aqui. Seus dados foram apagados.</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="preco">
+      <div class="sec-head">
+        <p class="eyebrow">Negócio</p>
+        <h2>Plano e preço.</h2>
+      </div>
+
+      <div class="stack">
+        <div class="note wide">
+          <strong>O número que decide o trilho</strong>
+          <p>A Meta cobra por mensagem desde 1º de julho de 2025, por categoria e por país de quem recebe, e a documentação dela usa <strong>0,68 centavo de dólar por mensagem</strong> de utilidade para o Brasil. Mensagens do usuário para a empresa são gratuitas, e cada número ganha 1.000 mensagens de serviço por mês — mas isso só cobre resposta sem modelo dentro da janela de 24 horas, não o aviso de chegada, que é iniciado pela empresa e por isso é um modelo cobrado. Desde 1º de outubro de 2026 as mensagens de serviço acima da franquia também são cobradas.</p>
+          <p>Para um motorista com 6 passageiros, ida e volta, 22 dias úteis: 264 viagens, dois avisos cada, mais a cobrança do mês e umas 30 confirmações — <span class="num">564 mensagens</span>. A <span class="num">US$ 0,0068</span>, dá <span class="num">US$ 3,84</span> por mês, por motorista. <strong>Com o dólar acima de R$ 5,19, o custo de mensagem consome a mensalidade de R$ 19,90 inteira.</strong> Mandando só o “cheguei”, cai para cerca de US$ 2,04 e a conta volta a fechar.</p>
+          <p>Conclusão: no trilho A o custo marginal é zero e o preço é uma decisão de valor. No trilho B o preço atual fica negativo na margem para o motorista pesado, e é obrigatório reduzir o número de mensagens por viagem ou mexer no preço. Isso não é opinião, é a aritmética dos números publicados.</p>
+        </div>
+
+        <div>
+          <h3 style="margin-bottom:22px">O limite de 3 passageiros já não serve.</h3>
+          <p class="prose" style="margin-bottom:31px">Ele foi calibrado para um mundo em que cada passageiro era uma instalação, e portanto chegava devagar. Agora o motorista cadastra oito pessoas numa noite e bate no limite antes de ter vivido uma semana com o produto — muito antes de ter fechado um mês, que é a função que justifica pagar. O que o produto precisa provar mudou: antes era ativação, agora é retenção. Um limite de assentos testa ativação; um período de teste testa retenção.</p>
+          <div class="table-wrap">
+            <table>
+              <caption class="sr-only">Opções de plano</caption>
+              <thead>
+                <tr><th scope="col">Opção</th><th scope="col">Como fica</th><th scope="col">Prós</th><th scope="col">Contras</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1 · Manter</td>
+                  <td>Grátis até 3 passageiros, Pro a R$ 19,90.</td>
+                  <td>Já está em código (<span class="num">data/plan.ts</span>) e na landing. Zero trabalho. Receita mais cedo.</td>
+                  <td>O limite passa a bater no primeiro dia, antes do valor aparecer. É o cenário de maior abandono.</td>
+                </tr>
+                <tr>
+                  <td>2 · Teste de 30 dias<span class="muted">Recomendado</span></td>
+                  <td>Tudo liberado por 30 dias. Depois, R$ 19,90 por mês, ou um modo grátis com 1 passageiro.</td>
+                  <td>O motorista fecha um mês inteiro de cobrança antes de pagar — a função que mais justifica o preço. A conversão no dia 30 já é o teste de preço, sem pesquisa.</td>
+                  <td>Receita adiada um mês e abandono concentrado numa data. Exige estados novos: contador, aviso, tela de fim e um rebaixamento que nunca perde dado.</td>
+                </tr>
+                <tr>
+                  <td>3 · Grátis por viagens</td>
+                  <td>Grátis até 60 viagens concluídas, depois pago.</td>
+                  <td>Cobra por uso, não por tamanho da rede. Para de punir exatamente o comportamento que você quer: convidar gente.</td>
+                  <td>Difícil de explicar numa tabela de preço, e o motorista não consegue prever quando vai bater no limite.</td>
+                </tr>
+                <tr>
+                  <td>4 · Por passageiro ativo</td>
+                  <td>R$ 4 por passageiro ativo no mês, com teto.</td>
+                  <td>Acompanha o valor e, no trilho B, acompanha o custo. É o único modelo que não inverte a margem quando o motorista cresce.</td>
+                  <td>Taxa o crescimento da rede, que é a métrica do produto. E só faz sentido se o custo por mensagem existir.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="note wide">
+          <strong>Por onde o dinheiro entra</strong>
+          <p>O anúncio do Google de junho de 2026 baixou a taxa base de serviço da Play para 10% no primeiro milhão de dólares por ano e diz que ela se aplica a assinaturas que renovam sozinhas <em>independentemente</em> do sistema de cobrança usado — ou seja, cobrar por Pix fora do app não escapa da taxa. O Brasil está na lista de países com cobrança alternativa, hoje com redução de 4% até a nova estrutura valer no mundo todo. Não achei o número exato do Brasil nem a data em que ele passa a valer: orce entre 10% e 15% e confirme no Play Console antes de fechar o preço. Em R$ 19,90, cada ponto percentual é cerca de R$ 0,20 por motorista por mês.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="metricas">
+      <div class="sec-head">
+        <p class="eyebrow">Negócio</p>
+        <h2>O que medir agora.</h2>
+        <p class="muted" style="max-width:68ch">As métricas do PRD eram construídas sobre instalação e conexão, que deixam de existir. Estas três são as que decidem as próximas escolhas — não são estimativas, são o que precisa ser observado no beta.</p>
+      </div>
+      <div class="blocks">
+        <div class="block">
+          <h3>Convites que viram viagem</h3>
+          <p>Da mensagem enviada à primeira viagem confirmada, sem instalação no meio. Substitui as duas métricas de ativação do PRD de uma vez.</p>
+        </div>
+        <div class="block">
+          <h3>Parcela de viagens com “cheguei” enviado</h3>
+          <p>A métrica que decide se vale comprar a API oficial. Se o motorista mantém o segundo toque, o trilho A basta e o custo fica zero. Se ele esquece, você descobriu que o aviso precisa ser automático — e aí o investimento no trilho B está justificado por evidência, não por intuição.</p>
+        </div>
+        <div class="block">
+          <h3>Exceções que voltaram por link</h3>
+          <p>De todas as mudanças de última hora, quantas chegaram estruturadas pelo link contra quantas o motorista redigitou. Mede se o app continua sendo a fonte da verdade ou se virou um caderno caro.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="avaliacao">
+      <div class="sec-head">
+        <p class="eyebrow">Avaliação</p>
+        <h2>O que eu acho que está errado aqui.</h2>
+        <p class="muted" style="max-width:68ch">Avaliação honesta das decisões acima, incluindo as minhas.</p>
+      </div>
+
+      <div class="stack">
+        <div class="blocks">
+          <div class="block">
+            <h3>1. Eu degradei o momento de valor</h3>
+            <p>O PRD diz que o “cheguei” é quando o passageiro percebe valor, e a minha recomendação coloca um toque e uma troca de app em cima dele — no carro, possivelmente em movimento. Não tenho uma solução de design para isso: dentro das regras da plataforma, não existe como enviar sem o toque de confirmação. A mitigação honesta é operacional, não de design: enviar antes de sair, não ao volante. É fraca, e eu sei.</p>
+          </div>
+          <div class="block">
+            <h3>2. O motorista virou o sincronizador</h3>
+            <p>Esse é o custo mais profundo e o mais fácil de subestimar. Tudo que o passageiro escrever fora de um link é invisível para o app. A regra de anexar o link da próxima ação ajuda, mas não cobre a conversa real, que é bagunçada. Existe um cenário em que o produto piora: o motorista mantém o WhatsApp como fonte da verdade e o app como relatório que ele alimenta à mão.</p>
+          </div>
+          <div class="block">
+            <h3>3. Você para de testar a hipótese</h3>
+            <p>Se passageiros <em>iriam</em> instalar quando o convite vem de alguém conhecido, você entregou de graça o chat, o canal de push e o dado estruturado. Isso é barato de verificar: quatro conversas com motoristas do beta perguntando quantos passageiros deles instalariam. Vale fazer antes de arquivar o app do passageiro, não depois.</p>
+          </div>
+          <div class="block">
+            <h3>4. “No WhatsApp” é parcialmente verdade</h3>
+            <p>Abrir uma página web a partir do WhatsApp não é estar no WhatsApp — é a web móvel com um link como porta. Se a sua hipótese é “o passageiro não instala”, o link testa bem. Se é “tem que caber na bolha da conversa”, só o trilho B com formulários dentro do WhatsApp chega lá, e aí voltam o CNPJ, a revisão de modelo e o custo por mensagem. Vale deixar essa distinção explícita antes de alguém prometer a coisa errada.</p>
+          </div>
+          <div class="block">
+            <h3>5. Um dado novo sem consentimento</h3>
+            <p>No desenho antigo o passageiro aceitava os termos ao instalar. Agora o motorista digita o telefone de outra pessoa e o produto passa a guardar nome, telefone, endereços e histórico de quem nunca disse sim a nada. O RF-05 trata o sintoma com a saída na primeira mensagem, mas a base legal disso é assunto de advogado — e o PRD já previa parecer jurídico antes do lançamento. Isso entra nessa lista.</p>
+          </div>
+          <div class="block">
+            <h3>6. O número comercial contradiz a tese</h3>
+            <p>O produto se chama TrustCab e a tese é “a corrida fica entre conhecidos”. No trilho B, o aviso de chegada passa a vir de um número comercial desconhecido em vez do número do motorista. É uma perda de marca, não só de custo — e é um argumento para ficar no trilho A mais tempo do que a conveniência sugere.</p>
+          </div>
+        </div>
+
+        <div class="note wide">
+          <strong>Onde esta proposta está mais fraca</strong>
+          <p>Ela assume que o motorista aceita trabalho a mais para que o passageiro não tenha nenhum. Isso é defensável — ele tem o problema e é ele quem paga —, mas não está testado, e é a única coisa aqui que, se for falsa, derruba o plano inteiro em vez de um pedaço. O jeito mais barato de descobrir é rodar a fase 1 com três motoristas e olhar a segunda métrica da seção anterior. Se o “cheguei” sair em quase toda viagem, o plano está certo. Se ele cair abaixo de uns três quartos, o lado do passageiro no WhatsApp continua certo, mas o trilho A não — e a conversa passa a ser sobre CNPJ e custo por mensagem, não sobre design.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="fases">
+      <div class="sec-head">
+        <p class="eyebrow">Negócio</p>
+        <h2>Fases.</h2>
+      </div>
+      <ol class="phases">
+        <li>
+          <span class="eyebrow">Fase 0 · 1 a 2 semanas</span>
+          <h3>Beta de papel</h3>
+          <p class="muted">Confirmar o formato do link num celular. Tirar o app do passageiro do build. Telefone obrigatório e cadastro de passageiro (RF-01). Compositor com as três mensagens que importam: convite, cheguei e cobrança (RF-02). Nada de backend novo. Dá para rodar com três motoristas.</p>
+        </li>
+        <li>
+          <span class="eyebrow">Fase 1 · MVP</span>
+          <h3>Páginas do passageiro</h3>
+          <p class="muted">As páginas web no Firebase Hosting que já está no ar (RF-03), o modelo de token (RF-04), a saída da lista (RF-05), o lembrete da véspera com o link da exceção (RF-06) e o teste de 30 dias. O passo a passo da semana reaproveita o build web que o app do passageiro já gera.</p>
+        </li>
+        <li>
+          <span class="eyebrow">Fase 2 · Decisão</span>
+          <h3>Medir e escolher o trilho</h3>
+          <p class="muted">Com a parcela de “cheguei” enviado na mão, decidir R-01 de novo. Se precisar do trilho B, é aí que entram CNPJ, verificação na Meta, catálogo de modelos e o corte de mensagens por viagem para a margem fechar.</p>
+        </li>
+        <li>
+          <span class="eyebrow">Fase 3 · Depois</span>
+          <h3>Expansão</h3>
+          <p class="muted">iOS só para o app do motorista — o lado do passageiro já nasce multiplataforma. Formulários dentro do WhatsApp, se o trilho B valer. Localização em tempo real e perfil dependente, que a web resolve melhor do que um app.</p>
+        </li>
+      </ol>
+    </section>
+
+  </main>
+</div>
+
+<section class="band decisions" id="decisoes">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Para decidir</p>
+      <h2>Decisões em aberto.</h2>
+      <p style="max-width:68ch;color:var(--on-band-muted)">Continuam a numeração do PRD, que vai de D-01 a D-10. As sugestões são ponto de partida para a conversa, não escolhas feitas.</p>
+    </div>
+
+    <article class="decision">
+      <span class="decision-id">R-01</span>
+      <div>
+        <h3>Por onde a mensagem sai?</h3>
+        <ul class="opts">
+          <li><h4>Link do WhatsApp</h4><p>Custo zero, nenhum cadastro, sai do número do motorista. Cobra dele um toque e uma troca de app em cada aviso.</p></li>
+          <li><h4>Cloud API oficial</h4><p>Sai sozinho, um toque só. Exige empresa verificada, modelos aprovados, consentimento registrado e US$ 0,0068 por mensagem.</p></li>
+          <li><h4>Link agora, API depois</h4><p>Decide com dado em vez de intuição, e as páginas web não mudam quando o trilho muda. Adia a automação do aviso que é o centro do produto.</p></li>
+        </ul>
+        <p class="suggest">Sugestão: <span>link agora, API depois, com a decisão reaberta na fase 2.</span></p>
+      </div>
+    </article>
+
+    <article class="decision">
+      <span class="decision-id">R-02</span>
+      <div>
+        <h3>O que fazer com o app do passageiro?</h3>
+        <ul class="opts">
+          <li><h4>Virar as páginas web</h4><p>O <span class="num">react-native-web</span> já está configurado e o build web já existe. Tira o login, tira o chat, troca a identidade por token no link.</p></li>
+          <li><h4>Arquivar e escrever de novo</h4><p>Páginas web enxutas, sem o peso do React Native no navegador. Mais rápidas de carregar, mas joga fora o passo a passo da semana, que foi a parte mais testada do produto.</p></li>
+        </ul>
+        <p class="suggest">Sugestão: <span>reaproveitar, mas medir o tempo de carregamento — uma página aberta de dentro do WhatsApp em 4G não perdoa.</span></p>
+      </div>
+    </article>
+
+    <article class="decision">
+      <span class="decision-id">R-03</span>
+      <div>
+        <h3>Quem monta a agenda?</h3>
+        <ul class="opts">
+          <li><h4>O passageiro, pelo link</h4><p>Dado estruturado na origem, sem trabalho para o motorista. Exclui quem tem pouca familiaridade digital.</p></li>
+          <li><h4>O motorista, pelo passageiro</h4><p>Funciona para todo mundo, inclusive idosos. É o motorista digitando o que foi dito na conversa.</p></li>
+          <li><h4>Os dois caminhos</h4><p>Cobre a rede real. Custa uma tela a mais no app do motorista.</p></li>
+        </ul>
+        <p class="suggest">Sugestão: <span>os dois, com o link como padrão e o preenchimento pelo motorista sempre à mão.</span></p>
+      </div>
+    </article>
+
+    <article class="decision">
+      <span class="decision-id">R-04</span>
+      <div>
+        <h3>Qual o plano depois da reformulação?</h3>
+        <ul class="opts">
+          <li><h4>Manter grátis até 3</h4><p>Nada a construir. O limite bate antes do valor aparecer.</p></li>
+          <li><h4>Teste de 30 dias</h4><p>O motorista fecha um mês de cobrança antes de pagar, e a conversão no dia 30 é o teste de preço.</p></li>
+          <li><h4>Grátis por viagens</h4><p>Para de punir quem convida gente. Difícil de explicar na tabela de preço.</p></li>
+        </ul>
+        <p class="suggest">Sugestão: <span>teste de 30 dias, com um modo grátis de 1 passageiro para quem não assinar.</span></p>
+      </div>
+    </article>
+
+    <article class="decision">
+      <span class="decision-id">R-05</span>
+      <div>
+        <h3>Como o link fica seguro sem login?</h3>
+        <ul class="opts">
+          <li><h4>Token por passageiro, longo e revogável</h4><p>Um link serve para sempre, cabe em qualquer mensagem. Quem encaminhar a conversa dá acesso à agenda daquele passageiro.</p></li>
+          <li><h4>Token por ação, com validade curta</h4><p>Risco mínimo. Exige um link novo em cada mensagem e quebra quando a pessoa volta no link antigo — que é o que as pessoas fazem no WhatsApp.</p></li>
+        </ul>
+        <p class="suggest">Sugestão: <span>por passageiro para ler, por ação e com validade curta para mudar ou cancelar algo. Confirmar com alguém de segurança antes de construir.</span></p>
+      </div>
+    </article>
+
+    <article class="decision">
+      <span class="decision-id">R-06</span>
+      <div>
+        <h3>A tese ainda é “entre conhecidos”?</h3>
+        <ul class="opts">
+          <li><h4>Sim, e o número do motorista é parte dela</h4><p>Segura o trilho A por mais tempo e mantém a marca inteira. Paga com o segundo toque.</p></li>
+          <li><h4>A tese é o produto, não o número</h4><p>Libera a API oficial sem culpa. O aviso de chegada passa a vir de um remetente que o passageiro não conhece.</p></li>
+        </ul>
+        <p class="suggest">Sugestão: <span>decidir isto antes de R-01, porque é a resposta que define o trilho — e não é uma decisão técnica.</span></p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="wrap foot-grid">
+    <p class="wordmark" aria-hidden="true">Sem app.</p>
+    <p>Proposta v0.1 · 27 out 2026 · Próximo passo: responder R-06 e R-01, confirmar o formato do link num celular e rodar a fase 0 com três motoristas.</p>
+  </div>
+</footer>
+</html>

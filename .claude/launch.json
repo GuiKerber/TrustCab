@@ -1,0 +1,42 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "driver-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "web",
+        "-w",
+        "@trustcab/driver",
+        "--",
+        "--port",
+        "8081"
+      ],
+      "port": 8081
+    },
+    {
+      "name": "passenger-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "web",
+        "-w",
+        "@trustcab/passenger",
+        "--",
+        "--port",
+        "8082"
+      ],
+      "port": 8082
+    },
+    {
+      "name": "landing",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "C:/Users/bighk/AppData/Local/Temp/claude/C--Users-bighk--claude/be0ba923-edc3-413f-839c-aa3bc77ea6d8/scratchpad/static.js",
+        "C:/Users/bighk/projects/trustcab/apps/landing"
+      ],
+      "port": 8099
+    }
+  ]
+}

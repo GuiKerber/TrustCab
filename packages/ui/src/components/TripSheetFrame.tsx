@@ -19,8 +19,9 @@ import { borderWidth, colors, gesture, motion, radius, size, spacing } from '../
 import { IconButton } from './Button';
 import { CancelTripDialog } from './CancelTripDialog';
 import type { CardOrigin } from './CardStack';
+import { FadeScroll } from './FadeScroll';
 import { ROUTE_PALETTES, RouteMap, RouteNode, routeStep, type RouteTone } from './Route';
-import { isClosed, routeProgress, statusLabel } from './TripBlocks';
+import { isClosed, routeProgress, statusLabel, tripEta } from './TripBlocks';
 import { TripOptions, type TripOption } from './TripOptions';
 import { Handle, Icon, Label, Text, type Tone } from './ui';
 
@@ -34,6 +35,8 @@ export type TripSheetFooterContext = {
   // Variante do botão principal para este fundo.
   actionVariant: 'ink' | 'light';
   firstName: string;
+  // Fecha a folha com a mesma animação da seta, para o rodapé poder ter uma ação que só volta.
+  close: () => void;
 };
 
 export type TripSheetFrameProps = {
@@ -87,6 +90,7 @@ export function TripSheetFrame({
 }: TripSheetFrameProps) {
   const [showOptions, setShowOptions] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [atTop, setAtTop] = useState(true);
   const { height, width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const reduceMotion = useReducedMotion();
@@ -129,7 +133,11 @@ export function TripSheetFrame({
     });
   };
 
+  // Arrastar para baixo fecha a folha, mas o meio dela rola quando o conteúdo não cabe
+  // (tela baixa, fonte grande). Os dois gestos são o mesmo movimento, então arrastar só
+  // fecha a partir do topo da rolagem; abaixo disso o dedo rola o conteúdo.
   const pan = Gesture.Pan()
+    .enabled(atTop)
     .activeOffsetY(gesture.activation)
     .onUpdate((event) => {
       offset.value = Math.max(event.translationY, 0);
@@ -184,6 +192,7 @@ export function TripSheetFrame({
   const firstName = person.split(' ')[0];
   const closed = isClosed(trip);
   const step = routeStep(routeProgress(trip.status));
+  const eta = tripEta(trip, etaLabel);
   const routeTone: RouteTone = dark ? 'onDark' : 'onCard';
   const palette = ROUTE_PALETTES[routeTone];
   const rail = (done: boolean) => (done ? palette.stroke : palette.faint);
@@ -210,6 +219,11 @@ export function TripSheetFrame({
                 </View>
               </View>
 
+              <FadeScroll
+                style={styles.scroll}
+                contentContainerStyle={styles.scrollContent}
+                background={dark ? colors.cardDone : color}
+                onTop={setAtTop}>
               <View style={styles.headline}>
                 <Label tone={muted}>{`${relativeDay(date, now)} · ${trip.status === 'scheduled' ? 'Agendada' : statusLabel(trip)}`}</Label>
                 <Text variant="hero" tone={tone}>
@@ -248,16 +262,17 @@ export function TripSheetFrame({
                       </Text>
                     </View>
                     <View style={styles.metric}>
-                      <Label tone={muted}>{etaLabel ?? (closed ? 'Tempo estimado' : 'Chegada em')}</Label>
+                      <Label tone={muted}>{eta.label}</Label>
                       <Text variant="displaySm" tone={tone}>
-                        {`${trip.etaMinutes} min`}
+                        {eta.value}
                       </Text>
                     </View>
                   </View>
                 </>
               )}
+              </FadeScroll>
 
-              {footer({ dark, onCard, tone, muted, actionVariant, firstName })}
+              {footer({ dark, onCard, tone, muted, actionVariant, firstName, close })}
             </Animated.View>
           </Animated.View>
         </GestureDetector>
@@ -352,6 +367,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   inner: { flex: 1, gap: spacing[16] },
+  // O miolo rola; "flexGrow" mantém o percurso esticando quando sobra espaço,
+  // que é o caso da maioria das telas — lá nada rola e nada muda de lugar.
+  scroll: { flex: 1 },
+  scrollContent: { flexGrow: 1, gap: spacing[16] },
   sheetDark: { borderWidth: borderWidth.hairline, borderColor: colors.lineStrong, borderBottomWidth: 0 },
   topRow: { flexDirection: 'row', justifyContent: 'space-between' },
   topActions: { flexDirection: 'row', gap: spacing[8] },
@@ -359,7 +378,7 @@ const styles = StyleSheet.create({
   route: { flex: 1, minHeight: size.routeMinHeight, flexDirection: 'row', gap: spacing[12] },
   timeline: { flex: 1 },
   stop: { flexDirection: 'row', gap: spacing[12] },
-  stopText: { flex: 1, gap: spacing[2], paddingTop: spacing[4], paddingBottom: spacing[6] },
+  stopText: { flex: 1, gap: spacing[4], paddingTop: spacing[4], paddingBottom: spacing[8] },
   leg: { flex: 1, minHeight: spacing[12], flexDirection: 'row', alignItems: 'center', gap: spacing[12] },
   rail: { width: size.routeNode, alignSelf: 'stretch', alignItems: 'center' },
   railPart: { flex: 1, width: size.routeRail },

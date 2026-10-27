@@ -70,6 +70,6 @@ export const Pontos: StoryObj<typeof RouteNode> = {
 const styles = StyleSheet.create({
   card: { height: size.stack.card + size.stack.peek, padding: spacing[20], borderRadius: radius.card, alignItems: 'center' },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[12] },
-  step: { gap: spacing[6], alignItems: 'center' },
+  step: { gap: spacing[8], alignItems: 'center' },
   nodeBox: { flexDirection: 'row', gap: spacing[16], padding: spacing[20], borderRadius: radius.block },
 });

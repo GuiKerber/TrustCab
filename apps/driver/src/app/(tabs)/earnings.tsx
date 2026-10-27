@@ -3,13 +3,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Block, Button, colors, focusRing, layout, Pills, radius, ScreenStatus, size, spacing, stateOpacity, Text, useInteraction } from '@trustcab/ui';
+import { Block, Button, colors, focusRing, Icon, layout, Pills, radius, ScreenStatus, size, spacing, stateOpacity, Text, useInteraction } from '@trustcab/ui';
 import { ChargeSheet, type ChargeLine } from '@/components/ChargeSheet';
 import { TopBar } from '@/components/TopBar';
 import { formatPrice, formatPriceShort, monthName, passengerIdOf, sampleHistory, type Trip, useNow, useSyncState, weekdayShort } from '@trustcab/core';
 import { chargeKey, setChargeSent, useChargesSent } from '@/data/charges';
 import { removeMessage, sendMessage } from '@/data/chat';
-import { usePaidTrips, useReportedTrips } from '@/data/payments';
+import { setTripPaid, usePaidTrips, useReportedTrips } from '@/data/payments';
 import { useProfile } from '@/data/profile';
 import { useTripSignals } from '@/data/tripSignals';
 
@@ -153,9 +153,18 @@ export default function Earnings() {
                     <Text variant="small" tone="secondary" style={styles.tripWho} numberOfLines={1}>
                       {passenger === ALL ? trip.passenger : `${trip.origin} → ${trip.destination}`}
                     </Text>
-                    <Text variant="small" tone="secondary" style={styles.tripPrice}>
-                      {paid[trip.id] ? `${formatPrice(trip.priceCents)} · pago` : reported[trip.id] ? `${formatPrice(trip.priceCents)} · avisou que pagou` : formatPrice(trip.priceCents)}
-                    </Text>
+                    {/* Pago: o valor fica riscado com um visto do lado. O risco diz "não conta mais"
+                        e o ícone repete a informação, para o estado não depender só do traço. */}
+                    <View style={styles.tripPrice}>
+                      <Text
+                        variant="small"
+                        tone="secondary"
+                        style={paid[trip.id] ? styles.priceSettled : undefined}
+                        accessibilityLabel={paid[trip.id] ? `${formatPrice(trip.priceCents)}, pago` : undefined}>
+                        {reported[trip.id] && !paid[trip.id] ? `${formatPrice(trip.priceCents)} · avisou que pagou` : formatPrice(trip.priceCents)}
+                      </Text>
+                      {paid[trip.id] ? <Icon name="check" size={size.icon.sm} color={colors.textSecondary} /> : null}
+                    </View>
                   </View>
                 ))}
               </Block>
@@ -182,6 +191,16 @@ export default function Earnings() {
                     sentAt.getMinutes(),
                   ).padStart(2, '0')}.`}
                 </Text>
+                {/* Fechar o mês de uma vez: o padrão é o passageiro ter pago tudo, e marcar
+                    viagem por viagem num mês de 30 corridas não é trabalho de ninguém. A exceção
+                    continua possível — desmarcar uma viagem depois, na folha dela. */}
+                <Button
+                  label={`Confirmar pagamento · ${formatPrice(chargeTotal)}`}
+                  icon="paid"
+                  variant="light"
+                  onPress={() => chargeLines.forEach(({ trip }) => setTripPaid(trip.id, now))}
+                  accessibilityHint={`Marca as ${chargeLines.length} viagens de ${name} como pagas de uma vez`}
+                />
                 <View style={styles.sentActions}>
                   <Button
                     label="Abrir chat"
@@ -305,7 +324,7 @@ const styles = StyleSheet.create({
   },
   title: { paddingHorizontal: spacing[4] },
   subtitle: { marginTop: spacing[8] },
-  people: { gap: spacing[2] },
+  people: { gap: spacing[4] },
   person: {
     minHeight: size.personCardMinHeight,
     paddingHorizontal: spacing[20],
@@ -317,14 +336,15 @@ const styles = StyleSheet.create({
   },
   personFirst: { borderTopLeftRadius: radius.block, borderTopRightRadius: radius.block },
   personLast: { borderBottomLeftRadius: radius.block, borderBottomRightRadius: radius.block },
-  personText: { flex: 1, gap: spacing[2] },
+  personText: { flex: 1, gap: spacing[4] },
   days: { gap: layout.gap },
   day: { gap: spacing[8], paddingVertical: spacing[16] },
   dayHead: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing[4] },
   tripRow: { flexDirection: 'row', gap: spacing[12] },
   tripTime: { width: size.timeColumn, fontVariant: ['tabular-nums'] },
   tripWho: { flex: 1 },
-  tripPrice: { fontVariant: ['tabular-nums'] },
+  tripPrice: { flexDirection: 'row', alignItems: 'center', gap: spacing[4] },
+  priceSettled: { textDecorationLine: 'line-through' },
   empty: { paddingTop: spacing[20], paddingHorizontal: spacing[4], gap: spacing[8] },
   charge: { gap: spacing[12], marginTop: spacing[8] },
   chargeHint: { paddingHorizontal: spacing[4], textAlign: 'center' },

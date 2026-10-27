@@ -10,6 +10,7 @@ export * from './components/CardStack';
 export * from './components/Checkbox';
 export * from './components/ConfirmDialog';
 export * from './components/DaySlider';
+export * from './components/EmptyState';
 export * from './components/ErrorState';
 export * from './components/FadeScroll';
 export * from './components/FloatingTabBar';

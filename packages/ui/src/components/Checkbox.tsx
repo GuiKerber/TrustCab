@@ -60,5 +60,5 @@ const styles = StyleSheet.create({
   },
   boxHover: { borderColor: colors.text },
   boxOn: { backgroundColor: colors.text, borderColor: colors.text },
-  text: { flex: 1, gap: spacing[2] },
+  text: { flex: 1, gap: spacing[4] },
 });

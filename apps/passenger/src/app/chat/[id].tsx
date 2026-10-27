@@ -3,11 +3,12 @@ import { useEffect } from 'react';
 import { Linking, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useNow } from '@trustcab/core';
+import { formatPrice, reportUrl, useNow } from '@trustcab/core';
 import { ChatScreen, colors, IconButton, layout, spacing, Text } from '@trustcab/ui';
 
 import { markRead, retryMessage, sendMessage, useChat } from '@/data/chat';
 import { knownDrivers, useConnections } from '@/data/connections';
+import { useMonthDue } from '@/data/monthDue';
 
 // Conversa do passageiro com o motorista. O chat do topo abre direto aqui. Se você saiu da rede, o histórico fica.
 export default function Conversation() {
@@ -15,6 +16,7 @@ export default function Conversation() {
   const now = useNow();
   const connections = useConnections();
   const chat = useChat();
+  const due = useMonthDue(new Date(now.getFullYear(), now.getMonth(), 1));
 
   const driver = knownDrivers(connections, now).find((d) => d.id === id);
   const messages = chat.messages[id] ?? [];
@@ -50,6 +52,18 @@ export default function Conversation() {
       onBack={() => router.back()}
       backLabel="Voltar"
       onCall={left ? undefined : () => Linking.openURL(`tel:${driver.phone}`)}
+      onReport={() => Linking.openURL(reportUrl({ reported: driver.name }))}
+      action={
+        // A cobrança do mês chega aqui; confirmar o pagamento também acontece aqui.
+        !left && due.driver?.id === driver.id && due.dueTotal > 0
+          ? {
+              label: `Já paguei tudo · ${formatPrice(due.dueTotal)}`,
+              icon: 'paid',
+              note: `${due.due.length === 1 ? '1 viagem' : `${due.due.length} viagens`} de ${due.name} em aberto. ${driver.name.split(' ')[0]} confere e confirma.`,
+              onPress: due.payAll,
+            }
+          : undefined
+      }
       onSend={(text) => sendMessage(driver.id, text)}
       onRetry={(messageId) => retryMessage(driver.id, messageId)}
       closedText={left ? `Você saiu da rede de ${driver.name.split(' ')[0]}. O histórico continua aqui, mas não dá para mandar mensagens.` : undefined}

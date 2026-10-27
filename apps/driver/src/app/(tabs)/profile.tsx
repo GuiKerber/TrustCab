@@ -6,6 +6,7 @@ import { inviteShortUrl } from '@trustcab/core';
 import { colors, Label, layout, ListRow, spacing, Text } from '@trustcab/ui';
 
 import { TopBar } from '@/components/TopBar';
+import { FREE_PASSENGERS } from '@/data/plan';
 import { PIX_TYPES, useProfile } from '@/data/profile';
 import { driver } from '@trustcab/core';
 import { useAuth } from '@trustcab/core/auth';
@@ -70,10 +71,19 @@ export default function Profile() {
         <View style={styles.section}>
           <Label>Conta</Label>
           <ListRow
+            icon="workspace_premium"
+            title="Plano"
+            value={profile.plan === 'pro' ? 'Assinatura ativa · passageiros sem limite' : `Grátis · até ${FREE_PASSENGERS} passageiros`}
+            first
+            last={false}
+            onPress={() => router.push('/plan')}
+            accessibilityHint="Abre os planos"
+          />
+          <ListRow
             icon="settings"
             title="Configurações"
             value="Notificações, sair e excluir conta"
-            first
+            first={false}
             last
             onPress={() => router.push('/settings')}
           />
