@@ -18,8 +18,10 @@ import {
 } from './page';
 import {
   addDated,
+  addDays,
   addWeekly,
   emptyOccupancy,
+  isPast,
   isValidDate,
   isValidTime,
   nextDates,
@@ -170,6 +172,11 @@ async function saveRequest(db: Firestore, ctx: Context, form: Form, phone: strin
   });
   if (duplicate) return duplicate.id;
 
+  // A recorrente começa hoje, a não ser que o horário de hoje já tenha passado: marcar "toda
+  // segunda às 07:00" numa segunda de tarde não pode deixar a segunda de hoje na conta.
+  const startDate =
+    form.kind === 'single' ? form.date : isPast(ctx.today, form.time, ctx.today, ctx.now) ? addDays(ctx.today, 1) : ctx.today;
+
   const ref = await db.collection('agendas').add({
     driverId: ctx.driverId,
     passengerId,
@@ -177,7 +184,7 @@ async function saveRequest(db: Firestore, ctx: Context, form: Form, phone: strin
     passengerPhone: phone,
     status: 'requested',
     source: 'link',
-    startDate: form.kind === 'single' ? form.date : ctx.today,
+    startDate,
     kind: form.kind,
     weekdays: form.kind === 'recurring' ? form.weekdays : [],
     date: form.kind === 'single' ? form.date : null,
