@@ -1,13 +1,15 @@
-import { addDoc, collection, doc, orderBy, serverTimestamp, setDoc, updateDoc, where } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, orderBy, serverTimestamp, setDoc, updateDoc, where } from 'firebase/firestore';
 
 import type { Plan } from '../plan';
 import type { Slots } from '../slots';
 import { db } from './client';
 import { useCollection, useDoc, type Live } from './live';
 import {
+  chargeId,
   tripId,
   type AgendaDoc,
   type AgendaFields,
+  type ChargeDoc,
   type PassengerDoc,
   type Pix,
   type TripDoc,
@@ -158,16 +160,52 @@ export function endAgenda(id: string, by: 'driver' | 'passenger') {
   return updateDoc(doc(need(), `agendas/${id}`), { status: 'ended', endedBy: by, updatedAt: serverTimestamp() });
 }
 
+// ─── Cobrança do mês ─────────────────────────────────────────────────────────
+
+export function useCharges(uid: string | null): Live<(ChargeDoc & { id: string })[]> {
+  return useCollection<ChargeDoc>(uid ? 'charges' : null, [where('driverId', '==', uid)], `chg:${uid}`);
+}
+
+// Marcado quando ele abre o WhatsApp com a conta do mês escrita. Nós não sabemos se ele tocou em
+// enviar — por isso a tela deixa desmarcar.
+export function setChargeSent(
+  base: { driverId: string; passengerId: string; month: string; totalCents: number; trips: number },
+) {
+  return setDoc(doc(need(), `charges/${chargeId(base.driverId, base.passengerId, base.month)}`), {
+    ...base,
+    sentAt: serverTimestamp(),
+  });
+}
+
+export function clearChargeSent(driverId: string, passengerId: string, month: string) {
+  return deleteDoc(doc(need(), `charges/${chargeId(driverId, passengerId, month)}`));
+}
+
 // ─── Viagem do dia ───────────────────────────────────────────────────────────
 // O documento só nasce quando alguém age: antes disso o dia é calculado a partir da agenda.
 // Por isso é setDoc com merge, e não create.
 
-const STAMP: Record<TripStatus, string> = {
+const STAMP: Record<TripStatus, string | null> = {
+  scheduled: null,
   on_the_way: 'onTheWayAt',
   arrived: 'arrivedAt',
+  in_progress: 'startedAt',
   completed: 'completedAt',
   cancelled: 'cancelledAt',
 };
+
+// Pago ou não pago. Separado do estado da viagem porque as duas coisas andam sozinhas: dá para
+// concluir sem receber, e dá para receber antes de concluir.
+export function setTripPaidAt(
+  base: { agendaId: string; driverId: string; passengerId: string; date: string; time: string; price: number | null },
+  paid: boolean,
+) {
+  return setDoc(
+    doc(need(), `trips/${tripId(base.agendaId, base.date)}`),
+    { ...base, paidAt: paid ? serverTimestamp() : null, updatedAt: serverTimestamp() },
+    { merge: true },
+  );
+}
 
 export function setTripStatus(
   base: { agendaId: string; driverId: string; passengerId: string; date: string; time: string; price: number | null },
@@ -180,7 +218,7 @@ export function setTripStatus(
       ...base,
       status,
       cancelledBy: status === 'cancelled' ? (cancelledBy ?? 'driver') : null,
-      [STAMP[status]]: serverTimestamp(),
+      ...(STAMP[status] ? { [STAMP[status]!]: serverTimestamp() } : {}),
       updatedAt: serverTimestamp(),
     },
     { merge: true },

@@ -1,4 +1,5 @@
-// Dados de exemplo só para desenhar a tela. Quando a tela for ligada ao backend, isto sai.
+// Dados de exemplo do Storybook. As telas do app leem do Firestore (apps/driver/src/data/days.ts);
+// o que sobra aqui é o material das stories, para o design system ser olhado sem conta e sem rede.
 // Nomes, endereços e valores são fictícios.
 
 // Ordem: agendada → a caminho da partida → chegou na partida → em viagem até o destino → concluída.

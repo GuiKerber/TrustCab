@@ -6,10 +6,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AgendaDay, cardColor, colors, IconButton, layout, MonthGrid, ScreenStatus, spacing, Text } from '@trustcab/ui';
 import { TripSheet } from '@/components/TripSheet';
 import { TopBar } from '@/components/TopBar';
-import { dayKey, isSameDay, monthName, sampleMonthDays, samplePassengers, sampleTripRequests, type Trip, useNow, useSyncState } from '@trustcab/core';
+import { dayKey, isSameDay, monthName, useNow } from '@trustcab/core';
 import { useTripActions } from '@/components/useTripActions';
-import { usePassengerStore, withApprovedTrips, withoutEnded, withState } from '@/data/passengers';
-import { useTripSignals } from '@/data/tripSignals';
+import { useDays } from '@/data/days';
+import { useDriver } from '@/data/driver';
+import { router } from 'expo-router';
 
 // Quantos meses dá para navegar para trás e para frente a partir do mês atual.
 const RANGE = 6;
@@ -18,10 +19,7 @@ const RANGE = 6;
 // abaixo, o mesmo mês dia a dia. Tocar num dia da grade leva até ele na lista.
 export default function Agenda() {
   const now = useNow();
-  const signals = useTripSignals();
-  const sync = useSyncState();
-  const requests = useMemo(() => sampleTripRequests(now), [now]);
-  const passengers = usePassengerStore();
+  const { uid, slug } = useDriver();
   const [offset, setOffset] = useState(0);
   const [selected, setSelected] = useState<Date | null>(now);
   const [open, setOpen] = useState<{ id: string; date: Date; color: string } | null>(null);
@@ -30,18 +28,15 @@ export default function Agenda() {
   const listY = useRef(0);
   const dayY = useRef<Record<string, number>>({});
 
-  const month = new Date(now.getFullYear(), now.getMonth() + offset, 1);
-  const people = withState(samplePassengers(now), passengers);
-  const days = withoutEnded(withApprovedTrips(sampleMonthDays(month, now), requests, passengers), people, now).map((day) => ({
-    date: day.date,
-    trips: day.trips
-      .map((trip): Trip => ({ ...trip, status: signals[trip.id] ?? trip.status }))
-      .sort((a, b) => a.time.localeCompare(b.time)),
-  }));
+  const month = useMemo(() => new Date(now.getFullYear(), now.getMonth() + offset, 1), [now, offset]);
+  // O mês inteiro, do dia 1 ao último.
+  const last = useMemo(() => new Date(month.getFullYear(), month.getMonth() + 1, 0), [month]);
+  const { days, agendas, paid, loading, error } = useDays(uid, month, last);
+
   const monthTrips = days.reduce((total, day) => total + day.trips.filter((trip) => trip.status !== 'cancelled').length, 0);
   const title = monthName(month);
   const openTrip = open ? (days.find((day) => isSameDay(day.date, open.date))?.trips.find((trip) => trip.id === open.id) ?? null) : null;
-  const actions = useTripActions({ now, date: open?.date ?? now, close: () => setOpen(null) });
+  const actions = useTripActions({ date: open?.date ?? now, close: () => setOpen(null), agendas, paid, slug });
 
   const changeMonth = (step: number) => {
     const next = offset + step;
@@ -58,7 +53,9 @@ export default function Agenda() {
     if (y != null) scroll.current?.scrollTo({ y: listY.current + y - spacing[8], animated: true });
   };
 
-  if (sync.state !== 'ready') return <ScreenStatus state={sync.state} layout="agenda" onRetry={sync.retry} />;
+  if (loading || error) {
+    return <ScreenStatus state={error ? 'error' : 'loading'} layout="agenda" onRetry={() => router.replace('/agenda')} />;
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -107,7 +104,7 @@ export default function Agenda() {
         onSpending={actions.openSpending}
         onCancel={actions.cancel}
         paid={actions.isPaid(openTrip)}
-        paidByPassenger={actions.isReported(openTrip)}
+        paidByPassenger={actions.isReported()}
         onPaid={actions.setPaid}
         onSetup={actions.openSetup}
       />

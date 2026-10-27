@@ -3,47 +3,82 @@ import { useMemo, useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Block, borderWidth, Button, colors, ConfirmDialog, focusRing, Icon, IconButton, Label, layout, radius, size, spacing, stateOpacity, Text, TripOptions, useInteraction } from '@trustcab/ui';
 import {
-  passengerMonths,
-  setPassengerStatus,
-  setRequestDecision,
-  usePassengerStore,
-  withState,
-  type MonthSpend,
-  type PassengerState,
-  type PassengerWithState,
-  type RequestDecision,
-} from '@/data/passengers';
-import { formatPhone, formatPrice, formatPriceShort, driver, longDate, monthName, relativeDay, reportText, reportUrl, sampleHistory, samplePassengers, sampleTripRequests, shareLink, whatsappUrl, type TripRequest } from '@trustcab/core';
+  Block,
+  borderWidth,
+  Button,
+  colors,
+  ConfirmDialog,
+  focusRing,
+  Icon,
+  IconButton,
+  Label,
+  layout,
+  radius,
+  ScreenStatus,
+  size,
+  spacing,
+  stateOpacity,
+  Text,
+  TripOptions,
+  useInteraction,
+} from '@trustcab/ui';
+import {
+  formatPhone,
+  formatPrice,
+  formatPriceShort,
+  longDate,
+  monthName,
+  reportText,
+  reportUrl,
+  routeLabel,
+  useNow,
+  whenLabel,
+} from '@trustcab/core';
+import { endAgenda, useAgendas, useRequests } from '@trustcab/core/db';
+import { useDays } from '@/data/days';
 import { useDriver } from '@/data/driver';
+import { archivePassenger, restorePassenger, useNetwork } from '@/data/network';
 import { sendTo } from '@/data/whatsapp';
-import { useTripSignals } from '@/data/tripSignals';
-import { useNetwork } from '@/data/network';
-import { useAuth } from '@trustcab/core/auth';
 
 const capitalize = (text: string) => `${text[0].toUpperCase()}${text.slice(1)}`;
 
-// Página do passageiro. Muda conforme o estado:
-// ativo (viagens para aprovar, totais, gastos por mês e cobrança) e convite (reenviar ou cancelar).
-// Toda ação pode ser desfeita.
+// Quantos meses de histórico a página mostra.
+const MONTHS = 6;
+
+type Mes = { month: Date; trips: number; totalCents: number };
+
+// Página do passageiro: quem é, o que está combinado com ele, quanto ele gastou mês a mês e o
+// atalho para a cobrança. Arquivar tira da lista sem apagar nada — a agenda e as viagens apontam
+// para cá, e sem o nome o histórico fica ilegível.
 export default function PassengerScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const now = useMemo(() => new Date(), []);
-  const base = useMemo(() => samplePassengers(now), [now]);
-  const history = useMemo(() => sampleHistory(now), [now]);
-  const requests = useMemo(() => sampleTripRequests(now), [now]);
-  const store = usePassengerStore();
-  const signals = useTripSignals();
+  const now = useNow();
+  const { uid } = useDriver();
+  const rede = useNetwork(uid);
+  const agendas = useAgendas(uid);
+  const requests = useRequests(uid);
+
+  const from = useMemo(() => new Date(now.getFullYear(), now.getMonth() - (MONTHS - 1), 1), [now]);
+  const to = useMemo(() => new Date(now.getFullYear(), now.getMonth() + 1, 0), [now]);
+  const { days, loading, error } = useDays(uid, from, to);
+
   const [options, setOptions] = useState(false);
   const [reporting, setReporting] = useState(false);
-  // Estado anterior à última ação, para o "Desfazer".
-  const [undo, setUndo] = useState<PassengerState | null>(null);
+  const [ending, setEnding] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
 
-  const { user } = useAuth();
-  // Com conta, a pessoa vem da rede do Firestore: é a mesma conexão que ela está vendo do outro lado.
-  const rede = useNetwork(user?.uid ?? null);
-  const passenger = (rede.connected ? rede.passengers : withState(base, store)).find((p) => p.id === id);
+  const passenger = rede.passengers.find((p) => p.id === id);
+
+  if (rede.loading || loading || rede.error || error) {
+    return (
+      <ScreenStatus
+        state={rede.error || error ? 'error' : 'loading'}
+        layout="list"
+        onRetry={() => router.replace({ pathname: '/passenger/[id]', params: { id: id ?? '' } })}
+      />
+    );
+  }
 
   if (!passenger) {
     return (
@@ -62,17 +97,46 @@ export default function PassengerScreen() {
   }
 
   const firstName = passenger.name.split(' ')[0];
-  const act = (next: PassengerState) => {
-    setUndo(passenger.state);
-    setPassengerStatus(passenger.id, next);
-  };
-  const revert = () => {
-    if (undo) setPassengerStatus(passenger.id, undo);
-    setUndo(null);
+  const combinadas = agendas.data.filter((a) => a.passengerId === passenger.id && a.status === 'confirmed');
+  const esperando = requests.data.filter((r) => r.passengerId === passenger.id);
+
+  // Gastos mês a mês, só do que foi concluído — a mesma conta da tela de Ganhos.
+  const meses: Mes[] = [];
+  for (let i = 0; i < MONTHS; i += 1) {
+    const mes = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const feitas = days
+      .filter((day) => day.date.getFullYear() === mes.getFullYear() && day.date.getMonth() === mes.getMonth())
+      .flatMap((day) => day.trips)
+      .filter((trip) => trip.passenger === passenger.name && trip.status === 'completed');
+    meses.push({ month: mes, trips: feitas.length, totalCents: feitas.reduce((soma, t) => soma + t.priceCents, 0) });
+  }
+
+  const trips = meses.reduce((soma, m) => soma + m.trips, 0);
+  const total = meses.reduce((soma, m) => soma + m.totalCents, 0);
+  const current = meses[0];
+
+  const openMonth = (month: Date) =>
+    router.navigate({ pathname: '/earnings', params: { passenger: passenger.name, month: `${month.getFullYear()}-${month.getMonth()}` } });
+
+  const arquivar = async () => {
+    const arquivado = passenger.state === 'archived';
+    try {
+      await (arquivado ? restorePassenger(passenger.id) : archivePassenger(passenger.id));
+      setAviso(arquivado ? `${firstName} voltou para a sua lista.` : `${firstName} foi para o arquivo.`);
+    } catch {
+      setAviso('Não deu para salvar. Confira sua internet e tente de novo.');
+    }
   };
 
-  // Quem pediu para entrar lê diferente de quem você convidou: um espera a sua resposta, o outro a dele.
-  const status = passenger.asked ? { ...STATUS.invited, label: 'Pediu para entrar', since: 'Pediu' } : STATUS[passenger.state];
+  const encerrar = async (agendaId: string) => {
+    setEnding(null);
+    try {
+      await endAgenda(agendaId, 'driver');
+      setAviso(`Combinado encerrado. Avise ${firstName} pelo WhatsApp.`);
+    } catch {
+      setAviso('Não deu para encerrar agora. Confira sua internet e tente de novo.');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -80,38 +144,115 @@ export default function PassengerScreen() {
         <View style={styles.topBar}>
           <IconButton name="arrow_back" label="Voltar" onPress={() => router.back()} />
           <View style={styles.topActions}>
-            {passenger.state === 'active' ? (
-              <IconButton name="chat" label={`Conversar com ${firstName} no WhatsApp`} onPress={() => sendTo(passenger.phone, '')} />
-            ) : null}
+            <IconButton name="chat" label={`Conversar com ${firstName} no WhatsApp`} onPress={() => sendTo(passenger.phone, '')} />
             <IconButton name="more_horiz" label="Mais opções" onPress={() => setOptions(true)} />
           </View>
         </View>
 
         <View style={styles.head}>
-          <Label>{status.label}</Label>
+          <Label>{passenger.state === 'archived' ? 'Arquivado' : 'Ativo'}</Label>
           <Text variant="display">{passenger.name}</Text>
           <Text variant="small" tone="secondary">
-            {`${status.since} ${passenger.state === 'invited' || passenger.state === 'cancelled' ? relativeDay(passenger.since, now).toLowerCase() : longDate(passenger.since)}`}
+            {`${formatPhone(passenger.phone)} · na sua rede desde ${longDate(passenger.since)}`}
           </Text>
         </View>
 
-        {undo ? <Notice text={status.done(firstName)} onUndo={revert} /> : null}
+        {aviso ? (
+          <Block style={styles.notice}>
+            <Text variant="small" style={styles.noticeText} accessibilityLiveRegion="polite">
+              {aviso}
+            </Text>
+            <Button label="Fechar" size="sm" variant="ghost" onPress={() => setAviso(null)} />
+          </Block>
+        ) : null}
 
-        {passenger.state === 'active' ? (
-          <Active
-            passenger={passenger}
-            months={passengerMonths(passenger.name, history, signals)}
-            requests={requests.filter((request) => request.passengerId === passenger.id)}
-            decisions={store.decisions}
-            now={now}
+        {esperando.length > 0 ? (
+          <Block style={styles.info}>
+            <Label>Esperando você</Label>
+            <Text variant="body">
+              {esperando.length === 1 ? `${firstName} mandou 1 pedido.` : `${firstName} mandou ${esperando.length} pedidos.`}
+            </Text>
+            <Button label="Abrir os pedidos" icon="inbox" size="sm" variant="light" onPress={() => router.push('/requests')} />
+          </Block>
+        ) : null}
+
+        <View style={styles.stats}>
+          <StatCard
+            color={colors.cards[0]}
+            title="Viagens concluídas"
+            value={String(trips)}
+            detailLabel={capitalize(monthName(now))}
+            detail={current.trips > 0 ? String(current.trips) : '—'}
+          />
+          <StatCard
+            color={colors.cards[1]}
+            title="Custo total"
+            value={formatPriceShort(total)}
+            detailLabel="Ticket médio"
+            detail={trips > 0 ? formatPrice(Math.round(total / trips)) : '—'}
+            wide
+          />
+        </View>
+
+        <View style={styles.section}>
+          <Label>{combinadas.length > 1 ? `O que está combinado · ${combinadas.length}` : 'O que está combinado'}</Label>
+          {combinadas.length > 0 ? (
+            <View style={styles.list}>
+              {combinadas.map((agenda) => (
+                <Block key={agenda.id} style={styles.deal}>
+                  <Text variant="bodyMedium">{whenLabel(agenda)}</Text>
+                  <Text variant="small" tone="secondary">
+                    {routeLabel(agenda)}
+                  </Text>
+                  <View style={styles.dealActions}>
+                    <Text variant="bodyMedium" style={styles.dealPrice}>
+                      {agenda.price != null ? formatPrice(agenda.price) : 'Sem valor combinado'}
+                    </Text>
+                    <Button label="Encerrar" icon="close" size="sm" variant="ghost" destructive onPress={() => setEnding(agenda.id)} />
+                  </View>
+                </Block>
+              ))}
+            </View>
+          ) : (
+            <Text variant="small" tone="secondary">
+              {`Nada combinado com ${firstName} agora. Quando ele marcar pelo seu link, o pedido aparece em Pedidos.`}
+            </Text>
+          )}
+        </View>
+
+        <View style={styles.section}>
+          <Label>Gastos por mês</Label>
+          {meses.some((m) => m.trips > 0) ? (
+            <View style={styles.table}>
+              {meses.map((m, index) => (
+                <MonthRow
+                  key={m.month.toISOString()}
+                  spend={m}
+                  current={index === 0}
+                  first={index === 0}
+                  last={index === meses.length - 1}
+                  onPress={() => openMonth(m.month)}
+                />
+              ))}
+            </View>
+          ) : (
+            <Text variant="small" tone="secondary">
+              Nenhuma viagem concluída ainda. Elas aparecem aqui quando você toca em "Concluir viagem".
+            </Text>
+          )}
+        </View>
+
+        {current.trips > 0 ? (
+          <Button
+            label={`Gerar cobrança de ${monthName(now)}`}
+            icon="request_quote"
+            variant="light"
+            onPress={() => openMonth(current.month)}
+            accessibilityHint="Abre Ganhos com as viagens do mês para mandar a cobrança no WhatsApp"
           />
         ) : null}
-        {passenger.state === 'invited' ? (
-          <Invited passenger={passenger} firstName={firstName} onCancel={() => act('cancelled')} />
-        ) : null}
-        {RESTORE[passenger.state] && !undo ? (
-          <Button label={RESTORE[passenger.state]!.label} icon="undo" variant="light" onPress={() => act(RESTORE[passenger.state]!.to)} />
-        ) : null}
+
+        {passenger.state === 'archived' ? <Button label="Tirar do arquivo" icon="undo" variant="light" onPress={arquivar} /> : null}
       </ScrollView>
 
       <TripOptions
@@ -122,10 +263,21 @@ export default function PassengerScreen() {
           { key: 'call', label: `Ligar para ${firstName}`, icon: 'call', onPress: () => Linking.openURL(`tel:${passenger.phone}`) },
           { key: 'report', label: `Denunciar ${firstName}`, icon: 'flag' as const, onPress: () => setReporting(true) },
           ...(passenger.state === 'active'
-            ? [{ key: 'end', label: 'Encerrar conexão', icon: 'person_remove' as const, destructive: true, onPress: () => act('ended') }]
+            ? [{ key: 'archive', label: 'Arquivar passageiro', icon: 'person_remove' as const, destructive: true, onPress: arquivar }]
             : []),
         ]}
       />
+
+      <ConfirmDialog
+        visible={ending !== null}
+        title="Encerrar este combinado?"
+        text={`As viagens futuras saem da sua agenda e o horário volta a ficar livre no seu link. O que já aconteceu continua no histórico, e ${firstName} só fica sabendo quando você avisar.`}
+        confirmLabel="Encerrar"
+        confirmIcon="close"
+        onConfirm={() => ending && encerrar(ending)}
+        onClose={() => setEnding(null)}
+      />
+
       <ConfirmDialog
         visible={reporting}
         title={`Denunciar ${firstName}?`}
@@ -142,113 +294,8 @@ export default function PassengerScreen() {
   );
 }
 
-const STATUS: Record<PassengerState, { label: string; since: string; done: (name: string) => string }> = {
-  active: { label: 'Ativo', since: 'Na sua rede desde', done: (name) => `${name} voltou para a sua rede e pode pedir viagens.` },
-  invited: { label: 'Convite enviado', since: 'Convidado', done: (name) => `O convite de ${name} voltou para os pendentes.` },
-  cancelled: { label: 'Convite cancelado', since: 'Convidado', done: (name) => `Você cancelou o convite de ${name}. O link deixa de valer para ela.` },
-  ended: { label: 'Conexão encerrada', since: 'Na sua rede desde', done: (name) => `Você encerrou a conexão com ${name}. As viagens de hoje em diante saíram da sua agenda; o histórico continua aqui.` },
-};
-
-// Quem saiu das listas sempre pode voltar, mesmo depois de fechar a página.
-const RESTORE: Partial<Record<PassengerState, { label: string; to: PassengerState }>> = {
-  cancelled: { label: 'Voltar para os pendentes', to: 'invited' },
-  ended: { label: 'Reativar conexão', to: 'active' },
-};
-
-// Confirmação da última ação, sempre com "Desfazer".
-function Notice({ text, onUndo }: { text: string; onUndo: () => void }) {
-  return (
-    <Block style={styles.notice}>
-      <Text variant="small" style={styles.noticeText} accessibilityLiveRegion="polite">
-        {text}
-      </Text>
-      <Button label="Desfazer" icon="undo" size="sm" variant="ghost" onPress={onUndo} />
-    </Block>
-  );
-}
-
-function Active({
-  passenger,
-  months,
-  requests,
-  decisions,
-  now,
-}: {
-  passenger: PassengerWithState;
-  months: MonthSpend[];
-  requests: TripRequest[];
-  decisions: Record<string, RequestDecision>;
-  now: Date;
-}) {
-  const since = new Date(passenger.since.getFullYear(), passenger.since.getMonth(), 1);
-  const visible = months.filter((m) => m.month >= since).reverse();
-  const trips = visible.reduce((sum, m) => sum + m.trips, 0);
-  const total = visible.reduce((sum, m) => sum + m.totalCents, 0);
-  const minutes = visible.reduce((sum, m) => sum + m.minutes, 0);
-  const current = visible[0];
-  const currentName = monthName(now);
-
-  const openMonth = (month: Date) =>
-    router.navigate({ pathname: '/earnings', params: { passenger: passenger.name, month: `${month.getFullYear()}-${month.getMonth()}` } });
-
-  return (
-    <>
-      {requests.length > 0 ? <TripRequests requests={requests} decisions={decisions} now={now} /> : null}
-
-      <View style={styles.stats}>
-        <StatCard
-          color={colors.cards[0]}
-          title="Viagens concluídas"
-          value={String(trips)}
-          detailLabel="Duração média"
-          detail={trips > 0 ? `${Math.round(minutes / trips)} min` : '—'}
-        />
-        <StatCard
-          color={colors.cards[1]}
-          title="Custo total"
-          value={formatPriceShort(total)}
-          detailLabel="Ticket médio"
-          detail={trips > 0 ? formatPrice(Math.round(total / trips)) : '—'}
-          wide
-        />
-      </View>
-
-      <View style={styles.section}>
-        <Label>Gastos por mês</Label>
-        {visible.some((m) => m.trips > 0) ? (
-          <View style={styles.table}>
-            {visible.map((m, index) => (
-              <MonthRow
-                key={m.month.toISOString()}
-                spend={m}
-                current={index === 0}
-                first={index === 0}
-                last={index === visible.length - 1}
-                onPress={() => openMonth(m.month)}
-              />
-            ))}
-          </View>
-        ) : (
-          <Text variant="small" tone="secondary">
-            Nenhuma viagem concluída ainda. Elas aparecem aqui quando você toca em "Concluir viagem".
-          </Text>
-        )}
-      </View>
-
-      {current && current.trips > 0 ? (
-        <Button
-          label={`Gerar cobrança de ${currentName}`}
-          icon="request_quote"
-          variant="light"
-          onPress={() => openMonth(current.month)}
-          accessibilityHint="Abre Ganhos com as viagens do mês para enviar a cobrança no chat"
-        />
-      ) : null}
-    </>
-  );
-}
-
-// Cartão de total. Mesma tipografia em todas as cores: título no topo, respiro, número principal e o secundário embaixo.
+// Cartão de total. Mesma tipografia em todas as cores: título no topo, respiro, número principal
+// e o secundário embaixo.
 function StatCard({
   color,
   title,
@@ -265,7 +312,10 @@ function StatCard({
   wide?: boolean;
 }) {
   return (
-    <View style={[styles.stat, wide && styles.statWide, { backgroundColor: color }]} accessible accessibilityLabel={`${title}: ${value}. ${detailLabel}: ${detail}`}>
+    <View
+      style={[styles.stat, wide && styles.statWide, { backgroundColor: color }]}
+      accessible
+      accessibilityLabel={`${title}: ${value}. ${detailLabel}: ${detail}`}>
       <Label tone="onCardMuted">{title}</Label>
       <View style={styles.statBottom}>
         <Text variant="displaySm" tone="onCard" numberOfLines={1}>
@@ -284,7 +334,7 @@ function StatCard({
   );
 }
 
-function MonthRow({ spend, current, first, last, onPress }: { spend: MonthSpend; current: boolean; first: boolean; last: boolean; onPress: () => void }) {
+function MonthRow({ spend, current, first, last, onPress }: { spend: Mes; current: boolean; first: boolean; last: boolean; onPress: () => void }) {
   const { hovered, focused, handlers } = useInteraction();
   const name = capitalize(monthName(spend.month));
   return (
@@ -319,99 +369,7 @@ function MonthRow({ spend, current, first, last, onPress }: { spend: MonthSpend;
   );
 }
 
-// Viagens pedidas pelo passageiro. Cada uma é aprovada ou recusada sozinha: você pode não ter o horário livre em todos os dias.
-// Depois de decidir, o pedido continua na lista com "Desfazer".
-function TripRequests({ requests, decisions, now }: { requests: TripRequest[]; decisions: Record<string, RequestDecision>; now: Date }) {
-  const waiting = requests.filter((request) => !decisions[request.id]).length;
-  return (
-    <View style={styles.section}>
-      <Label>{waiting > 0 ? `Viagens para aprovar · ${waiting}` : 'Viagens pedidas'}</Label>
-      <View style={styles.requests}>
-        {requests.map((request) => {
-          const decision = decisions[request.id];
-          return (
-            <Block key={request.id} style={styles.request}>
-              <View style={styles.requestHead}>
-                <View style={styles.requestWhen}>
-                  <Text variant="small" tone="secondary">
-                    {relativeDay(request.date, now)}
-                  </Text>
-                  <Text variant="title">{request.time}</Text>
-                </View>
-                <View style={styles.requestPrice}>
-                  <Text variant="small" tone="secondary">
-                    Valor proposto
-                  </Text>
-                  <Text variant="bodyMedium">{formatPrice(request.priceCents)}</Text>
-                </View>
-              </View>
-              <Text variant="small" tone="secondary" numberOfLines={2}>
-                {`${request.origin} → ${request.destination}`}
-              </Text>
-              {decision ? (
-                <View style={styles.requestDone} accessibilityLiveRegion="polite">
-                  <Icon name={decision === 'approved' ? 'check_circle' : 'cancel'} size={size.icon.md} color={decision === 'approved' ? colors.text : colors.orange} />
-                  <Text variant="bodyMedium" tone={decision === 'approved' ? 'text' : 'orange'} style={styles.requestDoneText}>
-                    {decision === 'approved' ? 'Aprovada. Já está na sua agenda.' : 'Recusada.'}
-                  </Text>
-                  <Button label="Desfazer" icon="undo" size="sm" variant="ghost" onPress={() => setRequestDecision(request.id, null)} />
-                </View>
-              ) : (
-                <View style={styles.requestActions}>
-                  <Button label="Aprovar" icon="check" variant="light" style={styles.requestApprove} onPress={() => setRequestDecision(request.id, 'approved')} />
-                  <Button label="Recusar" size="sm" variant="ghost" destructive onPress={() => setRequestDecision(request.id, 'declined')} />
-                </View>
-              )}
-            </Block>
-          );
-        })}
-      </View>
-    </View>
-  );
-}
-
-function Invited({ passenger, firstName, onCancel }: { passenger: PassengerWithState; firstName: string; onCancel: () => void }) {
-  const [sending, setSending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { slug } = useDriver();
-  const message = slug ? shareLink(driver.firstName, slug) : '';
-
-  const resend = async () => {
-    setSending(true);
-    setError(null);
-    try {
-      await Linking.openURL(whatsappUrl(passenger.phone, message));
-    } catch {
-      setError('Não deu para abrir o WhatsApp. Confira se ele está instalado e tente de novo.');
-    } finally {
-      setSending(false);
-    }
-  };
-
-  return (
-    <>
-      <Block style={styles.info}>
-        <Label>WhatsApp</Label>
-        <Text variant="heading">{formatPhone(passenger.phone)}</Text>
-        <Text variant="small" tone="secondary">
-          {`${firstName} ainda não entrou pelo seu link.`}
-        </Text>
-      </Block>
-      {error ? (
-        <Text variant="small" tone="orange" accessibilityLiveRegion="polite">
-          {error}
-        </Text>
-      ) : null}
-      <View style={styles.actions}>
-        <Button label="Reenviar pelo WhatsApp" icon="send" variant="light" loading={sending} onPress={resend} />
-        <Button label="Cancelar convite" size="sm" variant="ghost" destructive onPress={onCancel} style={styles.center} />
-      </View>
-    </>
-  );
-}
-
 const styles = StyleSheet.create({
-  requestPrice: { alignItems: 'flex-end', gap: spacing[4] },
   safe: { flex: 1, backgroundColor: colors.ground },
   content: { paddingHorizontal: layout.screenPadding, paddingTop: spacing[8], paddingBottom: spacing[40], gap: spacing[20] },
   topBar: { flexDirection: 'row', justifyContent: 'space-between' },
@@ -457,15 +415,9 @@ const styles = StyleSheet.create({
   rowMonth: { flex: 1 },
   rowTrips: { fontVariant: ['tabular-nums'] },
   rowTotal: { fontVariant: ['tabular-nums'] },
-  requests: { gap: layout.gap },
-  request: { gap: spacing[8], padding: spacing[16] },
-  requestHead: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: spacing[12] },
-  requestWhen: { gap: spacing[4] },
-  requestActions: { flexDirection: 'row', alignItems: 'center', gap: spacing[8], marginTop: spacing[4] },
-  requestApprove: { flex: 1 },
-  requestDone: { flexDirection: 'row', alignItems: 'center', gap: spacing[8], marginTop: spacing[4] },
-  requestDoneText: { flex: 1 },
-  info: { gap: spacing[4], borderWidth: borderWidth.hairline, borderColor: colors.line },
-  actions: { gap: spacing[8], marginTop: spacing[8] },
-  center: { alignSelf: 'center' },
+  list: { gap: layout.gap },
+  deal: { gap: spacing[8], padding: spacing[16] },
+  dealActions: { flexDirection: 'row', alignItems: 'center', gap: spacing[8], marginTop: spacing[4] },
+  dealPrice: { flex: 1 },
+  info: { gap: spacing[8], borderWidth: borderWidth.hairline, borderColor: colors.line },
 });

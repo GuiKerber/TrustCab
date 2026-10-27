@@ -172,12 +172,28 @@ service cloud.firestore {
         && incoming().driverId == me()
         && validDate(incoming().date) && validTime(incoming().time)
         && incoming().keys().hasOnly(['agendaId', 'driverId', 'passengerId', 'date', 'time', 'status',
-          'cancelledBy', 'price', 'onTheWayAt', 'arrivedAt', 'completedAt', 'cancelledAt', 'updatedAt'])
+          'cancelledBy', 'price', 'paidAt', 'onTheWayAt', 'arrivedAt', 'startedAt', 'completedAt',
+          'cancelledAt', 'updatedAt'])
         && validPrice(incoming().price)
         && tripMatchesAgenda()
-        && incoming().status in ['on_the_way', 'arrived', 'completed', 'cancelled']
+        && incoming().status in ['scheduled', 'on_the_way', 'arrived', 'in_progress', 'completed', 'cancelled']
         && (incoming().status == 'cancelled' ? incoming().cancelledBy == 'driver' : incoming().cancelledBy == null);
       allow delete: if false;
+    }
+
+    // O mês que ele já mandou para cobrar. Apagar é desmarcar: a cobrança não saiu daqui, saiu do
+    // WhatsApp dele, então o registro é só a memória da tela.
+    match /charges/{id} {
+      allow get, list: if signedIn() && mine(existing());
+      allow create: if signedIn()
+        && incoming().keys().hasOnly(['driverId', 'passengerId', 'month', 'totalCents', 'trips', 'sentAt'])
+        && incoming().driverId == me()
+        && id == me() + '_' + incoming().passengerId + '_' + incoming().month
+        && incoming().month is string && incoming().month.matches('^[0-9]{4}-[0-9]{2}$')
+        && incoming().totalCents is int && incoming().totalCents >= 0
+        && incoming().trips is int && incoming().trips >= 0;
+      allow update: if false;
+      allow delete: if signedIn() && mine(existing());
     }
 
     function tripMatchesAgenda() {

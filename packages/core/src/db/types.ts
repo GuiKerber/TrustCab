@@ -101,7 +101,9 @@ export type AgendaDoc = AgendaFields & {
 
 // Uma viagem é um dia de uma agenda. Só existe quando sai do combinado: antes disso o dia é
 // calculado a partir da agenda, sem documento nenhum.
-export type TripStatus = 'on_the_way' | 'arrived' | 'completed' | 'cancelled';
+// 'scheduled' é o estado de um dia em que nada aconteceu. Ele só vira documento quando alguém
+// desfaz um passo ou reativa um dia cancelado — antes disso o dia é calculado a partir da agenda.
+export type TripStatus = 'scheduled' | 'on_the_way' | 'arrived' | 'in_progress' | 'completed' | 'cancelled';
 
 export type TripDoc = {
   agendaId: string;
@@ -113,8 +115,12 @@ export type TripDoc = {
   cancelledBy: 'driver' | 'passenger' | null;
   // Em centavos, copiado da agenda quando a viagem é concluída: é o que fecha a conta do mês.
   price: number | null;
+  // Quando o passageiro pagou. Fica na viagem, e não na sessão do app, porque é ela que sai
+  // ou não sai da cobrança do mês seguinte.
+  paidAt?: unknown;
   onTheWayAt?: unknown;
   arrivedAt?: unknown;
+  startedAt?: unknown;
   completedAt?: unknown;
   cancelledAt?: unknown;
   updatedAt: unknown;
@@ -122,6 +128,21 @@ export type TripDoc = {
 
 // id da viagem é derivado, nunca sorteado: as regras conferem a conta.
 export const tripId = (agendaId: string, date: string) => `${agendaId}_${date}`;
+
+// charges/{driverId}_{passengerId}_{AAAA-MM}: o mês que ele já mandou para cobrar. Guardado para
+// a tela não oferecer "gerar cobrança" de novo no mesmo mês — quem envia é ele, pelo WhatsApp,
+// então nós só sabemos que ele abriu a conversa com o texto pronto.
+export type ChargeDoc = {
+  driverId: string;
+  passengerId: string;
+  month: string;
+  totalCents: number;
+  trips: number;
+  sentAt: unknown;
+};
+
+export const chargeId = (driverId: string, passengerId: string, month: string) =>
+  `${driverId}_${passengerId}_${month}`;
 
 // Agendas que ocupam vaga na página: o que está combinado e o que ainda espera resposta.
 // Um pedido sem resposta segura o horário — e aparece na caixa de pedidos do motorista com a

@@ -6,17 +6,28 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Block, Button, colors, focusRing, Icon, layout, Pills, radius, ScreenStatus, size, spacing, stateOpacity, Text, useInteraction } from '@trustcab/ui';
 import { ChargeSheet, type ChargeLine } from '@/components/ChargeSheet';
 import { TopBar } from '@/components/TopBar';
-import { formatPrice, formatPriceShort, monthName, samplePassengers, sampleHistory, type Trip, useNow, useSyncState, weekdayShort } from '@trustcab/core';
-import { chargeKey, setChargeSent, useChargesSent } from '@/data/charges';
+import { formatPrice, formatPriceShort, isSameDay, monthName, type Day, type Trip, useNow, weekdayShort } from '@trustcab/core';
+import { clearChargeSent, setChargeSent, setTripPaidAt, useCharges } from '@trustcab/core/db';
+import { tripBase, useDays } from '@/data/days';
+import { useDriver } from '@/data/driver';
 import { sendTo } from '@/data/whatsapp';
-import { setTripPaid, usePaidTrips, useReportedTrips } from '@/data/payments';
 import { useProfile } from '@/data/profile';
-import { useTripSignals } from '@/data/tripSignals';
+
+// Quantos meses para trás a tela deixa navegar.
+const MONTHS = 6;
 
 const ALL = 'todos';
 
 function monthKey(date: Date) {
   return `${date.getFullYear()}-${date.getMonth()}`;
+}
+
+// Timestamp do Firestore vira Date. Enquanto a escrita não volta do servidor o campo vem null:
+// aí "agora" é a melhor aproximação, porque é o que a pessoa acabou de fazer.
+function toDate(value: unknown): Date | undefined {
+  if (value == null) return undefined;
+  const stamp = value as { toDate?: () => Date };
+  return stamp.toDate ? stamp.toDate() : new Date();
 }
 
 function sum(trips: Trip[]) {
@@ -32,18 +43,34 @@ function countLabel(count: number) {
 export default function Earnings() {
   const params = useLocalSearchParams<{ passenger?: string; month?: string }>();
   const now = useNow();
-  const history = useMemo(() => sampleHistory(now), [now]);
-  const signals = useTripSignals();
-  const sent = useChargesSent();
-  const paid = usePaidTrips();
-  const reported = useReportedTrips();
-  const sync = useSyncState();
+  const { uid } = useDriver();
   const { pix } = useProfile();
   const pixKey = pix?.key ?? null;
+
+  // Seis meses de uma vez: a faixa de meses troca sem nova consulta, e a conta do mês precisa
+  // das viagens do mês inteiro de qualquer jeito.
+  const from = useMemo(() => new Date(now.getFullYear(), now.getMonth() - (MONTHS - 1), 1), [now]);
+  const to = useMemo(() => new Date(now.getFullYear(), now.getMonth() + 1, 0), [now]);
+  const { days: allDays, agendas, paid, loading, error } = useDays(uid, from, to);
+  const charges = useCharges(uid);
 
   const [month, setMonth] = useState(() => monthKey(now));
   const [passenger, setPassenger] = useState(ALL);
   const [preview, setPreview] = useState(false);
+
+  // Os dias agrupados por mês, do mais antigo para o mais novo — o mesmo formato que a tela
+  // sempre usou, agora vindo do banco.
+  const history = useMemo(() => {
+    const meses: { month: Date; days: Day[] }[] = [];
+    for (let i = MONTHS - 1; i >= 0; i -= 1) {
+      const mes = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      meses.push({
+        month: mes,
+        days: allDays.filter((day) => day.date.getFullYear() === mes.getFullYear() && day.date.getMonth() === mes.getMonth()),
+      });
+    }
+    return meses;
+  }, [allDays, now]);
 
   // Quem chega pelo "Ver gastos" de uma viagem já vê o passageiro e o mês daquela viagem.
   useEffect(() => {
@@ -53,10 +80,7 @@ export default function Earnings() {
   }, [params.passenger, params.month, history]);
 
   const current = history.find((entry) => monthKey(entry.month) === month) ?? history[history.length - 1];
-  const days = current.days.map((day) => ({
-    date: day.date,
-    trips: day.trips.map((trip): Trip => ({ ...trip, status: signals[trip.id] ?? trip.status })),
-  }));
+  const days = current.days;
 
   const passengers = [...new Set(days.flatMap((day) => day.trips.map((trip) => trip.passenger)))];
   const matches = (trip: Trip) => passenger === ALL || trip.passenger === passenger;
@@ -70,8 +94,11 @@ export default function Earnings() {
   const total = sum(done);
   const name = monthName(current.month);
   const firstName = passenger === ALL ? '' : passenger.split(' ')[0];
-  // A cobrança sai pelo WhatsApp: sem o número do passageiro não há para onde mandar.
-  const phoneOf = (who: string) => samplePassengers(now).find((p) => p.name === who)?.phone ?? null;
+  // A cobrança sai pelo WhatsApp: sem o número do passageiro não há para onde mandar. O nome é a
+  // chave porque é por ele que a tela inteira agrupa; dois passageiros com o mesmo nome cairiam no
+  // mesmo balde, e aí o motorista corrige um dos dois no cadastro.
+  const agendaOf = (who: string) => agendas.find((a) => a.passengerName === who);
+  const phoneOf = (who: string) => agendaOf(who)?.passengerPhone ?? null;
 
   const byPassenger = passengers.map((person, index) => {
     const trips = days.flatMap((day) => day.trips).filter((trip) => trip.status === 'completed' && trip.passenger === person);
@@ -81,11 +108,18 @@ export default function Earnings() {
   // Viagem paga na hora (QR Code) não entra na cobrança do mês.
   const chargeLines: ChargeLine[] = [...doneDays]
     .reverse()
-    .flatMap((day) => day.trips.filter((trip) => !paid[trip.id]).map((trip) => ({ date: day.date, trip })));
+    .flatMap((day) => day.trips.filter((trip) => !paid.has(trip.id)).map((trip) => ({ date: day.date, trip })));
   const chargeTotal = sum(chargeLines.map((line) => line.trip));
-  const paidCount = done.filter((trip) => paid[trip.id]).length;
-  const key = passenger === ALL ? null : chargeKey(passenger, current.month);
-  const sentAt = key ? sent[key] : undefined;
+  const paidCount = done.filter((trip) => paid.has(trip.id)).length;
+
+  // O mês da cobrança em AAAA-MM, que é como ele fica guardado.
+  const chargeMonth = `${current.month.getFullYear()}-${String(current.month.getMonth() + 1).padStart(2, '0')}`;
+  const passengerId = passenger === ALL ? null : (agendaOf(passenger)?.passengerId ?? null);
+  const charge = passengerId
+    ? charges.data.find((c) => c.passengerId === passengerId && c.month === chargeMonth)
+    : undefined;
+  const sentAt = toDate(charge?.sentAt);
+  const key = passengerId;
 
   // Mês mais recente primeiro, para o mês atual aparecer sem rolar.
   const monthItems = [...history].reverse().map((entry) => ({
@@ -101,7 +135,9 @@ export default function Earnings() {
     ...passengers.map((person) => ({ key: person, label: person.split(' ')[0], accessibilityLabel: person })),
   ];
 
-  if (sync.state !== 'ready') return <ScreenStatus state={sync.state} layout="list" onRetry={sync.retry} />;
+  if (loading || error) {
+    return <ScreenStatus state={error ? 'error' : 'loading'} layout="list" onRetry={() => router.replace('/earnings')} />;
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -161,11 +197,11 @@ export default function Earnings() {
                       <Text
                         variant="small"
                         tone="secondary"
-                        style={paid[trip.id] ? styles.priceSettled : undefined}
-                        accessibilityLabel={paid[trip.id] ? `${formatPrice(trip.priceCents)}, pago` : undefined}>
-                        {reported[trip.id] && !paid[trip.id] ? `${formatPrice(trip.priceCents)} · avisou que pagou` : formatPrice(trip.priceCents)}
+                        style={paid.has(trip.id) ? styles.priceSettled : undefined}
+                        accessibilityLabel={paid.has(trip.id) ? `${formatPrice(trip.priceCents)}, pago` : undefined}>
+                        {formatPrice(trip.priceCents)}
                       </Text>
-                      {paid[trip.id] ? <Icon name="check" size={size.icon.sm} color={colors.textSecondary} /> : null}
+                      {paid.has(trip.id) ? <Icon name="check" size={size.icon.sm} color={colors.textSecondary} /> : null}
                     </View>
                   </View>
                 ))}
@@ -200,7 +236,12 @@ export default function Earnings() {
                   label={`Confirmar pagamento · ${formatPrice(chargeTotal)}`}
                   icon="paid"
                   variant="light"
-                  onPress={() => chargeLines.forEach(({ trip }) => setTripPaid(trip.id, now))}
+                  onPress={() =>
+                    chargeLines.forEach(({ trip }) => {
+                      const base = tripBase(agendas, trip);
+                      if (base) void setTripPaidAt(base, true).catch(() => undefined);
+                    })
+                  }
                   accessibilityHint={`Marca as ${chargeLines.length} viagens de ${name} como pagas de uma vez`}
                 />
                 <View style={styles.sentActions}>
@@ -217,7 +258,7 @@ export default function Earnings() {
                     size="sm"
                     variant="ghost"
                     destructive
-                    onPress={() => setChargeSent(key, null)}
+                    onPress={() => uid && void clearChargeSent(uid, key, chargeMonth).catch(() => undefined)}
                   />
                 </View>
               </Block>
@@ -264,7 +305,15 @@ export default function Earnings() {
               phoneOf(passenger),
               [`Olá, ${firstName}! Estas são as suas viagens de ${name}:`, ...lines, `Total: ${formatPrice(chargeTotal)}`, `Pix: ${pixKey}`].join('\n'),
             );
-            setChargeSent(key, new Date());
+            if (uid) {
+              void setChargeSent({
+                driverId: uid,
+                passengerId: key,
+                month: chargeMonth,
+                totalCents: chargeTotal,
+                trips: chargeLines.length,
+              }).catch(() => undefined);
+            }
             setPreview(false);
           }}
         />

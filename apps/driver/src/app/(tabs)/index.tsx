@@ -8,10 +8,10 @@ import { ForgottenTripsDialog, type ForgottenTrip } from '@/components/Forgotten
 import { TripSheet } from '@/components/TripSheet';
 import { TopBar } from '@/components/TopBar';
 import { useTripActions } from '@/components/useTripActions';
-import { usePassengerStore, withApprovedTrips, withoutEnded, withState } from '@/data/passengers';
+import { useDays } from '@/data/days';
+import { useDriver } from '@/data/driver';
 import { missingSetup, useProfile } from '@/data/profile';
-import { type Day, dayKey, formatPrice, isForgotten, isSameDay, sampleMonth, sampleMonthDays, samplePassengers, sampleTripRequests, startOfDay, type Trip, useNow, useSyncState, weekdayTitle } from '@trustcab/core';
-import { useTripSignals } from '@/data/tripSignals';
+import { dayKey, formatPrice, isForgotten, isSameDay, startOfDay, useNow, weekdayTitle } from '@trustcab/core';
 import { useTripNotifications } from '@/lib/notifications';
 
 // Quantos dias para trás a Home procura viagens esquecidas (abertas depois do horário).
@@ -20,6 +20,8 @@ const FORGOTTEN_LOOKBACK_DAYS = 7;
 const NOTIFY_AHEAD_DAYS = 7;
 // Quantos dias a faixa da Home mostra: uma semana, começando em hoje.
 const WEEK_DAYS = 7;
+// Janela que a Home carrega do banco: o suficiente para a faixa, as notificações e o que ficou para trás.
+const AHEAD_DAYS = 30;
 
 // Home: título editorial, dias e a pilha de cartões das viagens do dia. A tela rola; puxar um cartão é segurar e arrastar.
 // Ao abrir o app, pergunta sobre viagens que passaram do horário sem conclusão.
@@ -27,15 +29,10 @@ export default function Home() {
   const params = useLocalSearchParams<{ trip?: string; day?: string }>();
   const now = useNow();
   const clock = useNow('minute');
-  const month = useMemo(() => sampleMonth(now), [now]);
-  const requests = useMemo(() => sampleTripRequests(now), [now]);
-  const passengers = usePassengerStore();
-  const people = useMemo(() => withState(samplePassengers(now), passengers), [now, passengers]);
-  const signals = useTripSignals();
+  const { uid, name, slug } = useDriver();
   const profile = useProfile();
   const missing = missingSetup(profile);
   const focused = useIsFocused();
-  const sync = useSyncState();
   const [selected, setSelected] = useState(() => startOfDay(now));
   const [open, setOpen] = useState<{ id: string; color: string; origin: CardOrigin | null } | null>(null);
   // "Responder depois" some até o app voltar do segundo plano.
@@ -48,19 +45,10 @@ export default function Home() {
     return () => subscription.remove();
   }, []);
 
-  const prepare = (days: Day[]) =>
-    withoutEnded(withApprovedTrips(days, requests, passengers), people, now).map((day) => ({
-      ...day,
-      trips: day.trips.map((trip): Trip => ({ ...trip, status: signals[trip.id] ?? trip.status })),
-    }));
-
-  // Mês atual e o anterior: a Home mostra de hoje em diante; as notificações e as viagens esquecidas olham em volta.
-  const allDays = useMemo(() => {
-    const previous = sampleMonthDays(new Date(now.getFullYear(), now.getMonth() - 1, 1), now);
-    const next = sampleMonthDays(new Date(now.getFullYear(), now.getMonth() + 1, 1), now);
-    return prepare([...previous, ...month.days, ...next]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [now, month, requests, passengers, people, signals]);
+  // A janela carregada vai de uma semana atrás (viagens esquecidas) a um mês à frente.
+  const from = useMemo(() => new Date(now.getFullYear(), now.getMonth(), now.getDate() - FORGOTTEN_LOOKBACK_DAYS), [now]);
+  const to = useMemo(() => new Date(now.getFullYear(), now.getMonth(), now.getDate() + AHEAD_DAYS), [now]);
+  const { days: allDays, agendas, paid, loading, error } = useDays(uid, from, to);
 
   // A Home dá a visão da semana, não do mês: sete dias a partir de hoje.
   const days = allDays.filter((day) => day.date >= startOfDay(now)).slice(0, WEEK_DAYS);
@@ -75,7 +63,7 @@ export default function Home() {
   const earned = trips.filter((t) => t.status === 'completed').reduce((sum, t) => sum + t.priceCents, 0);
   const future = startOfDay(selected) > startOfDay(now);
 
-  const actions = useTripActions({ now, date: selected, close: () => setOpen(null) });
+  const actions = useTripActions({ date: selected, close: () => setOpen(null), agendas, paid, slug });
 
   const forgotten: ForgottenTrip[] = allDays
     .filter((day) => day.date >= new Date(now.getFullYear(), now.getMonth(), now.getDate() - FORGOTTEN_LOOKBACK_DAYS))
@@ -98,19 +86,21 @@ export default function Home() {
     router.setParams({ trip: undefined, day: undefined });
   }, [params.trip, params.day, allDays]);
 
-  if (sync.state !== 'ready') return <ScreenStatus state={sync.state} layout="home" onRetry={sync.retry} />;
+  if (loading || error) {
+    return <ScreenStatus state={error ? 'error' : 'loading'} layout="home" onRetry={() => router.replace('/')} />;
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <TopBar title={`Olá, ${month.driverFirstName}`} />
+        <TopBar title={`Olá, ${name.split(' ')[0] || 'motorista'}`} />
 
         {missing.any ? (
           <Banner
             icon="lock"
             tone="warning"
             title={missing.vehicle && missing.pix ? 'Cadastre seu carro e sua chave Pix' : missing.vehicle ? 'Cadastre seu carro' : 'Cadastre sua chave Pix'}
-            text="Sem eles, você não consegue começar as viagens. O carro vai no aviso “Cheguei”; o Pix vira o QR Code do pagamento."
+            text="Sem eles, você não consegue começar as viagens. O carro aparece na sua página de agendamento; o Pix vira o QR Code do pagamento."
             actions={[
               ...(missing.vehicle ? [{ label: 'Cadastrar carro', icon: 'directions_car' as const, onPress: () => router.push('/vehicle') }] : []),
               ...(missing.pix ? [{ label: 'Cadastrar Pix', icon: 'qr_code_2' as const, onPress: () => router.push('/pix') }] : []),
@@ -138,7 +128,9 @@ export default function Home() {
               Nenhuma viagem neste dia.
             </Text>
             <Text variant="small" tone="secondary">
-              Seus passageiros podem pedir viagens a qualquer momento.
+              {agendas.length === 0
+                ? 'Mande seu link para quem já anda com você: os pedidos chegam aqui.'
+                : 'Seus passageiros podem pedir pelo seu link a qualquer momento.'}
             </Text>
           </View>
         )}
@@ -159,7 +151,7 @@ export default function Home() {
         onSpending={actions.openSpending}
         onCancel={actions.cancel}
         paid={actions.isPaid(openTrip)}
-        paidByPassenger={actions.isReported(openTrip)}
+        paidByPassenger={actions.isReported()}
         onPaid={actions.setPaid}
         onSetup={actions.openSetup}
       />
@@ -167,8 +159,8 @@ export default function Home() {
       <ForgottenTripsDialog
         items={focused && !open && !askLater ? forgotten : []}
         now={now}
-        onComplete={({ date, trip }) => actions.setStatus(trip, 'completed', date)}
-        onDidNotHappen={({ date, trip }) => actions.setStatus(trip, 'cancelled', date)}
+        onComplete={({ trip }) => actions.setStatus(trip, 'completed')}
+        onDidNotHappen={({ trip }) => actions.setStatus(trip, 'cancelled')}
         onLater={() => setAskLater(true)}
       />
     </SafeAreaView>
