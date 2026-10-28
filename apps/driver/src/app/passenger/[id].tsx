@@ -40,6 +40,7 @@ import { useDays } from '@/data/days';
 import { useDriver } from '@/data/driver';
 import { archivePassenger, restorePassenger, useNetwork } from '@/data/network';
 import { sendTo } from '@/data/whatsapp';
+import { goBack } from '@/lib/back';
 
 const capitalize = (text: string) => `${text[0].toUpperCase()}${text.slice(1)}`;
 
@@ -84,7 +85,7 @@ export default function PassengerScreen() {
     return (
       <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
         <View style={styles.content}>
-          <IconButton name="arrow_back" label="Voltar" onPress={() => router.back()} />
+          <IconButton name="arrow_back" label="Voltar" onPress={() => goBack('/passengers')} />
           <Text variant="heading" tone="secondary">
             Não encontramos este passageiro.
           </Text>
@@ -142,7 +143,7 @@ export default function PassengerScreen() {
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.topBar}>
-          <IconButton name="arrow_back" label="Voltar" onPress={() => router.back()} />
+          <IconButton name="arrow_back" label="Voltar" onPress={() => goBack('/passengers')} />
           <View style={styles.topActions}>
             <IconButton name="chat" label={`Conversar com ${firstName} no WhatsApp`} onPress={() => sendTo(passenger.phone, '')} />
             <IconButton name="more_horiz" label="Mais opções" onPress={() => setOptions(true)} />

@@ -7,6 +7,7 @@ import { setSlots } from '@trustcab/core/db';
 import { Block, Button, ChipGroup, FormScreen, Label, Pills, spacing, Text, TextField } from '@trustcab/ui';
 
 import { useDriver } from '@/data/driver';
+import { goBack } from '@/lib/back';
 
 const DIAS = WEEKDAY_SHORT.map((label, weekday) => ({ key: String(weekday), label }));
 const INTERVALOS = [
@@ -63,7 +64,7 @@ export default function Hours() {
     setBusy(true);
     try {
       await setSlots(uid, atual);
-      router.back();
+      goBack('/profile');
     } catch {
       setError('Não deu para salvar. Confira sua internet e tente de novo.');
     } finally {
@@ -74,7 +75,7 @@ export default function Hours() {
   return (
     <FormScreen
       backLabel="Voltar"
-      onBack={() => router.back()}
+      onBack={() => goBack('/profile')}
       footer={<Button label={busy ? 'Salvando…' : 'Salvar'} icon="check" variant="light" disabled={busy} onPress={salvar} />}>
       <View style={styles.head}>
         <Text variant="display">Seus</Text>

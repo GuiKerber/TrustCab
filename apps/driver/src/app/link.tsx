@@ -8,6 +8,7 @@ import { Banner, Block, Button, ConfirmDialog, FormScreen, Label, spacing, Text 
 
 import { useDriver } from '@/data/driver';
 import { shareText } from '@/data/whatsapp';
+import { goBack } from '@/lib/back';
 
 // O link de agendamento. É um só, permanente, e é a porta de entrada do produto inteiro: o
 // motorista fixa no WhatsApp, e quem abre marca a carona sem instalar nada.
@@ -44,7 +45,7 @@ export default function LinkScreen() {
   return (
     <FormScreen
       backLabel="Voltar para o perfil"
-      onBack={() => router.back()}
+      onBack={() => goBack('/profile')}
       footer={
         url ? (
           <>

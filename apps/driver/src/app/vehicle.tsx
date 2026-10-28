@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { Block, Button, FormScreen, Label, spacing, Text } from '@trustcab/ui';
 import { useVehicleForm } from '@/components/VehicleForm';
 import { useProfile } from '@/data/profile';
+import { goBack } from '@/lib/back';
 import { driver } from '@trustcab/core';
 
 // Veículo: modelo, cor e placa. Vão no aviso "Cheguei" para o passageiro achar o carro.
@@ -16,7 +17,7 @@ export default function Vehicle() {
   return (
     <FormScreen
       backLabel="Voltar"
-      onBack={() => router.back()}
+      onBack={() => goBack('/profile')}
       footer={<Button label="Salvar carro" icon="check" variant="light" onPress={() => setSaved(form.save())} />}>
       <View style={styles.head}>
         <Text variant="display">Seu</Text>

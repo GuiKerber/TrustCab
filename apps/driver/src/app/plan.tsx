@@ -7,6 +7,7 @@ import { Banner, Block, Button, colors, FormScreen, Icon, Label, size, spacing, 
 
 import { useDriver } from '@/data/driver';
 import { sendTo } from '@/data/whatsapp';
+import { goBack } from '@/lib/back';
 
 // O que a mensalidade sustenta. Lista curta e concreta: nada de "recursos avançados".
 const INCLUDED = [
@@ -49,7 +50,7 @@ export default function PlanScreen() {
   return (
     <FormScreen
       backLabel="Voltar"
-      onBack={() => router.back()}
+      onBack={() => goBack('/profile')}
       footer={
         // Sem número de cobrança não existe conversa para abrir. Um botão que só sabe dizer que
         // não funciona é pior do que botão nenhum: parece defeito do app de quem está olhando.

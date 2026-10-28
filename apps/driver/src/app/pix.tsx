@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { Block, Button, FormScreen, Label, spacing, Text } from '@trustcab/ui';
 import { usePixForm } from '@/components/PixForm';
 import { PIX_TYPES, setPix, useProfile } from '@/data/profile';
+import { goBack } from '@/lib/back';
 
 // Chave Pix: vai junto nas cobranças e gera o QR Code mostrado ao concluir a viagem.
 export default function PixKey() {
@@ -15,7 +16,7 @@ export default function PixKey() {
   return (
     <FormScreen
       backLabel="Voltar"
-      onBack={() => router.back()}
+      onBack={() => goBack('/profile')}
       footer={
         <>
           <Button label={profile.pix ? 'Salvar nova chave' : 'Salvar chave'} icon="check" variant="light" onPress={() => setSaved(form.save())} />

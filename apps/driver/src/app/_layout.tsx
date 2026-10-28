@@ -83,13 +83,10 @@ function Routes() {
       {/* Plano vencido: o app some e sobra a porta fechada. Assinar e Configurações continuam de pé
           nos dois estados — um para voltar, o outro porque sair da própria conta não pode depender
           de estar pagando. */}
-      <Stack.Protected guard={signedIn && onboarded && locked}>
-        <Stack.Screen name="locked" />
-      </Stack.Protected>
-      <Stack.Protected guard={signedIn && onboarded}>
-        <Stack.Screen name="plan" />
-        <Stack.Screen name="settings" />
-      </Stack.Protected>
+      {/* A ordem aqui decide onde a pessoa cai quando o grupo anterior some — ao terminar o
+          onboarding, por exemplo. Por isso as abas vêm primeiro no estado aberto e a porta
+          fechada primeiro no estado trancado; plano e Configurações ficam por último, porque
+          existem nos dois estados mas não são destino de ninguém. */}
       <Stack.Protected guard={signedIn && onboarded && !locked}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="requests" />
@@ -100,6 +97,13 @@ function Routes() {
         <Stack.Screen name="phone" />
         <Stack.Screen name="hours" />
         <Stack.Screen name="trip/[id]" />
+      </Stack.Protected>
+      <Stack.Protected guard={signedIn && onboarded && locked}>
+        <Stack.Screen name="locked" />
+      </Stack.Protected>
+      <Stack.Protected guard={signedIn && onboarded}>
+        <Stack.Screen name="plan" />
+        <Stack.Screen name="settings" />
       </Stack.Protected>
     </Stack>
   );

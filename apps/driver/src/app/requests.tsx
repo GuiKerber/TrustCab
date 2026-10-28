@@ -28,6 +28,7 @@ import {
 
 import { useDriver } from '@/data/driver';
 import { sendTo } from '@/data/whatsapp';
+import { goBack } from '@/lib/back';
 
 type Agenda = AgendaDoc & { id: string };
 type Answered = { agenda: Agenda; status: 'confirmed' | 'declined'; price: number | null };
@@ -50,7 +51,7 @@ export default function Requests() {
   const done = Object.values(answered);
 
   return (
-    <FormScreen backLabel="Voltar" onBack={() => router.back()}>
+    <FormScreen backLabel="Voltar" onBack={() => goBack('/')}>
       <View style={styles.head}>
         <Text variant="display">Pedidos</Text>
         <Text variant="body" tone="secondary" style={styles.lead}>

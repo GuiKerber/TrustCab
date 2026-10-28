@@ -8,6 +8,7 @@ import { SettingsScreen, type NotificationPermission } from '@trustcab/ui';
 import { useDriver } from '@/data/driver';
 import { NOTIFICATIONS, setNotification, useProfile, type NotificationKind } from '@/data/profile';
 import { notificationPermission, openSystemSettings, requestNotificationPermission } from '@/lib/notifications';
+import { goBack } from '@/lib/back';
 
 const kinds = Object.keys(NOTIFICATIONS) as NotificationKind[];
 
@@ -46,7 +47,7 @@ export default function Settings() {
       permission={permission}
       onRequestPermission={() => requestNotificationPermission().then(setPermission)}
       onOpenSystemSettings={openSystemSettings}
-      onBack={() => router.back()}
+      onBack={() => goBack('/profile')}
       onSignOut={signOut}
       onDelete={deleteAccount}
       deleteText="Seu link sai do ar na hora, e seus passageiros, agendas, viagens, chave Pix e carro são apagados. Não dá para desfazer."

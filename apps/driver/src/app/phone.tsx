@@ -7,6 +7,7 @@ import { setPhone } from '@trustcab/core/db';
 import { Block, Button, FormScreen, Label, spacing, Text, TextField } from '@trustcab/ui';
 
 import { useDriver } from '@/data/driver';
+import { goBack } from '@/lib/back';
 
 // O WhatsApp do motorista. É o número que recebe o aviso de quem pediu pelo link, e é o número
 // que abre quando o passageiro toca em "Avisar" na página. Sem ele o link não é gerado.
@@ -40,7 +41,7 @@ export default function Phone() {
     setBusy(true);
     try {
       await setPhone(uid, digits);
-      router.back();
+      goBack('/profile');
     } catch {
       setError('Não deu para salvar. Confira sua internet e tente de novo.');
     } finally {
@@ -51,7 +52,7 @@ export default function Phone() {
   return (
     <FormScreen
       backLabel="Voltar"
-      onBack={() => router.back()}
+      onBack={() => goBack('/profile')}
       footer={<Button label={busy ? 'Salvando…' : 'Salvar'} icon="check" variant="light" disabled={busy} onPress={salvar} />}>
       <View style={styles.head}>
         <Text variant="display">Seu</Text>
