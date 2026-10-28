@@ -2,6 +2,7 @@ import { deleteUser, GoogleAuthProvider, onAuthStateChanged, signInWithCredentia
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Platform } from 'react-native';
 
+import { setDemoActive } from '../db/demo';
 import { authConfigured, demoEnabled, googleClientIds, missingAuthKeys } from './config';
 import { auth } from './firebase';
 
@@ -167,7 +168,10 @@ export function AuthProvider({ children, onDeleted }: { children: ReactNode; onD
     reason,
     devSession,
     enterDevSession: () => {
-      if (demoEnabled) setDevSession(true);
+      if (!demoEnabled) return;
+      // Liga o conjunto de exemplo: a partir daqui as leituras vêm dele e nenhuma escrita sai.
+      setDemoActive(true);
+      setDevSession(true);
     },
   };
 

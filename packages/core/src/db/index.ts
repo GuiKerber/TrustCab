@@ -1,4 +1,5 @@
 export * from './calls';
+export * from './demo';
 export * from './client';
 export * from './live';
 export * from './queries';

@@ -1,12 +1,14 @@
 import { useAuth } from '@trustcab/core/auth';
-import { useUser } from '@trustcab/core/db';
+import { DEMO_UID, useUser } from '@trustcab/core/db';
 import { defaultSlots, isOpen, newPlan, todayISO, type Plan, type Slots } from '@trustcab/core';
 
 // O perfil do motorista como está no banco. Link, horários e plano moram lá e só o servidor
 // escreve os dois últimos campos — por isso as telas leem daqui e não do store local.
 export function useDriver() {
   const { user, devSession } = useAuth();
-  const uid = user?.uid ?? null;
+  // Na demonstração não há conta: o identificador falso é o que faz cada leitura cair no
+  // conjunto de exemplo em vez de ir ao banco.
+  const uid = devSession ? DEMO_UID : (user?.uid ?? null);
   const { data, loading, error } = useUser(uid);
 
   const slots: Slots = (data?.slots as Slots) ?? defaultSlots;

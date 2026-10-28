@@ -1,8 +1,10 @@
 import { addDoc, collection, deleteDoc, doc, orderBy, serverTimestamp, setDoc, updateDoc, where } from 'firebase/firestore';
+import { useMemo } from 'react';
 
 import type { Plan } from '../plan';
 import type { Slots } from '../slots';
 import { db } from './client';
+import { demoActive, demoData, isDemo } from './demo';
 import { useCollection, useDoc, type Live } from './live';
 import {
   chargeId,
@@ -26,38 +28,50 @@ import {
 // e a data do plano é o que estamos cobrando.
 
 // ─── Leituras ao vivo ────────────────────────────────────────────────────────
+//
+// Na sessão de demonstração não existe conta nem banco: cada leitura devolve o conjunto de
+// exemplo e nenhuma escuta é aberta. O caminho vira null antes de chegar ao Firestore, e por
+// isso a chamada do hook continua acontecendo sempre — a ordem dos hooks não pode variar.
+
+const pronto = <T,>(data: T): Live<T> => ({ data, loading: false, error: null });
 
 export function useUser(uid: string | null) {
-  return useDoc<UserDoc>(uid ? `users/${uid}` : null);
+  const live = useDoc<UserDoc>(uid && !isDemo(uid) ? `users/${uid}` : null);
+  return isDemo(uid) ? pronto(demoData().user) : live;
 }
 
 // Os contatos do motorista.
 export function usePassengers(uid: string | null): Live<(PassengerDoc & { id: string })[]> {
-  return useCollection<PassengerDoc>(uid ? 'passengers' : null, [where('driverId', '==', uid)], `pax:${uid}`);
+  const live = useCollection<PassengerDoc>(uid && !isDemo(uid) ? 'passengers' : null, [where('driverId', '==', uid)], `pax:${uid}`);
+  return isDemo(uid) ? pronto(demoData().passengers) : live;
 }
 
 // Tudo o que ele combinou, em qualquer estado. A lista é pequena (uma por passageiro e trajeto)
 // e serve a agenda, a home e a conta do mês de uma vez só.
 export function useAgendas(uid: string | null): Live<(AgendaDoc & { id: string })[]> {
-  return useCollection<AgendaDoc>(uid ? 'agendas' : null, [where('driverId', '==', uid)], `ag:${uid}`);
+  const live = useCollection<AgendaDoc>(uid && !isDemo(uid) ? 'agendas' : null, [where('driverId', '==', uid)], `ag:${uid}`);
+  return isDemo(uid) ? pronto(demoData().agendas) : live;
 }
 
 // A caixa de pedidos: o que chegou pelo link e ainda espera resposta, mais novo primeiro.
 export function useRequests(uid: string | null): Live<(AgendaDoc & { id: string })[]> {
-  return useCollection<AgendaDoc>(
-    uid ? 'agendas' : null,
+  const live = useCollection<AgendaDoc>(
+    uid && !isDemo(uid) ? 'agendas' : null,
     [where('driverId', '==', uid), where('status', '==', 'requested'), orderBy('createdAt', 'desc')],
     `req:${uid}`,
   );
+  return isDemo(uid) ? pronto(demoData().agendas.filter((a) => a.status === 'requested')) : live;
 }
 
 // Viagens de um intervalo. As datas são AAAA-MM-DD, que ordenam sozinhas.
 export function useTrips(uid: string | null, from: string, to: string) {
-  return useCollection<TripDoc>(
-    uid ? 'trips' : null,
+  const live = useCollection<TripDoc>(
+    uid && !isDemo(uid) ? 'trips' : null,
     [where('driverId', '==', uid), where('date', '>=', from), where('date', '<=', to)],
     `trip:${uid}:${from}:${to}`,
   );
+  const demo = useMemo(() => (isDemo(uid) ? demoData().trips.filter((t) => t.date >= from && t.date <= to) : null), [uid, from, to]);
+  return demo ? pronto(demo) : live;
 }
 
 // ─── Escritas ────────────────────────────────────────────────────────────────
@@ -67,6 +81,10 @@ function need() {
   return db;
 }
 
+// Na demonstração nada é gravado: não existe conta para assinar a escrita, e as regras do
+// Firestore recusariam. A tela recebe sucesso para que o passo a passo continue navegável.
+const fingeSucesso = () => demoActive();
+
 // Primeiro acesso: cria o perfil. O plano entra zerado e quem põe a data do fim do teste é a
 // Function onUserCreated — se o app pudesse escrevê-la, o teste nunca acabaria.
 export function createUser(
@@ -74,6 +92,7 @@ export function createUser(
   data: Pick<UserDoc, 'name' | 'email' | 'photoURL' | 'termsVersion'>,
   slots: Slots,
 ) {
+  if (fingeSucesso()) return Promise.resolve();
   return setDoc(doc(need(), `users/${uid}`), {
     ...data,
     phone: null,
@@ -90,29 +109,35 @@ export function createUser(
 }
 
 export function setVehicle(uid: string, vehicle: Vehicle | null) {
+  if (fingeSucesso()) return Promise.resolve();
   return updateDoc(doc(need(), `users/${uid}`), { vehicle });
 }
 
 export function setPix(uid: string, pix: Pix | null) {
+  if (fingeSucesso()) return Promise.resolve();
   return updateDoc(doc(need(), `users/${uid}`), { pix });
 }
 
 export function setPhone(uid: string, phone: string | null) {
+  if (fingeSucesso()) return Promise.resolve();
   return updateDoc(doc(need(), `users/${uid}`), { phone });
 }
 
 // Dias, janela e vagas: é o que a página de agendamento oferece a quem abre o link.
 export function setSlots(uid: string, slots: Slots) {
+  if (fingeSucesso()) return Promise.resolve();
   return updateDoc(doc(need(), `users/${uid}`), { slots });
 }
 
 export function setNotificationsEnabled(uid: string, on: boolean) {
+  if (fingeSucesso()) return Promise.resolve();
   return updateDoc(doc(need(), `users/${uid}`), { notificationsEnabled: on });
 }
 
 // ─── Passageiros ─────────────────────────────────────────────────────────────
 
 export function addPassenger(driverId: string, name: string, phone: string, note = '') {
+  if (fingeSucesso()) return Promise.resolve();
   return addDoc(collection(need(), 'passengers'), {
     driverId,
     name,
@@ -125,6 +150,7 @@ export function addPassenger(driverId: string, name: string, phone: string, note
 }
 
 export function updatePassenger(id: string, data: Partial<Pick<PassengerDoc, 'name' | 'phone' | 'note' | 'archived'>>) {
+  if (fingeSucesso()) return Promise.resolve();
   return updateDoc(doc(need(), `passengers/${id}`), { ...data, updatedAt: serverTimestamp() });
 }
 
@@ -133,6 +159,7 @@ export function updatePassenger(id: string, data: Partial<Pick<PassengerDoc, 'na
 // Responder ao pedido que veio do link. O valor é opcional: o acerto de preço acontece no
 // WhatsApp, e aqui ele só registra o que ficou combinado.
 export function answerRequest(id: string, status: 'confirmed' | 'declined', price: number | null = null) {
+  if (fingeSucesso()) return Promise.resolve();
   return updateDoc(doc(need(), `agendas/${id}`), { status, price, updatedAt: serverTimestamp() });
 }
 
@@ -141,6 +168,7 @@ export function addAgenda(
   base: { driverId: string; passengerId: string; passengerName: string; passengerPhone: string; startDate: string },
   fields: AgendaFields,
 ) {
+  if (fingeSucesso()) return Promise.resolve();
   return addDoc(collection(need(), 'agendas'), {
     ...base,
     ...fields,
@@ -153,17 +181,20 @@ export function addAgenda(
 
 // Corrigir o que já está confirmado: endereço errado, horário trocado, valor acertado depois.
 export function updateAgenda(id: string, fields: AgendaFields) {
+  if (fingeSucesso()) return Promise.resolve();
   return updateDoc(doc(need(), `agendas/${id}`), { ...fields, updatedAt: serverTimestamp() });
 }
 
 export function endAgenda(id: string, by: 'driver' | 'passenger') {
+  if (fingeSucesso()) return Promise.resolve();
   return updateDoc(doc(need(), `agendas/${id}`), { status: 'ended', endedBy: by, updatedAt: serverTimestamp() });
 }
 
 // ─── Cobrança do mês ─────────────────────────────────────────────────────────
 
 export function useCharges(uid: string | null): Live<(ChargeDoc & { id: string })[]> {
-  return useCollection<ChargeDoc>(uid ? 'charges' : null, [where('driverId', '==', uid)], `chg:${uid}`);
+  const live = useCollection<ChargeDoc>(uid && !isDemo(uid) ? 'charges' : null, [where('driverId', '==', uid)], `chg:${uid}`);
+  return isDemo(uid) ? pronto(demoData().charges) : live;
 }
 
 // Marcado quando ele abre o WhatsApp com a conta do mês escrita. Nós não sabemos se ele tocou em
@@ -171,6 +202,7 @@ export function useCharges(uid: string | null): Live<(ChargeDoc & { id: string }
 export function setChargeSent(
   base: { driverId: string; passengerId: string; month: string; totalCents: number; trips: number },
 ) {
+  if (fingeSucesso()) return Promise.resolve();
   return setDoc(doc(need(), `charges/${chargeId(base.driverId, base.passengerId, base.month)}`), {
     ...base,
     sentAt: serverTimestamp(),
@@ -178,6 +210,7 @@ export function setChargeSent(
 }
 
 export function clearChargeSent(driverId: string, passengerId: string, month: string) {
+  if (fingeSucesso()) return Promise.resolve();
   return deleteDoc(doc(need(), `charges/${chargeId(driverId, passengerId, month)}`));
 }
 
@@ -200,6 +233,7 @@ export function setTripPaidAt(
   base: { agendaId: string; driverId: string; passengerId: string; date: string; time: string; price: number | null },
   paid: boolean,
 ) {
+  if (fingeSucesso()) return Promise.resolve();
   return setDoc(
     doc(need(), `trips/${tripId(base.agendaId, base.date)}`),
     { ...base, paidAt: paid ? serverTimestamp() : null, updatedAt: serverTimestamp() },
@@ -212,6 +246,7 @@ export function setTripStatus(
   status: TripStatus,
   cancelledBy: 'driver' | 'passenger' | null = null,
 ) {
+  if (fingeSucesso()) return Promise.resolve();
   return setDoc(
     doc(need(), `trips/${tripId(base.agendaId, base.date)}`),
     {

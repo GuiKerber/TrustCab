@@ -100,7 +100,14 @@ export default function Home() {
             {trips.length === 1 ? '1 viagem' : `${trips.length} viagens`}
           </Text>
           <Text variant="bodyMedium" tone="secondary" style={styles.total}>
-            {trips.length === 0 ? 'Dia livre' : future ? 'Os ganhos entram quando você concluir as viagens' : `${formatPrice(earned)} ganhos no dia`}
+            {/* Zero reais no dia de hoje, às seis da manhã, com dez viagens pela frente, lê como
+                fracasso em vez de "ainda não começou". Enquanto nada foi concluído, a frase é a
+                mesma dos dias futuros. */}
+            {trips.length === 0
+              ? 'Dia livre'
+              : future || earned === 0
+                ? 'Os ganhos entram quando você concluir as viagens'
+                : `${formatPrice(earned)} ganhos no dia`}
           </Text>
         </View>
 
