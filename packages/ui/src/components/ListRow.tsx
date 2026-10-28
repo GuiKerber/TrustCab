@@ -48,7 +48,7 @@ export function ListRow({
         <Text variant="bodyMedium">{title}</Text>
         <View style={styles.value}>
           {pending ? <Icon name="error" size={size.icon.sm} color={colors.orange} /> : null}
-          <Text variant="small" tone={pending ? 'orange' : 'secondary'} numberOfLines={1} style={styles.valueText}>
+          <Text variant="small" tone={pending ? 'orange' : 'secondary'} numberOfLines={pending ? 2 : 1} style={styles.valueText}>
             {value}
           </Text>
         </View>

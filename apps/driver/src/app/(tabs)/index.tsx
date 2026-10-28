@@ -3,14 +3,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { AppState, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Banner, cardColor, type CardOrigin, colors, DaySlider, isClosed, layout, ScreenStatus, spacing, Text, TripStack } from '@trustcab/ui';
+import { Button, cardColor, type CardOrigin, colors, DaySlider, isClosed, layout, ScreenStatus, spacing, Text, TripStack } from '@trustcab/ui';
 import { ForgottenTripsDialog, type ForgottenTrip } from '@/components/ForgottenTripsDialog';
 import { TripSheet } from '@/components/TripSheet';
 import { TopBar } from '@/components/TopBar';
 import { useTripActions } from '@/components/useTripActions';
 import { useDays } from '@/data/days';
 import { useDriver } from '@/data/driver';
-import { missingSetup, useProfile } from '@/data/profile';
+import { useProfile } from '@/data/profile';
 import { dayKey, formatPrice, isForgotten, isSameDay, startOfDay, useNow, weekdayTitle } from '@trustcab/core';
 import { useTripNotifications } from '@/lib/notifications';
 
@@ -29,9 +29,8 @@ export default function Home() {
   const params = useLocalSearchParams<{ trip?: string; day?: string }>();
   const now = useNow();
   const clock = useNow('minute');
+  const { notifications } = useProfile();
   const { uid, name, slug } = useDriver();
-  const profile = useProfile();
-  const missing = missingSetup(profile);
   const focused = useIsFocused();
   const [selected, setSelected] = useState(() => startOfDay(now));
   const [open, setOpen] = useState<{ id: string; color: string; origin: CardOrigin | null } | null>(null);
@@ -72,7 +71,7 @@ export default function Home() {
   const ahead = new Date(now.getFullYear(), now.getMonth(), now.getDate() + NOTIFY_AHEAD_DAYS);
   useTripNotifications(
     allDays.filter((day) => day.date >= startOfDay(now) && day.date <= ahead).flatMap((day) => day.trips.map((trip) => ({ date: day.date, trip }))),
-    profile.notifications,
+    notifications,
   );
 
   // Link direto para uma viagem (notificação ou link externo): abre o dia e a folha dela.
@@ -94,19 +93,6 @@ export default function Home() {
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <TopBar title={`Olá, ${name.split(' ')[0] || 'motorista'}`} />
-
-        {missing.any ? (
-          <Banner
-            icon="lock"
-            tone="warning"
-            title={missing.vehicle && missing.pix ? 'Cadastre seu carro e sua chave Pix' : missing.vehicle ? 'Cadastre seu carro' : 'Cadastre sua chave Pix'}
-            text="Sem eles, você não consegue começar as viagens. O carro aparece na sua página de agendamento; o Pix vira o QR Code do pagamento."
-            actions={[
-              ...(missing.vehicle ? [{ label: 'Cadastrar carro', icon: 'directions_car' as const, onPress: () => router.push('/vehicle') }] : []),
-              ...(missing.pix ? [{ label: 'Cadastrar Pix', icon: 'qr_code_2' as const, onPress: () => router.push('/pix') }] : []),
-            ]}
-          />
-        ) : null}
 
         <View style={styles.title}>
           <Text variant="display">{dayTitle}</Text>
@@ -132,6 +118,11 @@ export default function Home() {
                 ? 'Mande seu link para quem já anda com você: os pedidos chegam aqui.'
                 : 'Seus passageiros podem pedir pelo seu link a qualquer momento.'}
             </Text>
+            {/* Quem nunca mandou o link está lendo a única instrução que importa. Mandar ele
+                procurar o caminho no Perfil é perder a pessoa no primeiro dia. */}
+            {agendas.length === 0 ? (
+              <Button label="Ver meu link" icon="link" variant="light" onPress={() => router.push('/link')} style={styles.emptyAction} />
+            ) : null}
           </View>
         )}
       </ScrollView>
@@ -178,5 +169,6 @@ const styles = StyleSheet.create({
   },
   title: { paddingHorizontal: spacing[4] },
   total: { marginTop: spacing[8] },
+  emptyAction: { marginTop: spacing[16] },
   empty: { paddingTop: spacing[40], paddingHorizontal: spacing[4], gap: spacing[8] },
 });

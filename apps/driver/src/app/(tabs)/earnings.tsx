@@ -82,8 +82,13 @@ export default function Earnings() {
   const current = history.find((entry) => monthKey(entry.month) === month) ?? history[history.length - 1];
   const days = current.days;
 
-  const passengers = [...new Set(days.flatMap((day) => day.trips.map((trip) => trip.passenger)))];
-  const matches = (trip: Trip) => passenger === ALL || trip.passenger === passenger;
+  // Agrupar por pessoa, não por nome: dois passageiros chamados igual são duas pessoas, com
+  // duas contas e dois WhatsApps. O nome serve de rótulo.
+  const people = [...new Map(days.flatMap((day) => day.trips).map((trip) => [trip.passengerId, trip.passenger])).entries()].map(
+    ([id, nome]) => ({ id, nome }),
+  );
+  const selected = people.find((person) => person.id === passenger) ?? null;
+  const matches = (trip: Trip) => passenger === ALL || trip.passengerId === passenger;
 
   const doneDays = days
     .map((day) => ({ date: day.date, trips: day.trips.filter((trip) => trip.status === 'completed' && matches(trip)) }))
@@ -93,16 +98,16 @@ export default function Earnings() {
 
   const total = sum(done);
   const name = monthName(current.month);
-  const firstName = passenger === ALL ? '' : passenger.split(' ')[0];
+  const fullName = selected?.nome ?? '';
+  const firstName = fullName.split(' ')[0] ?? '';
   // A cobrança sai pelo WhatsApp: sem o número do passageiro não há para onde mandar. O nome é a
   // chave porque é por ele que a tela inteira agrupa; dois passageiros com o mesmo nome cairiam no
   // mesmo balde, e aí o motorista corrige um dos dois no cadastro.
-  const agendaOf = (who: string) => agendas.find((a) => a.passengerName === who);
-  const phoneOf = (who: string) => agendaOf(who)?.passengerPhone ?? null;
+  const phoneOf = (id: string) => agendas.find((a) => a.passengerId === id)?.passengerPhone ?? null;
 
-  const byPassenger = passengers.map((person, index) => {
-    const trips = days.flatMap((day) => day.trips).filter((trip) => trip.status === 'completed' && trip.passenger === person);
-    return { person, trips, total: sum(trips), color: colors.cards[index % colors.cards.length] };
+  const byPassenger = people.map((person, index) => {
+    const trips = days.flatMap((day) => day.trips).filter((trip) => trip.status === 'completed' && trip.passengerId === person.id);
+    return { ...person, trips, total: sum(trips), color: colors.cards[index % colors.cards.length] };
   });
 
   // Viagem paga na hora (QR Code) não entra na cobrança do mês.
@@ -114,7 +119,7 @@ export default function Earnings() {
 
   // O mês da cobrança em AAAA-MM, que é como ele fica guardado.
   const chargeMonth = `${current.month.getFullYear()}-${String(current.month.getMonth() + 1).padStart(2, '0')}`;
-  const passengerId = passenger === ALL ? null : (agendaOf(passenger)?.passengerId ?? null);
+  const passengerId = passenger === ALL ? null : passenger;
   const charge = passengerId
     ? charges.data.find((c) => c.passengerId === passengerId && c.month === chargeMonth)
     : undefined;
@@ -132,7 +137,7 @@ export default function Earnings() {
   }));
   const passengerItems = [
     { key: ALL, label: 'Todos', accessibilityLabel: 'Todos os passageiros' },
-    ...passengers.map((person) => ({ key: person, label: person.split(' ')[0], accessibilityLabel: person })),
+    ...people.map((person) => ({ key: person.id, label: person.nome.split(' ')[0], accessibilityLabel: person.nome })),
   ];
 
   if (loading || error) {
@@ -160,16 +165,16 @@ export default function Earnings() {
 
         {passenger === ALL && byPassenger.length > 0 ? (
           <View style={styles.people}>
-            {byPassenger.map(({ person, trips, total: personTotal, color }, index) => (
+            {byPassenger.map(({ id, nome, trips, total: personTotal, color }, index) => (
               <PersonCard
-                key={person}
-                person={person}
+                key={id}
+                person={nome}
                 count={trips.length}
                 totalCents={personTotal}
                 color={color}
                 first={index === 0}
                 last={index === byPassenger.length - 1}
-                onPress={() => setPassenger(person)}
+                onPress={() => setPassenger(id)}
               />
             ))}
           </View>
@@ -286,7 +291,7 @@ export default function Earnings() {
       {key ? (
         <ChargeSheet
           visible={preview}
-          passenger={passenger}
+          passenger={fullName}
           monthLabel={name}
           lines={chargeLines}
           totalCents={chargeTotal}

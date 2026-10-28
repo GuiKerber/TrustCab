@@ -56,6 +56,7 @@ export function buildDays(agendas: Agenda[], trips: TripRow[], from: Date, to: D
       doDia.push({
         id: `${agenda.id}_${key}`,
         time: agenda.time,
+        passengerId: agenda.passengerId,
         passenger: agenda.passengerName,
         origin: agenda.origin,
         destination: agenda.destination,

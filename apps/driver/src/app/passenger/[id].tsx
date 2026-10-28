@@ -117,7 +117,7 @@ export default function PassengerScreen() {
   const current = meses[0];
 
   const openMonth = (month: Date) =>
-    router.navigate({ pathname: '/earnings', params: { passenger: passenger.name, month: `${month.getFullYear()}-${month.getMonth()}` } });
+    router.navigate({ pathname: '/earnings', params: { passenger: passenger.id, month: `${month.getFullYear()}-${month.getMonth()}` } });
 
   const arquivar = async () => {
     const arquivado = passenger.state === 'archived';

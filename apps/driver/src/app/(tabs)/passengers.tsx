@@ -45,7 +45,7 @@ export default function Passengers() {
         .filter((day) => day.date >= hoje)
         .flatMap((day) => day.trips)
         .filter((trip) => trip.status !== 'cancelled')
-        .map((trip) => trip.passenger),
+        .map((trip) => trip.passengerId),
     );
   }, [days, now]);
 
@@ -57,13 +57,13 @@ export default function Passengers() {
   const summary = (passenger: Contact) => {
     const concluidas = mesAtual
       .flatMap((day) => day.trips)
-      .filter((trip) => trip.passenger === passenger.name && trip.status === 'completed');
+      .filter((trip) => trip.passengerId === passenger.id && trip.status === 'completed');
     const total = concluidas.reduce((soma, trip) => soma + trip.priceCents, 0);
     const pendentes = requests.data.filter((r) => r.passengerId === passenger.id).length;
 
     const viagens = concluidas.length === 1 ? '1 viagem' : `${concluidas.length} viagens`;
     const pedidos = pendentes === 1 ? '1 pedido esperando você' : `${pendentes} pedidos esperando você`;
-    const semMarcada = !marcadas.has(passenger.name);
+    const semMarcada = !marcadas.has(passenger.id);
 
     return {
       total,

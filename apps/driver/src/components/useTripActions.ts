@@ -70,7 +70,7 @@ export function useTripActions({
 
   const openSpending = (trip: Trip) => {
     close();
-    router.navigate({ pathname: '/earnings', params: { passenger: trip.passenger, month: `${date.getFullYear()}-${date.getMonth()}` } });
+    router.navigate({ pathname: '/earnings', params: { passenger: trip.passengerId, month: `${date.getFullYear()}-${date.getMonth()}` } });
   };
 
   // Toda ação pode ser desfeita pelos três pontos. Cancelar fica na própria folha, com confirmação.

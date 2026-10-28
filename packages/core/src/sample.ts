@@ -9,6 +9,9 @@ export type TripStatus = 'requested' | 'declined' | 'scheduled' | 'on_the_way' |
 export type Trip = {
   id: string;
   time: string;
+  // Quem é o passageiro. O nome serve para ler; é este id que agrupa dinheiro e histórico,
+  // porque duas pessoas podem se chamar igual e o nome quem digita é o próprio passageiro.
+  passengerId: string;
   passenger: string;
   // Quem dirige. O app do passageiro mostra em cada cartão, porque ele pode ter mais de um motorista.
   driver?: string;
@@ -50,7 +53,7 @@ function trip(
   etaMinutes: number,
   status: TripStatus = 'scheduled',
 ): Trip {
-  return { id, time, passenger, origin, destination, priceCents, etaMinutes, status };
+  return { id, time, passengerId: passengerIdOf(passenger), passenger, origin, destination, priceCents, etaMinutes, status };
 }
 
 function tripsFor(date: Date, today: Date): Trip[] {
