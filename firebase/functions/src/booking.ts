@@ -4,17 +4,25 @@ import { FieldValue, getFirestore, type Firestore } from 'firebase-admin/firesto
 import { onRequest } from 'firebase-functions/v2/https';
 
 import {
-  emptyForm,
+  emptySingle,
+  emptyWeekly,
   firstName,
   parsePhone,
-  readForm,
+  readSingle,
+  readWeekly,
   renderDone,
-  renderForm,
+  renderLanding,
   renderMessage,
-  validate,
+  renderSingle,
+  renderWeekly,
+  singleLines,
+  validateSingle,
+  validateWeekly,
+  weeklyLines,
   type Context,
   type DriverCard,
-  type Form,
+  type SingleForm,
+  type WeeklyForm,
 } from './page';
 import {
   addDated,
@@ -27,7 +35,6 @@ import {
   nextDates,
   nowTime,
   readSlots,
-  slotTimes,
   todayISO,
 } from './slots';
 
@@ -100,7 +107,6 @@ async function loadContext(db: Firestore, slug: string): Promise<Context | { clo
     today,
     now: nowTime(),
     dates: nextDates(slots, today),
-    times: slotTimes(slots),
   };
 }
 
@@ -152,51 +158,91 @@ async function findOrCreatePassenger(db: Firestore, driverId: string, name: stri
   return ref.id;
 }
 
-async function saveRequest(db: Firestore, ctx: Context, form: Form, phone: string) {
-  const passengerId = await findOrCreatePassenger(db, ctx.driverId, form.name, phone);
-
-  // Enviar duas vezes (toque duplo, voltar e reenviar) não vira dois pedidos iguais.
-  const same = await db
+// Quando a mesma viagem é pedida duas vezes — toque duplo, voltar e reenviar — o segundo pedido
+// não vira um documento novo.
+async function pendentes(db: Firestore, driverId: string, passengerId: string) {
+  const snap = await db
     .collection('agendas')
-    .where('driverId', '==', ctx.driverId)
+    .where('driverId', '==', driverId)
     .where('passengerId', '==', passengerId)
     .where('status', '==', 'requested')
     .get();
-  const duplicate = same.docs.find((doc) => {
-    const a = doc.data();
-    return (
-      a.kind === form.kind &&
-      a.time === form.time &&
-      (form.kind === 'single' ? a.date === form.date : String(a.weekdays ?? []) === String(form.weekdays))
-    );
-  });
-  if (duplicate) return duplicate.id;
+  return snap.docs;
+}
 
-  // A recorrente começa hoje, a não ser que o horário de hoje já tenha passado: marcar "toda
-  // segunda às 07:00" numa segunda de tarde não pode deixar a segunda de hoje na conta.
-  const startDate =
-    form.kind === 'single' ? form.date : isPast(ctx.today, form.time, ctx.today, ctx.now) ? addDays(ctx.today, 1) : ctx.today;
-
-  const ref = await db.collection('agendas').add({
+function novaAgenda(ctx: Context, passengerId: string, nome: string, phone: string, nota: string) {
+  return {
     driverId: ctx.driverId,
     passengerId,
-    passengerName: form.name,
+    passengerName: nome,
     passengerPhone: phone,
-    status: 'requested',
-    source: 'link',
-    startDate,
-    kind: form.kind,
-    weekdays: form.kind === 'recurring' ? form.weekdays : [],
-    date: form.kind === 'single' ? form.date : null,
-    time: form.time,
-    origin: form.origin,
-    destination: form.destination,
-    note: form.note,
+    status: 'requested' as const,
+    source: 'link' as const,
+    note: nota,
     price: null,
     createdAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp(),
+  };
+}
+
+async function saveSingle(db: Firestore, ctx: Context, form: SingleForm, phone: string) {
+  const passengerId = await findOrCreatePassenger(db, ctx.driverId, form.name, phone);
+  const abertos = await pendentes(db, ctx.driverId, passengerId);
+  const igual = abertos.find((doc) => {
+    const a = doc.data();
+    return a.kind === 'single' && a.date === form.date && a.time === form.time;
   });
-  return ref.id;
+  if (igual) return;
+
+  await db.collection('agendas').add({
+    ...novaAgenda(ctx, passengerId, form.name, phone, form.note),
+    startDate: form.date,
+    kind: 'single',
+    weekdays: [],
+    date: form.date,
+    time: form.time,
+    origin: form.origin,
+    destination: form.destination,
+  });
+}
+
+// A semana vira uma agenda por trajeto-e-horário, com os dias juntos: "toda segunda e quarta às
+// 07:00, casa → trabalho" é um combinado só, e é assim que o motorista lê no app. Ida e volta do
+// mesmo dia são dois combinados, porque são dois trajetos.
+async function saveWeekly(db: Firestore, ctx: Context, form: WeeklyForm, phone: string) {
+  const passengerId = await findOrCreatePassenger(db, ctx.driverId, form.name, phone);
+  const abertos = await pendentes(db, ctx.driverId, passengerId);
+
+  const grupos = new Map<string, { time: string; origin: string; destination: string; weekdays: number[] }>();
+  for (const leg of form.legs) {
+    const chave = `${leg.time}|${leg.origin}|${leg.destination}`;
+    const atual = grupos.get(chave);
+    if (atual) atual.weekdays.push(leg.weekday);
+    else grupos.set(chave, { time: leg.time, origin: leg.origin, destination: leg.destination, weekdays: [leg.weekday] });
+  }
+
+  for (const grupo of grupos.values()) {
+    const weekdays = [...new Set(grupo.weekdays)].sort();
+    const igual = abertos.find((doc) => {
+      const a = doc.data();
+      return a.kind === 'recurring' && a.time === grupo.time && String(a.weekdays ?? []) === String(weekdays);
+    });
+    if (igual) continue;
+
+    // A recorrente começa hoje, a não ser que o horário de hoje já tenha passado: marcar "toda
+    // segunda às 07:00" numa segunda de tarde não pode deixar a segunda de hoje na conta.
+    const startDate = isPast(ctx.today, grupo.time, ctx.today, ctx.now) ? addDays(ctx.today, 1) : ctx.today;
+    await db.collection('agendas').add({
+      ...novaAgenda(ctx, passengerId, form.name, phone, form.note),
+      startDate,
+      kind: 'recurring',
+      weekdays,
+      date: null,
+      time: grupo.time,
+      origin: grupo.origin,
+      destination: grupo.destination,
+    });
+  }
 }
 
 // ─── A Function ──────────────────────────────────────────────────────────────
@@ -237,14 +283,22 @@ export const bookingPage = onRequest({ cors: false }, async (req, res) => {
   const ctx = loaded;
 
   if (req.method !== 'POST') {
-    res.status(200).send(renderForm(ctx, emptyForm()));
+    const modo = String((req.query?.m ?? '') as string);
+    if (modo === 'unica') res.status(200).send(renderSingle(ctx, emptySingle()));
+    else if (modo === 'semanal') res.status(200).send(renderWeekly(ctx, emptyWeekly()));
+    else res.status(200).send(renderLanding(ctx));
     return;
   }
 
-  const form = readForm((req.body ?? {}) as Record<string, unknown>);
-  const invalid = validate(ctx, form);
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const semanal = body.kind === 'weekly';
+  const form = semanal ? readWeekly(body) : readSingle(body);
+  const invalid = semanal ? validateWeekly(ctx, form as WeeklyForm) : validateSingle(ctx, form as SingleForm);
+  const devolve = (erro: { title: string; detail: string }) =>
+    semanal ? renderWeekly(ctx, form as WeeklyForm, erro) : renderSingle(ctx, form as SingleForm, erro);
+
   if (invalid) {
-    res.status(200).send(renderForm(ctx, form, invalid));
+    res.status(200).send(devolve(invalid));
     return;
   }
 
@@ -252,7 +306,7 @@ export const bookingPage = onRequest({ cors: false }, async (req, res) => {
   const limit = await overLimit(db, ctx.driverId, phone);
   if (limit) {
     res.status(429).send(
-      renderForm(ctx, form, {
+      devolve({
         title: limit === 'phone' ? 'Você já pediu várias vezes hoje.' : 'A agenda dele está cheia de pedidos.',
         detail:
           limit === 'phone'
@@ -263,6 +317,9 @@ export const bookingPage = onRequest({ cors: false }, async (req, res) => {
     return;
   }
 
-  await saveRequest(db, ctx, form, phone);
-  res.status(200).send(renderDone(ctx, { ...form, phone }));
+  if (semanal) await saveWeekly(db, ctx, form as WeeklyForm, phone);
+  else await saveSingle(db, ctx, form as SingleForm, phone);
+
+  const lines = semanal ? weeklyLines(form as WeeklyForm) : singleLines(form as SingleForm);
+  res.status(200).send(renderDone(ctx, { name: form.name, phone, lines, recurring: semanal }));
 });
