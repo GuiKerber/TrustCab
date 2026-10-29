@@ -32,7 +32,7 @@ export function isOpenTrip(trip: Trip) {
 
 // Viagem que já deveria ter terminado e continua aberta: o motorista esqueceu de concluir.
 export function isForgotten(date: Date, trip: Trip, now: Date) {
-  const end = tripStart(date, trip.time).getTime() + (trip.etaMinutes + FORGOTTEN_AFTER_MINUTES) * MINUTE;
+  const end = tripStart(date, trip.time).getTime() + FORGOTTEN_AFTER_MINUTES * MINUTE;
   return isOpenTrip(trip) && now.getTime() > end;
 }
 

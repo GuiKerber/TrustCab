@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { bookingShortUrl, shareLink } from '@trustcab/core';
 import { rotateLink } from '@trustcab/core/db';
-import { Banner, Block, Button, ConfirmDialog, FormScreen, Label, spacing, Text } from '@trustcab/ui';
+import { Banner, Block, Button, ConfirmDialog, FormScreen, Label, spacing, Text, Toast } from '@trustcab/ui';
 
 import { useDriver } from '@/data/driver';
 import { shareText } from '@/data/whatsapp';
@@ -20,14 +20,19 @@ export default function LinkScreen() {
   const [busy, setBusy] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
   const url = slug ? bookingShortUrl(slug) : null;
 
   const gerar = async () => {
     setError(null);
     setBusy(true);
+    const tinha = Boolean(slug);
     try {
       await rotateLink();
       setConfirm(false);
+      // Sem este aviso a pessoa toca no botão, o endereço muda sozinho na tela e ela não tem
+      // como saber se foi ela que fez aquilo — nem que o link antigo acabou de morrer.
+      setAviso(tinha ? 'Link novo criado. O anterior parou de funcionar.' : 'Seu link está pronto.');
     } catch {
       setError('Não deu para gerar o link agora. Confira sua internet e tente de novo.');
     } finally {
@@ -75,8 +80,7 @@ export default function LinkScreen() {
           de agenda
         </Text>
         <Text variant="body" tone="secondary" style={styles.lead}>
-          Quem abre escolhe o dia e o horário entre os que você tem livres, deixa nome e WhatsApp, e o
-          pedido cai aqui. Ninguém precisa instalar nada.
+          Mande este link para quem anda com você. A pessoa escolhe o dia e o horário, e você confirma.
         </Text>
       </View>
 
@@ -97,7 +101,7 @@ export default function LinkScreen() {
             {url}
           </Text>
           <Text variant="small" tone="secondary">
-            Toque e segure para copiar. Vale fixar no seu status e na descrição do seu WhatsApp.
+            Toque e segure para copiar.
           </Text>
         </Block>
       ) : null}
@@ -108,14 +112,7 @@ export default function LinkScreen() {
         </Text>
       ) : null}
 
-      <View style={styles.note}>
-        <Label>O que aparece para quem abre</Label>
-        <Text variant="small" tone="secondary">
-          Seu nome, sua foto e seu carro. Seu telefone não fica escrito na página: ele só entra no botão
-          que abre o WhatsApp depois que a pessoa pede. E os horários aparecem como livre ou cheio, sem o
-          nome de ninguém.
-        </Text>
-      </View>
+      <Toast message={aviso} onHide={() => setAviso(null)} />
 
       <ConfirmDialog
         visible={confirm}
@@ -134,6 +131,5 @@ const styles = StyleSheet.create({
   head: { paddingHorizontal: spacing[4] },
   lead: { marginTop: spacing[12] },
   link: { gap: spacing[4] },
-  note: { paddingHorizontal: spacing[4], gap: spacing[4] },
   center: { alignSelf: 'center' },
 });

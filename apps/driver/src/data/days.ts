@@ -27,10 +27,6 @@ const iso = (date: Date) =>
 
 const weekdayOf = (date: Date) => date.getDay();
 
-// Sem integração com mapas não existe tempo estimado. Zero é lido como "não sei" pelas telas,
-// que escondem o bloco — melhor do que inventar um número que o motorista não pode conferir.
-const NO_ETA = 0;
-
 function serves(agenda: Agenda, date: Date, key: string) {
   if (agenda.status !== 'confirmed') return false;
   if (agenda.startDate && key < agenda.startDate) return false;
@@ -62,7 +58,6 @@ export function buildDays(agendas: Agenda[], trips: TripRow[], from: Date, to: D
         destination: agenda.destination,
         // Sem valor combinado, zero: a tela mostra isso como "sem valor" e ele acerta depois.
         priceCents: row?.price ?? agenda.price ?? 0,
-        etaMinutes: NO_ETA,
         status: statusOf(row),
       });
     }

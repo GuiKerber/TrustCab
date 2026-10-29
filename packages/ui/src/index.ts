@@ -36,3 +36,4 @@ export * from './components/LoginScreen';
 export * from './components/ChipGroup';
 export * from './components/AgendaDay';
 export * from './components/SettingsScreen';
+export * from './components/Toast'

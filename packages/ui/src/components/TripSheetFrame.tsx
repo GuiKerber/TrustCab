@@ -21,7 +21,7 @@ import { CancelTripDialog } from './CancelTripDialog';
 import type { CardOrigin } from './CardStack';
 import { FadeScroll } from './FadeScroll';
 import { ROUTE_PALETTES, RouteMap, RouteNode, routeStep, type RouteTone } from './Route';
-import { isClosed, routeProgress, statusLabel, tripEta } from './TripBlocks';
+import { isClosed, routeProgress, statusLabel } from './TripBlocks';
 import { TripOptions, type TripOption } from './TripOptions';
 import { Handle, Icon, Label, Text, type Tone } from './ui';
 
@@ -53,7 +53,6 @@ export type TripSheetFrameProps = {
   // Primeiro ponto do percurso. Motorista: "Você · Sua localização". Passageiro: o motorista saindo.
   start?: { label: string; text: string };
   // Rótulo do tempo estimado. Motorista: "Chegada em" (quando chega ao destino). Passageiro: "Tempo de viagem".
-  etaLabel?: string;
   onChat: (trip: Trip) => void;
   // Opções dos três pontos. "Cancelar viagem" entra no fim quando a viagem ainda vai acontecer.
   options: TripOption[];
@@ -79,7 +78,6 @@ export function TripSheetFrame({
   person,
   personDetail,
   start = { label: 'Você', text: 'Sua localização' },
-  etaLabel,
   onChat,
   options,
   canCancel,
@@ -186,13 +184,15 @@ export function TripSheetFrame({
   const price = trip.priceCents % 100 === 0 ? formatPriceShort(trip.priceCents) : formatPrice(trip.priceCents);
   const tone: Tone = dark ? 'text' : 'onCard';
   const muted: Tone = dark ? 'secondary' : 'onCardMuted';
-  const buttonVariant = dark ? 'surface' : 'light';
+  // Sobre o cartão colorido, tudo que é botão fica escuro — os ícones do topo e a ação do rodapé.
+  // Um botão claro sobre amarelo ou menta some no próprio cartão; o escuro é o único que se
+  // separa de todas as cinco cores sem precisar de borda.
+  const buttonVariant = dark ? 'surface' : 'ink';
   const actionVariant: 'ink' | 'light' = dark ? 'light' : 'ink';
   const onCard = !dark;
   const firstName = person.split(' ')[0];
   const closed = isClosed(trip);
   const step = routeStep(routeProgress(trip.status));
-  const eta = tripEta(trip, etaLabel);
   const routeTone: RouteTone = dark ? 'onDark' : 'onCard';
   const palette = ROUTE_PALETTES[routeTone];
   const rail = (done: boolean) => (done ? palette.stroke : palette.faint);
@@ -259,12 +259,6 @@ export function TripSheetFrame({
                       <Label tone={muted}>Valor combinado</Label>
                       <Text variant="displaySm" tone={tone} numberOfLines={1}>
                         {price}
-                      </Text>
-                    </View>
-                    <View style={styles.metric}>
-                      <Label tone={muted}>{eta.label}</Label>
-                      <Text variant="displaySm" tone={tone}>
-                        {eta.value}
                       </Text>
                     </View>
                   </View>

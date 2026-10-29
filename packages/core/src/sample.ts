@@ -19,8 +19,6 @@ export type Trip = {
   destination: string;
   // O passageiro propõe o valor ao pedir; você aprova ou recusa o pedido com ele.
   priceCents: number;
-  // Tempo estimado de viagem, da partida ao destino. No app real vem do Google Maps.
-  etaMinutes: number;
   status: TripStatus;
 };
 
@@ -50,10 +48,9 @@ function trip(
   origin: string,
   destination: string,
   priceCents: number,
-  etaMinutes: number,
   status: TripStatus = 'scheduled',
 ): Trip {
-  return { id, time, passengerId: passengerIdOf(passenger), passenger, origin, destination, priceCents, etaMinutes, status };
+  return { id, time, passengerId: passengerIdOf(passenger), passenger, origin, destination, priceCents, status };
 }
 
 function tripsFor(date: Date, today: Date): Trip[] {
@@ -62,12 +59,12 @@ function tripsFor(date: Date, today: Date): Trip[] {
   const status: TripStatus = startOfDay(date) < startOfDay(today) ? 'completed' : 'scheduled';
   if (weekday === 0) return [];
   if (weekday === 6) {
-    return [trip(`${prefix}-s`, '09:00', 'Ana Souza', 'Rua das Flores, 120', 'Academia Movimento', 1800, 9, status)];
+    return [trip(`${prefix}-s`, '09:00', 'Ana Souza', 'Rua das Flores, 120', 'Academia Movimento', 1800, status)];
   }
   return [
-    trip(`${prefix}-1`, '07:30', 'Ana Souza', 'Rua das Flores, 120', 'Av. Paulista, 1000', 2500, 22, status),
-    trip(`${prefix}-2`, '08:10', 'Júlia Rocha', 'Rua Harmonia, 45', 'Universidade, R. Maria Antônia', 2000, 18, status),
-    trip(`${prefix}-3`, '18:00', 'Ana Souza', 'Av. Paulista, 1000', 'Rua das Flores, 120', 2500, 25, status),
+    trip(`${prefix}-1`, '07:30', 'Ana Souza', 'Rua das Flores, 120', 'Av. Paulista, 1000', 2500, status),
+    trip(`${prefix}-2`, '08:10', 'Júlia Rocha', 'Rua Harmonia, 45', 'Universidade, R. Maria Antônia', 2000, status),
+    trip(`${prefix}-3`, '18:00', 'Ana Souza', 'Av. Paulista, 1000', 'Rua das Flores, 120', 2500, status),
   ];
 }
 
@@ -108,7 +105,6 @@ export type TripRequest = {
   origin: string;
   destination: string;
   priceCents: number;
-  etaMinutes: number;
 };
 
 export function samplePassengers(now: Date): Passenger[] {
@@ -136,7 +132,7 @@ export function passengerIdOf(name: string) {
 }
 
 export function sampleTripRequests(now: Date): TripRequest[] {
-  const pedro = { passengerId: 'pedro', passenger: 'Pedro Lima', time: '08:00', origin: 'Rua Augusta, 500', destination: 'Av. Faria Lima, 3000', priceCents: 2800, etaMinutes: 20 };
+  const pedro = { passengerId: 'pedro', passenger: 'Pedro Lima', time: '08:00', origin: 'Rua Augusta, 500', destination: 'Av. Faria Lima, 3000', priceCents: 2800 };
   return [
     { id: 'pedido-pedro-seg', date: nextWeekday(now, 1), ...pedro },
     { id: 'pedido-pedro-qua', date: nextWeekday(now, 3), ...pedro },
@@ -150,7 +146,6 @@ export function sampleTripRequests(now: Date): TripRequest[] {
       origin: 'Shopping Iguatemi',
       destination: 'Rua Oscar Freire, 200',
       priceCents: 3500,
-      etaMinutes: 15,
     },
   ];
 }
@@ -170,7 +165,7 @@ export function sampleMonth(now: Date) {
       time = `${String(soon.getHours()).padStart(2, '0')}:${String(soon.getMinutes()).padStart(2, '0')}`;
       nextTripTime.set(todayKey, time);
     }
-    const extra = trip('hoje-proxima', time, 'Ana Souza', 'Av. Paulista, 1000', 'Clínica Bem-Estar, R. Augusta', 3000, 12);
+    const extra = trip('hoje-proxima', time, 'Ana Souza', 'Av. Paulista, 1000', 'Clínica Bem-Estar, R. Augusta', 3000);
     const done = today.trips.map((t): Trip => (t.time < time ? { ...t, status: 'completed' } : t));
     today.trips = [...done, extra].sort((a, b) => a.time.localeCompare(b.time));
   }

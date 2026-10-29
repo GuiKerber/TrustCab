@@ -43,7 +43,7 @@ async function schedule(items: ScheduledTrip[], prefs: Record<NotificationKind, 
         }),
       );
     }
-    const forgotten = tripStart(date, trip.time).getTime() + (trip.etaMinutes + FORGOTTEN_AFTER_MINUTES) * MINUTE;
+    const forgotten = tripStart(date, trip.time).getTime() + FORGOTTEN_AFTER_MINUTES * MINUTE;
     if (prefs.forgottenTrip && forgotten > now) {
       jobs.push(
         Notifications.scheduleNotificationAsync({

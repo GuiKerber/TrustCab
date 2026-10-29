@@ -13,6 +13,7 @@ import {
   Icon,
   IconButton,
   Label,
+  Pills,
   layout,
   radius,
   ScreenStatus,
@@ -49,6 +50,21 @@ const MONTHS = 6;
 
 type Mes = { month: Date; trips: number; totalCents: number };
 
+type Aba = 'combinado' | 'gastos';
+
+// Ativo ou arquivado, com forma e ícone além da cor: quem não distingue cor precisa enxergar a
+// diferença do mesmo jeito.
+function StatusTag({ archived }: { archived: boolean }) {
+  return (
+    <View style={[styles.tag, archived ? styles.tagArchived : styles.tagActive]}>
+      <Icon name={archived ? 'inventory_2' : 'check_circle'} size={size.icon.sm} color={archived ? colors.textSecondary : colors.ink} />
+      <Text variant="label" style={{ color: archived ? colors.textSecondary : colors.ink }}>
+        {archived ? 'Arquivado' : 'Ativo'}
+      </Text>
+    </View>
+  );
+}
+
 // Página do passageiro: quem é, o que está combinado com ele, quanto ele gastou mês a mês e o
 // atalho para a cobrança. Arquivar tira da lista sem apagar nada — a agenda e as viagens apontam
 // para cá, e sem o nome o histórico fica ilegível.
@@ -65,6 +81,7 @@ export default function PassengerScreen() {
   const { days, loading, error } = useDays(uid, from, to);
 
   const [options, setOptions] = useState(false);
+  const [aba, setAba] = useState<Aba>('combinado');
   const [reporting, setReporting] = useState(false);
   const [ending, setEnding] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
@@ -108,7 +125,7 @@ export default function PassengerScreen() {
     const feitas = days
       .filter((day) => day.date.getFullYear() === mes.getFullYear() && day.date.getMonth() === mes.getMonth())
       .flatMap((day) => day.trips)
-      .filter((trip) => trip.passenger === passenger.name && trip.status === 'completed');
+      .filter((trip) => trip.passengerId === passenger.id && trip.status === 'completed');
     meses.push({ month: mes, trips: feitas.length, totalCents: feitas.reduce((soma, t) => soma + t.priceCents, 0) });
   }
 
@@ -151,7 +168,7 @@ export default function PassengerScreen() {
         </View>
 
         <View style={styles.head}>
-          <Label>{passenger.state === 'archived' ? 'Arquivado' : 'Ativo'}</Label>
+          <StatusTag archived={passenger.state === 'archived'} />
           <Text variant="display">{passenger.name}</Text>
           <Text variant="small" tone="secondary">
             {`${formatPhone(passenger.phone)} · na sua rede desde ${longDate(passenger.since)}`}
@@ -195,8 +212,17 @@ export default function PassengerScreen() {
           />
         </View>
 
-        <View style={styles.section}>
-          <Label>{combinadas.length > 1 ? `O que está combinado · ${combinadas.length}` : 'O que está combinado'}</Label>
+        <Pills
+          items={[
+            { key: 'combinado', label: combinadas.length > 0 ? `Combinado · ${combinadas.length}` : 'Combinado' },
+            { key: 'gastos', label: 'Gastos por mês' },
+          ]}
+          selected={aba}
+          onSelect={(key) => setAba(key as Aba)}
+          accessibilityLabel="O que ver deste passageiro"
+        />
+
+        <View style={[styles.section, aba === 'combinado' ? null : styles.hidden]}>
           {combinadas.length > 0 ? (
             <View style={styles.list}>
               {combinadas.map((agenda) => (
@@ -221,8 +247,7 @@ export default function PassengerScreen() {
           )}
         </View>
 
-        <View style={styles.section}>
-          <Label>Gastos por mês</Label>
+        <View style={[styles.section, aba === 'gastos' ? null : styles.hidden]}>
           {meses.some((m) => m.trips > 0) ? (
             <View style={styles.table}>
               {meses.map((m, index) => (
@@ -371,6 +396,18 @@ function MonthRow({ spend, current, first, last, onPress }: { spend: Mes; curren
 }
 
 const styles = StyleSheet.create({
+  hidden: { display: 'none' },
+  tag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: spacing[4],
+    paddingVertical: spacing[4],
+    paddingHorizontal: spacing[8],
+    borderRadius: radius.sm,
+  },
+  tagActive: { backgroundColor: colors.text },
+  tagArchived: { backgroundColor: colors.surfaceRaised },
   safe: { flex: 1, backgroundColor: colors.ground },
   content: { paddingHorizontal: layout.screenPadding, paddingTop: spacing[8], paddingBottom: spacing[40], gap: spacing[20] },
   topBar: { flexDirection: 'row', justifyContent: 'space-between' },
