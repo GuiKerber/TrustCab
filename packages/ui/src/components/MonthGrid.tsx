@@ -7,25 +7,32 @@ import { focusRing, useInteraction } from './Button';
 import { Text } from './ui';
 
 const WEEKDAYS = ['seg', 'ter', 'qua', 'qui', 'sex', 'sáb', 'dom'];
-const MAX_DOTS = 4;
+// Acima disto a célula mostra o número total, não bolinhas.
+const MAX_DOTS = 3;
 
 // Cor da bolinha: cada viagem puxa a cor do seu cartão; cancelada fica apagada.
 export function tripDotColor(trip: Trip, index: number) {
   return trip.status === 'cancelled' ? colors.lineStrong : colors.cards[index % colors.cards.length];
 }
 
+// As bolinhas de um dia. Acima de um punhado elas param de informar e passam a atrapalhar: numa
+// célula de calendário com cerca de 45px de largura, quatro bolinhas mais "+12" não cabem e
+// vazam para fora do quadrado do dia. Passando do limite, o número sozinho diz mais e sempre cabe.
 export function TripDots({ trips, dot = size.dot.md }: { trips: Trip[]; dot?: number }) {
-  const extra = trips.length - MAX_DOTS;
+  if (trips.length > MAX_DOTS) {
+    return (
+      <View style={styles.dots}>
+        <Text variant="label" tone="secondary">
+          {trips.length}
+        </Text>
+      </View>
+    );
+  }
   return (
     <View style={styles.dots}>
-      {trips.slice(0, MAX_DOTS).map((trip, index) => (
+      {trips.map((trip, index) => (
         <View key={trip.id} style={{ width: dot, height: dot, borderRadius: dot / 2, backgroundColor: tripDotColor(trip, index) }} />
       ))}
-      {extra > 0 ? (
-        <Text variant="label" tone="secondary">
-          {`+${extra}`}
-        </Text>
-      ) : null}
     </View>
   );
 }
@@ -129,6 +136,8 @@ const styles = StyleSheet.create({
   cell: {
     height: size.calendarCell,
     borderRadius: radius.md,
+    // Rede de segurança: nada desenhado dentro do dia escapa do quadrado dele.
+    overflow: 'hidden',
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'flex-end',
@@ -138,5 +147,5 @@ const styles = StyleSheet.create({
   cellToday: { borderWidth: borderWidth.strong, borderColor: colors.orange },
   cellSelected: { borderWidth: borderWidth.strong, borderColor: colors.text },
   cellActive: { backgroundColor: colors.surfaceRaised },
-  dots: { flexDirection: 'row', alignItems: 'center', gap: spacing[4], minHeight: size.dot.md },
+  dots: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing[4], minHeight: size.dot.md, maxWidth: '100%' },
 });

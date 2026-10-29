@@ -65,7 +65,7 @@ export default function Requests() {
 
       {waiting.length === 0 && done.length === 0 ? (
         <EmptyState
-          icon="inbox"
+          art="pedidos"
           title="Nenhum pedido ainda"
           text="Quando alguém marcar pelo seu link, o pedido aparece aqui e seu celular avisa."
           action={{ label: 'Ver meu link', icon: 'link', onPress: () => router.push('/link') }}

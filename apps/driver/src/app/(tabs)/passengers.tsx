@@ -131,7 +131,7 @@ export default function Passengers() {
             />
           ) : (
             <EmptyState
-              icon="group"
+              art="passageiros"
               title="Ninguém na sua rede ainda"
               text="Quem marcar pelo seu link entra aqui sozinho, com nome e WhatsApp."
               action={{ label: 'Ver meu link', icon: 'link', onPress: abrir }}
@@ -152,7 +152,7 @@ export default function Passengers() {
           />
         ) : (
           <EmptyState
-            icon="person_off"
+            art="passageiros"
             title="Ninguém arquivado"
             text="Quem você arquivar sai da lista e fica aqui com o histórico. Dá para tirar do arquivo quando quiser."
           />

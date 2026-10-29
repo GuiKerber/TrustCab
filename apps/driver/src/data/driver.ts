@@ -1,6 +1,6 @@
 import { useAuth } from '@trustcab/core/auth';
 import { DEMO_UID, useUser } from '@trustcab/core/db';
-import { defaultSlots, isOpen, newPlan, todayISO, type Plan, type Slots } from '@trustcab/core';
+import { defaultSlots, isOpen, newPlan, planKnown, todayISO, type Plan, type Slots } from '@trustcab/core';
 
 // O perfil do motorista como está no banco. Link, horários e plano moram lá e só o servidor
 // escreve os dois últimos campos — por isso as telas leem daqui e não do store local.
@@ -29,9 +29,9 @@ export function useDriver() {
     plan,
     // Liberado hoje? Vale para o teste e para o mês pago: é a mesma pergunta.
     open: isOpen(plan, todayISO()),
-    // Trancar o app é diferente de perguntar se está liberado: só tranca quando o plano é
-    // conhecido. Enquanto carrega, e se a leitura falhar, o app segue aberto — ninguém pode
-    // perder a agenda do dia porque o celular ficou sem sinal na hora errada.
-    locked: !loading && !error && !isOpen(plan, todayISO()),
+    // Trancar o app é diferente de perguntar se está liberado: só tranca quando o servidor já
+    // respondeu com a data do plano. Enquanto carrega, se a leitura falhar, ou na conta recém
+    // criada que ainda espera a Function, o app segue aberto.
+    locked: !loading && !error && planKnown(plan) && !isOpen(plan, todayISO()),
   };
 }

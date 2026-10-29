@@ -11,7 +11,7 @@ import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { isOpen, newPlan, todayISO, type Plan } from '@trustcab/core';
+import { isOpen, newPlan, planKnown, todayISO, type Plan } from '@trustcab/core';
 import { colors, ErrorState } from '@trustcab/ui';
 import { mergeRemote, resetProfile, setCurrentUid, useProfile } from '@/data/profile';
 import { AuthProvider, useAuth } from '@trustcab/core/auth';
@@ -68,9 +68,14 @@ function Routes() {
   if (status === 'loading') return null;
   const signedIn = status === 'signedIn';
 
-  // Só tranca com o plano em mãos. Enquanto o perfil não chega, o app continua aberto: ninguém
-  // pode perder a agenda do dia porque o celular ficou sem sinal na hora errada.
-  const locked = Boolean(remote) && !isOpen((remote?.plan as Plan) ?? newPlan(), todayISO());
+  // Só tranca com o plano em mãos — e "em mãos" é ter a data do servidor, não só ter o perfil.
+  // Conta nova nasce sem data e ganha a dela um instante depois, pela Function; tratar essa
+  // espera como vencimento era o que fazia a porta fechada piscar no primeiro login.
+  //
+  // Enquanto o perfil não chega, e se a leitura falhar, o app continua aberto: ninguém pode
+  // perder a agenda do dia porque o celular ficou sem sinal na hora errada.
+  const plano = (remote?.plan as Plan) ?? newPlan();
+  const locked = planKnown(plano) && !isOpen(plano, todayISO());
 
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.ground } }}>

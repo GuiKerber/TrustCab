@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Block, Button, colors, focusRing, Icon, layout, Pills, radius, ScreenStatus, size, spacing, stateOpacity, Text, useInteraction } from '@trustcab/ui';
+import { Block, Button, colors, EmptyState, focusRing, Icon, layout, Pills, radius, ScreenStatus, size, spacing, stateOpacity, Text, useInteraction } from '@trustcab/ui';
 import { ChargeSheet, type ChargeLine } from '@/components/ChargeSheet';
 import { TopBar } from '@/components/TopBar';
 import { formatPrice, formatPriceShort, isSameDay, monthName, type Day, type Trip, useNow, weekdayShort } from '@trustcab/core';
@@ -214,14 +214,11 @@ export default function Earnings() {
             ))}
           </View>
         ) : (
-          <View style={styles.empty}>
-            <Text variant="heading" tone="secondary">
-              {passenger === ALL ? `Nenhuma viagem concluída em ${name}.` : `${firstName} não tem viagens concluídas em ${name}.`}
-            </Text>
-            <Text variant="small" tone="secondary">
-              As viagens entram aqui quando você toca em "Concluir viagem".
-            </Text>
-          </View>
+          <EmptyState
+            art="ganhos"
+            title={passenger === ALL ? `Nenhuma viagem concluída em ${name}.` : `${firstName} não tem viagens concluídas em ${name}.`}
+            text='As viagens entram aqui quando você toca em "Concluir viagem".'
+          />
         )}
 
         {passenger !== ALL && done.length > 0 && key ? (

@@ -48,6 +48,16 @@ export function isOpen(plan: Plan, todayISO: string) {
   return plan.status !== 'expired' && !!plan.until && plan.until >= todayISO;
 }
 
+// O plano já foi respondido pelo servidor?
+//
+// Conta recém-criada nasce com `until` em branco: o app escreve o perfil e quem põe a data é a
+// Function onUserCreated, um instante depois. Nesse intervalo "sem data" não quer dizer vencido,
+// quer dizer "ainda não sei" — e tratar um do jeito do outro é o que fazia a tela de plano
+// vencido piscar no primeiro login.
+export function planKnown(plan: Plan) {
+  return Boolean(plan.until);
+}
+
 export function isEnding(plan: Plan, todayISO: string) {
   const left = daysLeft(plan, todayISO);
   return isOpen(plan, todayISO) && left <= WARN_DAYS;

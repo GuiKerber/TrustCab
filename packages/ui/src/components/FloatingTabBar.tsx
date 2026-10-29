@@ -104,6 +104,14 @@ const styles = StyleSheet.create({
     borderRadius: size.tabSlot.height / 2,
     alignItems: 'center',
     justifyContent: 'center',
+    // O fundo nasce aqui, na cor da própria barra, e nunca sai.
+    //
+    // Sem isto a pílula fica quadrada no Android, e só depois de trocar de aba: a aba que abre
+    // junto com o app já nasce com fundo e ganha o desenho arredondado; as outras nascem sem
+    // fundo nenhum, e quando viram a aba ativa o Android recebe só a mudança de cor — o raio não
+    // entrou na diferença, porque ele não mudou — e pinta um retângulo de cantos vivos.
+    // Com um fundo desde o primeiro desenho, o arredondado existe antes de a cor importar.
+    backgroundColor: colors.ground,
   },
   slotOn: { backgroundColor: colors.text },
   slotActive: { backgroundColor: colors.surface },

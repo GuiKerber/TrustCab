@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { AppState, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Button, cardColor, type CardOrigin, colors, DaySlider, isClosed, layout, ScreenStatus, spacing, Text, TripStack } from '@trustcab/ui';
+import { cardColor, type CardOrigin, colors, DaySlider, EmptyState, isClosed, layout, ScreenStatus, spacing, Text, TripStack } from '@trustcab/ui';
 import { ForgottenTripsDialog, type ForgottenTrip } from '@/components/ForgottenTripsDialog';
 import { TripSheet } from '@/components/TripSheet';
 import { TopBar } from '@/components/TopBar';
@@ -18,8 +18,9 @@ import { useTripNotifications } from '@/lib/notifications';
 const FORGOTTEN_LOOKBACK_DAYS = 7;
 // Quantos dias para frente as notificações de "Hora de sair" ficam agendadas.
 const NOTIFY_AHEAD_DAYS = 7;
-// Quantos dias a faixa da Home mostra: uma semana, começando em hoje.
-const WEEK_DAYS = 7;
+// Quantos dias a faixa da Home mostra: duas semanas, começando em hoje. Com a agenda cheia,
+// uma semana só acabava antes de o motorista enxergar a próxima.
+const SLIDER_DAYS = 14;
 // Janela que a Home carrega do banco: o suficiente para a faixa, as notificações e o que ficou para trás.
 const AHEAD_DAYS = 30;
 
@@ -49,8 +50,8 @@ export default function Home() {
   const to = useMemo(() => new Date(now.getFullYear(), now.getMonth(), now.getDate() + AHEAD_DAYS), [now]);
   const { days: allDays, agendas, paid, loading, error } = useDays(uid, from, to);
 
-  // A Home dá a visão da semana, não do mês: sete dias a partir de hoje.
-  const days = allDays.filter((day) => day.date >= startOfDay(now)).slice(0, WEEK_DAYS);
+  // A Home dá a visão das próximas duas semanas, não do mês.
+  const days = allDays.filter((day) => day.date >= startOfDay(now)).slice(0, SLIDER_DAYS);
   const selectedDay = allDays.find((day) => isSameDay(day.date, selected));
 
   // Ordem de embarque: quem vem primeiro fica no topo; concluídas e canceladas vão para o fim.
@@ -116,21 +117,20 @@ export default function Home() {
         {trips.length > 0 ? (
           <TripStack trips={trips} onOpen={(trip, color, origin) => setOpen({ id: trip.id, color, origin })} />
         ) : (
-          <View style={styles.empty}>
-            <Text variant="heading" tone="secondary">
-              Nenhuma viagem neste dia.
-            </Text>
-            <Text variant="small" tone="secondary">
-              {agendas.length === 0
+          <EmptyState
+            art="viagens"
+            title="Nenhuma viagem neste dia."
+            text={
+              agendas.length === 0
                 ? 'Mande seu link para quem já anda com você: os pedidos chegam aqui.'
-                : 'Seus passageiros podem pedir pelo seu link a qualquer momento.'}
-            </Text>
-            {/* Quem nunca mandou o link está lendo a única instrução que importa. Mandar ele
-                procurar o caminho no Perfil é perder a pessoa no primeiro dia. */}
-            {agendas.length === 0 ? (
-              <Button label="Ver meu link" icon="link" variant="light" onPress={() => router.push('/link')} style={styles.emptyAction} />
-            ) : null}
-          </View>
+                : 'Seus passageiros podem pedir pelo seu link a qualquer momento.'
+            }
+            {...(agendas.length === 0
+              ? // Quem nunca mandou o link está lendo a única instrução que importa. Mandar essa
+                // pessoa procurar o caminho no Perfil é perdê-la no primeiro dia.
+                { action: { label: 'Ver meu link', icon: 'link' as const, onPress: () => router.push('/link') } }
+              : {})}
+          />
         )}
       </ScrollView>
 
