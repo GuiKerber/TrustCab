@@ -6,7 +6,7 @@ import { colors, radius, size, spacing } from '../theme/tokens';
 import { Icon, Text } from './ui';
 
 // Faixa de "sem internet" no topo das telas. Some sozinha quando a conexão volta.
-// O que você fizer offline (avisos, mensagens) fica "Enviando…" e sai assim que a internet voltar.
+// O que você fizer offline fica guardado e sai assim que a internet voltar.
 export function OfflineNotice({ force = false }: { force?: boolean }) {
   const online = useOnline();
   if (online && !force) return null;
@@ -14,7 +14,7 @@ export function OfflineNotice({ force = false }: { force?: boolean }) {
     <View style={styles.bar} accessibilityRole="alert" accessibilityLiveRegion="polite">
       <Icon name="wifi_off" size={size.icon.sm} color={colors.orange} />
       <Text variant="small" style={styles.text}>
-        Sem internet. Avisos e mensagens saem assim que a conexão voltar.
+        Sem internet. Seus avisos saem assim que a conexão voltar.
       </Text>
     </View>
   );

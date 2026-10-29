@@ -64,6 +64,12 @@ export type PageError = { title: string; detail: string };
 
 // ─── Texto ───────────────────────────────────────────────────────────────────
 
+// Dentro de <script> o navegador não desfaz entidade nenhuma: escapar aspas com &quot; aqui faz
+// o JSON.parse do outro lado quebrar. O que precisa sumir é só o "<", que poderia fechar a tag.
+export function jsonInScript(value: unknown) {
+  return JSON.stringify(value).split('<').join('\\u003C');
+}
+
 export function escapeHtml(value: string) {
   return String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 }
@@ -225,6 +231,7 @@ form{display:grid;gap:28px}
 .leg button{background:none;border:0;color:var(--muted);font:400 14px/20px Inter,sans-serif;cursor:pointer;min-height:var(--touch);padding:0 4px}
 .leg button:hover{color:var(--text)}
 .empty-day{color:var(--muted);font-size:14px;letter-spacing:0}
+.warn{font-size:14px;color:var(--orange);letter-spacing:0}
 
 .foot{color:var(--muted);font-size:14px;letter-spacing:0;display:grid;gap:8px}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -438,7 +445,15 @@ function contactFields(form: { name: string; phone: string; note: string }) {
 const WIZARD = `
 (function(){
   var dias = JSON.parse(document.getElementById('dias').textContent);
-  var legs = [];
+  // O que o servidor devolveu depois de recusar o pedido: sem isto, um telefone errado
+  // apagava a semana inteira e a pessoa remontava tudo.
+  var legs = (function(){
+    try {
+      var cru = JSON.parse(document.getElementById('legs').value || '[]');
+      if (!Array.isArray(cru)) return [];
+      return cru.map(function(l, k){ return { id: "v" + k, weekday: l.w, time: l.t, origin: l.o, destination: l.d }; });
+    } catch (e) { return []; }
+  })();
   var i = 0;
   var passo = document.getElementById('passo');
   var nomeDia = document.getElementById('nome-dia');
@@ -452,6 +467,7 @@ const WIZARD = `
   var contato = document.getElementById('contato');
   var dados = document.getElementById('legs');
   var resumo = document.getElementById('resumo');
+  var aviso = document.getElementById('aviso-dia');
 
   function doDia(){ return legs.filter(function(l){ return l.weekday === dias[i].n; }); }
 
@@ -478,20 +494,44 @@ const WIZARD = `
     pinta();
   });
 
-  document.getElementById('add').addEventListener('click', function(){
-    var t = campoT.value, o = campoO.value.trim(), d = campoD.value.trim();
-    if (!t || !o || !d) { (!t ? campoT : !o ? campoO : campoD).focus(); return; }
+  function avisa(texto){ aviso.textContent = texto; aviso.hidden = !texto; }
+
+  function falta(t, o, d){ return !t ? { campo: campoT, texto: "Falta o horário desta viagem." }
+    : !o ? { campo: campoO, texto: "Falta de onde você sai." }
+    : !d ? { campo: campoD, texto: "Falta para onde você vai." } : null; }
+
+  function adiciona(t, o, d){
     legs.push({ id: Date.now() + Math.random(), weekday: dias[i].n, time: t, origin: o, destination: d });
     campoT.value = ''; campoO.value = ''; campoD.value = '';
-    campoT.focus();
+    avisa('');
     pinta();
+  }
+
+  document.getElementById('add').addEventListener('click', function(){
+    var t = campoT.value, o = campoO.value.trim(), d = campoD.value.trim();
+    var erro = falta(t, o, d);
+    if (erro) { avisa(erro.texto); erro.campo.focus(); return; }
+    adiciona(t, o, d);
+    campoT.focus();
   });
 
+  // Quem preenche os campos e vira o dia sem tocar em "Adicionar" perderia a viagem. Cheios
+  // os três, ela entra sozinha; faltando um, a pessoa fica no dia e lê o que falta.
+  function guarda(){
+    var t = campoT.value, o = campoO.value.trim(), d = campoD.value.trim();
+    if (!t && !o && !d) { avisa(''); return true; }
+    var erro = falta(t, o, d);
+    if (erro) { avisa(erro.texto); erro.campo.focus(); return false; }
+    adiciona(t, o, d);
+    return true;
+  }
+
   proximo.addEventListener('click', function(){
+    if (!guarda()) return;
     if (i < dias.length - 1) { i += 1; pinta(); window.scrollTo(0, 0); return; }
     mostraContato();
   });
-  concluir.addEventListener('click', mostraContato);
+  concluir.addEventListener('click', function(){ if (guarda()) mostraContato(); });
 
   function mostraContato(){
     if (legs.length === 0) return;
@@ -515,6 +555,8 @@ const WIZARD = `
   });
 
   pinta();
+  if (legs.length > 0) mostraContato();
+  else passo.hidden = false;
 })();
 `;
 
@@ -535,11 +577,11 @@ ${errorBox(error)}
   <div class="alert"><strong>Seu navegador está sem JavaScript.</strong><p>Montar a semana precisa dele. Dá para marcar uma viagem de cada vez, ou falar com ${escapeHtml(nome)} pelo WhatsApp.</p></div>
   <a class="btn light" href="/a/${encodeURIComponent(ctx.slug)}?m=unica">Marcar uma viagem só</a>
 </noscript>
-<script type="application/json" id="dias">${escapeHtml(JSON.stringify(dias))}</script>
+<script type="application/json" id="dias">${jsonInScript(dias)}</script>
 
 <form method="post" action="/a/${encodeURIComponent(ctx.slug)}">
   <input type="hidden" name="kind" value="weekly">
-  <input type="hidden" name="legs" id="legs" value="">
+  <input type="hidden" name="legs" id="legs" value="${escapeHtml(JSON.stringify(form.legs.map((l) => ({ w: l.weekday, t: l.time, o: l.origin, d: l.destination }))))}">
 
   <div id="passo" hidden>
     <div class="step">
@@ -565,6 +607,7 @@ ${errorBox(error)}
         <input id="l-destination" placeholder="O nome do lugar já basta" maxlength="200">
       </div>
       <button class="btn ghost" type="button" id="add">Adicionar neste dia</button>
+      <p class="warn" id="aviso-dia" role="alert" hidden></p>
     </fieldset>
 
     <div class="btns">
@@ -590,7 +633,7 @@ ${errorBox(error)}
     title: `Sua semana com ${ctx.driver.name} · TrustCab`,
     description: `Monte sua agenda semanal de caronas com ${ctx.driver.name}.`,
     body,
-    script: `document.getElementById('passo').hidden=false;${WIZARD}`,
+    script: WIZARD,
   });
 }
 

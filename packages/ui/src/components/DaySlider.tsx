@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { fullDate, isSameDay, type Day } from '@trustcab/core';
@@ -17,27 +18,59 @@ type DaySliderProps = {
 
 // Faixa de dias fundida ao fundo: só o dia escolhido ganha pílula clara.
 export function DaySlider({ days, selected, today, onSelect }: DaySliderProps) {
+  const faixa = useRef<ScrollView>(null);
+  // Com duas semanas na faixa, o dia escolhido pode nascer fora da tela: a Home abriria mostrando
+  // os primeiros dias e nada marcado. Assim que ele é medido, a faixa anda até ele.
+  const jaAndou = useRef(false);
+  const trazerParaDentro = (x: number) => {
+    if (jaAndou.current) return;
+    jaAndou.current = true;
+    faixa.current?.scrollTo({ x: Math.max(0, x - layout.screenPadding), animated: false });
+  };
+
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.track} style={styles.scroll}>
-      {days.map((day) => (
-        <DayPill
-          key={day.date.toISOString()}
-          day={day}
-          selected={isSameDay(day.date, selected)}
-          isToday={isSameDay(day.date, today)}
-          onSelect={onSelect}
-        />
-      ))}
+    <ScrollView
+      ref={faixa}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.track}
+      style={styles.scroll}>
+      {days.map((day) => {
+        const escolhido = isSameDay(day.date, selected);
+        return (
+          <DayPill
+            key={day.date.toISOString()}
+            day={day}
+            selected={escolhido}
+            isToday={isSameDay(day.date, today)}
+            onSelect={onSelect}
+            onMeasure={escolhido ? trazerParaDentro : undefined}
+          />
+        );
+      })}
     </ScrollView>
   );
 }
 
-function DayPill({ day, selected, isToday, onSelect }: { day: Day; selected: boolean; isToday: boolean; onSelect: (date: Date) => void }) {
+function DayPill({
+  day,
+  selected,
+  isToday,
+  onSelect,
+  onMeasure,
+}: {
+  day: Day;
+  selected: boolean;
+  isToday: boolean;
+  onSelect: (date: Date) => void;
+  onMeasure?: (x: number) => void;
+}) {
   const { hovered, focused, handlers } = useInteraction();
   const { date, trips } = day;
   return (
     <Pressable
       {...handlers}
+      onLayout={onMeasure ? (event) => onMeasure(event.nativeEvent.layout.x) : undefined}
       onPress={() => onSelect(date)}
       accessibilityRole="button"
       accessibilityState={{ selected }}

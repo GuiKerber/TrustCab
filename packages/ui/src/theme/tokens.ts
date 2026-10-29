@@ -154,7 +154,7 @@ export const radius = { joined: 4, sm: 8, md: 16, blockSm: 20, block: 24, card: 
 
 export const borderWidth = { hairline: 1, strong: 2 } as const;
 
-// pending: mensagem esperando internet para sair.
+// pending: pulso do esqueleto enquanto a tela carrega.
 export const opacity = { hover: 0.94, pressed: 0.88, pending: 0.7, disabled: 0.35 } as const;
 
 // Degradê da rua no percurso: some no começo (até "start"), fica cheia até "end" e termina quase transparente ("tail").

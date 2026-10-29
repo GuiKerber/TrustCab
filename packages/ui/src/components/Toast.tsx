@@ -1,5 +1,5 @@
 import type { AndroidSymbol } from 'expo-symbols';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,13 +32,30 @@ export function Toast({
   const reduced = useReducedMotion();
   const progress = useSharedValue(0);
   const showing = Boolean(message);
+  // O texto fica guardado enquanto o aviso sai de cena: sem isto ele esvazia no meio da saída.
+  const [texto, setTexto] = useState(message);
+  const [montado, setMontado] = useState(showing);
+  // Quem usa passa onHide como função nova a cada render. Preso num ref, o relógio de alguns
+  // segundos não volta à estaca zero toda vez que a tela se redesenha.
+  const sumir = useRef(onHide);
+  sumir.current = onHide;
 
   useEffect(() => {
-    progress.value = withTiming(showing ? 1 : 0, { duration: reduced ? 0 : motion.base });
-    if (!showing) return;
-    const timer = setTimeout(onHide, VISIBLE_MS);
-    return () => clearTimeout(timer);
-  }, [showing, message, reduced, onHide, progress]);
+    if (message) setTexto(message);
+  }, [message]);
+
+  useEffect(() => {
+    const duracao = reduced ? 0 : motion.base;
+    progress.value = withTiming(showing ? 1 : 0, { duration: duracao });
+    if (showing) {
+      setMontado(true);
+      const relogio = setTimeout(() => sumir.current(), VISIBLE_MS);
+      return () => clearTimeout(relogio);
+    }
+    // Enquanto a saída roda, o aviso continua na tela; tirando-o antes, ele some de uma vez.
+    const saida = setTimeout(() => setMontado(false), duracao);
+    return () => clearTimeout(saida);
+  }, [showing, message, reduced, progress]);
 
   const animated = useAnimatedStyle(() => ({
     opacity: progress.value,
@@ -46,7 +63,7 @@ export function Toast({
     transform: [{ translateY: reduced ? 0 : (1 - progress.value) * spacing[12] }],
   }));
 
-  if (!message) return null;
+  if (!montado || !texto) return null;
 
   return (
     <Animated.View
@@ -57,7 +74,7 @@ export function Toast({
       <View style={styles.card}>
         <Icon name={icon} size={size.icon.md} color={colors.text} />
         <Text variant="small" style={styles.text}>
-          {message}
+          {texto}
         </Text>
       </View>
     </Animated.View>
