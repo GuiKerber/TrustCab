@@ -65,13 +65,7 @@ export default function LinkScreen() {
             />
           </>
         ) : (
-          <Button
-            label={busy ? 'Gerando…' : 'Gerar meu link'}
-            icon="link"
-            variant="light"
-            disabled={busy || !phone || !uid}
-            onPress={gerar}
-          />
+          <Button label="Gerar meu link" icon="link" variant="light" loading={busy} disabled={!phone || !uid} onPress={gerar} />
         )
       }>
       <View style={styles.head}>
@@ -118,8 +112,9 @@ export default function LinkScreen() {
         visible={confirm}
         title="Gerar outro link?"
         text="O endereço atual para de funcionar na hora, e quem abrir ele vai ler que o link saiu do ar. Quem já está combinado com você continua normalmente."
-        confirmLabel={busy ? 'Gerando…' : 'Gerar outro'}
+        confirmLabel="Gerar outro"
         confirmIcon="autorenew"
+        loading={busy}
         onConfirm={gerar}
         onClose={() => setConfirm(false)}
       />

@@ -13,6 +13,7 @@ import {
   Icon,
   IconButton,
   Label,
+  OfflineNotice,
   Pills,
   layout,
   radius,
@@ -166,6 +167,7 @@ export default function PassengerScreen() {
             <IconButton name="more_horiz" label="Mais opções" onPress={() => setOptions(true)} />
           </View>
         </View>
+        <OfflineNotice />
 
         <View style={styles.head}>
           <StatusTag archived={passenger.state === 'archived'} />

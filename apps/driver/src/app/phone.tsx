@@ -53,7 +53,7 @@ export default function Phone() {
     <FormScreen
       backLabel="Voltar"
       onBack={() => goBack('/profile')}
-      footer={<Button label={busy ? 'Salvando…' : 'Salvar'} icon="check" variant="light" disabled={busy} onPress={salvar} />}>
+      footer={<Button label="Salvar" icon="check" variant="light" loading={busy} onPress={salvar} />}>
       <View style={styles.head}>
         <Text variant="display">Seu</Text>
         <Text variant="display" tone="secondary">

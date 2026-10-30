@@ -194,8 +194,8 @@ export function TripSheetFrame({
   const closed = isClosed(trip);
   const step = routeStep(routeProgress(trip.status));
   const routeTone: RouteTone = dark ? 'onDark' : 'onCard';
-  const palette = ROUTE_PALETTES[routeTone];
-  const rail = (done: boolean) => (done ? palette.stroke : palette.faint);
+  const routeColors = ROUTE_PALETTES[routeTone];
+  const rail = (done: boolean) => (done ? routeColors.stroke : routeColors.faint);
   return (
     <Modal visible={visible} transparent animationType="none" onRequestClose={close} statusBarTranslucent>
       <GestureHandlerRootView style={styles.root}>
@@ -246,9 +246,9 @@ export function TripSheetFrame({
                   <View style={styles.route}>
                     <View style={styles.timeline}>
                       <Stop label={start.label} text={start.text} reached rail={rail(step >= 1)} routeTone={routeTone} background={color} tone={tone} muted={muted} />
-                      <Leg first={rail(step >= 1)} second={rail(step >= 2)} label={step === 1 ? 'A caminho' : undefined} tone={tone} dot={palette.stroke} />
+                      <Leg first={rail(step >= 1)} second={rail(step >= 2)} label={step === 1 ? 'A caminho' : undefined} tone={tone} dot={routeColors.stroke} />
                       <Stop label="Partida" text={trip.origin} reached={step >= 2} rail={rail(step >= 3)} routeTone={routeTone} background={color} tone={tone} muted={muted} />
-                      <Leg first={rail(step >= 3)} second={rail(step >= 4)} label={step === 3 ? 'Em viagem' : undefined} tone={tone} dot={palette.stroke} />
+                      <Leg first={rail(step >= 3)} second={rail(step >= 4)} label={step === 3 ? 'Em viagem' : undefined} tone={tone} dot={routeColors.stroke} />
                       <Stop label="Destino" text={trip.destination} reached={step >= 4} routeTone={routeTone} background={color} tone={tone} muted={muted} />
                     </View>
                     <RouteMap progress={routeProgress(trip.status)} tone={routeTone} cardColor={color} />

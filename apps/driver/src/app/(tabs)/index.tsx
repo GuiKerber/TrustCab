@@ -176,6 +176,4 @@ const styles = StyleSheet.create({
   },
   title: { paddingHorizontal: spacing[4] },
   total: { marginTop: spacing[8] },
-  emptyAction: { marginTop: spacing[16] },
-  empty: { paddingTop: spacing[40], paddingHorizontal: spacing[4], gap: spacing[8] },
 });

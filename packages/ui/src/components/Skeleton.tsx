@@ -28,10 +28,9 @@ export function SkeletonBlock({
   return <Animated.View style={[styles.block, { width, height, borderRadius: round ? height / 2 : rounded }, style]} />;
 }
 
-export type SkeletonLayout = 'home' | 'agenda' | 'list' | 'chat';
+export type SkeletonLayout = 'home' | 'agenda' | 'list';
 
 const HOME_CARDS = 3;
-const LIST_ROWS = 5;
 const PILLS = 4;
 const GRID_CELLS = 35;
 
@@ -44,57 +43,41 @@ export function ScreenSkeleton({ layout: kind }: { layout: SkeletonLayout }) {
         <SkeletonBlock width={size.iconButton.md} height={size.iconButton.md} round />
       </View>
 
-      {kind === 'chat' ? (
-        <View style={styles.rows}>
-          {Array.from({ length: LIST_ROWS }, (_, i) => (
-            <View key={i} style={styles.chatRow}>
-              <SkeletonBlock width={size.iconButton.md} height={size.iconButton.md} round />
-              <View style={styles.lines}>
-                <SkeletonBlock width="45%" height={type.bodyMedium.lineHeight} />
-                <SkeletonBlock width="80%" height={type.small.lineHeight} />
-              </View>
+      <View style={styles.title}>
+        <SkeletonBlock width="70%" height={type.display.lineHeight} rounded={radius.blockSm} />
+        <SkeletonBlock width="45%" height={type.display.lineHeight} rounded={radius.blockSm} />
+      </View>
+      <View style={styles.pills}>
+        {Array.from({ length: PILLS }, (_, i) =>
+          kind === 'home' ? (
+            <SkeletonBlock key={i} width={size.dayPillMinWidth} height={size.calendarCell} rounded={radius.block} />
+          ) : (
+            <SkeletonBlock key={i} width={size.pillMinWidth} height={size.button.sm} round />
+          ),
+        )}
+      </View>
+      {kind === 'agenda' ? (
+        <View style={styles.grid}>
+          {Array.from({ length: GRID_CELLS }, (_, i) => (
+            <View key={i} style={styles.cell}>
+              <SkeletonBlock height={size.calendarCell} />
+            </View>
+          ))}
+        </View>
+      ) : kind === 'home' ? (
+        <View style={{ height: size.stack.peek * (HOME_CARDS - 1) + size.stack.card }}>
+          {Array.from({ length: HOME_CARDS }, (_, i) => (
+            <View key={i} style={[styles.stackCard, { top: i * size.stack.peek }]}>
+              <SkeletonBlock height={size.stack.card} rounded={radius.card} />
             </View>
           ))}
         </View>
       ) : (
-        <>
-          <View style={styles.title}>
-            <SkeletonBlock width="70%" height={type.display.lineHeight} rounded={radius.blockSm} />
-            <SkeletonBlock width="45%" height={type.display.lineHeight} rounded={radius.blockSm} />
-          </View>
-          <View style={styles.pills}>
-            {Array.from({ length: PILLS }, (_, i) =>
-              kind === 'home' ? (
-                <SkeletonBlock key={i} width={size.dayPillMinWidth} height={size.calendarCell} rounded={radius.block} />
-              ) : (
-                <SkeletonBlock key={i} width={size.pillMinWidth} height={size.button.sm} round />
-              ),
-            )}
-          </View>
-          {kind === 'agenda' ? (
-            <View style={styles.grid}>
-              {Array.from({ length: GRID_CELLS }, (_, i) => (
-                <View key={i} style={styles.cell}>
-                  <SkeletonBlock height={size.calendarCell} />
-                </View>
-              ))}
-            </View>
-          ) : kind === 'home' ? (
-            <View style={{ height: size.stack.peek * (HOME_CARDS - 1) + size.stack.card }}>
-              {Array.from({ length: HOME_CARDS }, (_, i) => (
-                <View key={i} style={[styles.stackCard, { top: i * size.stack.peek }]}>
-                  <SkeletonBlock height={size.stack.card} rounded={radius.card} />
-                </View>
-              ))}
-            </View>
-          ) : (
-            <View style={styles.rows}>
-              {Array.from({ length: HOME_CARDS }, (_, i) => (
-                <SkeletonBlock key={i} height={size.personCardMinHeight} rounded={radius.block} />
-              ))}
-            </View>
-          )}
-        </>
+        <View style={styles.rows}>
+          {Array.from({ length: HOME_CARDS }, (_, i) => (
+            <SkeletonBlock key={i} height={size.personCardMinHeight} rounded={radius.block} />
+          ))}
+        </View>
       )}
     </View>
   );
@@ -108,8 +91,6 @@ const styles = StyleSheet.create({
   pills: { flexDirection: 'row', gap: spacing[4] },
   stackCard: { position: 'absolute', left: 0, right: 0 },
   rows: { gap: spacing[8] },
-  chatRow: { flexDirection: 'row', alignItems: 'center', gap: spacing[12], minHeight: size.personCardMinHeight },
-  lines: { flex: 1, gap: spacing[8] },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
   cell: { width: `${100 / 7}%`, padding: spacing[4] },
 });

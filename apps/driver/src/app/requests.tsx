@@ -91,12 +91,13 @@ export default function Requests() {
 
 function RequestCard({ agenda, onAnswered }: { agenda: Agenda; onAnswered: (status: 'confirmed' | 'declined', price: number | null) => void }) {
   const [price, setPrice] = useState('');
-  const [busy, setBusy] = useState(false);
+  // Qual das duas respostas está salvando: o indicador aparece só no botão tocado.
+  const [busy, setBusy] = useState<'confirmed' | 'declined' | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const responder = async (status: 'confirmed' | 'declined') => {
     setError(null);
-    setBusy(true);
+    setBusy(status);
     const cents = status === 'confirmed' && price ? moneyToCents(price) : null;
     try {
       await answerRequest(agenda.id, status, cents);
@@ -104,7 +105,7 @@ function RequestCard({ agenda, onAnswered }: { agenda: Agenda; onAnswered: (stat
     } catch {
       setError('Não deu para salvar a resposta. Confira sua internet e tente de novo.');
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   };
 
@@ -139,8 +140,23 @@ function RequestCard({ agenda, onAnswered }: { agenda: Agenda; onAnswered: (stat
       ) : null}
 
       <View style={styles.actions}>
-        <Button label={busy ? 'Salvando…' : 'Confirmar'} icon="check" variant="light" disabled={busy} onPress={() => responder('confirmed')} />
-        <Button label="Não consigo" icon="close" variant="surface" disabled={busy} onPress={() => responder('declined')} />
+        <Button
+          label="Confirmar"
+          icon="check"
+          variant="light"
+          loading={busy === 'confirmed'}
+          // Carregando já bloqueia o toque; "disabled" apaga só o outro botão.
+          disabled={busy === 'declined'}
+          onPress={() => responder('confirmed')}
+        />
+        <Button
+          label="Não consigo"
+          icon="close"
+          variant="surface"
+          loading={busy === 'declined'}
+          disabled={busy === 'confirmed'}
+          onPress={() => responder('declined')}
+        />
       </View>
     </Block>
   );

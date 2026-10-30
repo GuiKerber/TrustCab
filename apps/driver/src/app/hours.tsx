@@ -76,7 +76,7 @@ export default function Hours() {
     <FormScreen
       backLabel="Voltar"
       onBack={() => goBack('/profile')}
-      footer={<Button label={busy ? 'Salvando…' : 'Salvar'} icon="check" variant="light" disabled={busy} onPress={salvar} />}>
+      footer={<Button label="Salvar" icon="check" variant="light" loading={busy} onPress={salvar} />}>
       <View style={styles.head}>
         <Text variant="display">Seus</Text>
         <Text variant="display" tone="secondary">
@@ -126,7 +126,7 @@ export default function Hours() {
 
       <View style={styles.section}>
         <Label>De quanto em quanto tempo</Label>
-        <Pills items={INTERVALOS} selected={step} onSelect={setStep} accessibilityLabel="Intervalo entre os horários" />
+        <Pills items={INTERVALOS} selected={step} onSelect={setStep} role="radio" accessibilityLabel="Intervalo entre os horários" />
         <Text variant="small" tone="secondary">
           {quantos > 0 ? `${quantos} horários para escolher por dia.` : 'Confira a janela para ver quantos horários sobram.'}
         </Text>
@@ -134,7 +134,7 @@ export default function Hours() {
 
       <View style={styles.section}>
         <Label>Quantas pessoas no mesmo horário</Label>
-        <Pills items={VAGAS} selected={seats} onSelect={setSeats} accessibilityLabel="Pessoas por horário" />
+        <Pills items={VAGAS} selected={seats} onSelect={setSeats} role="radio" accessibilityLabel="Pessoas por horário" />
       </View>
 
       <Block style={styles.note}>

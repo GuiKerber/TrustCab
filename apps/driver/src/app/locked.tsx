@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 
 import { priceLabel } from '@trustcab/core';
-import { Block, Button, colors, Label, layout, spacing, Text } from '@trustcab/ui';
+import { Block, Button, colors, Label, layout, OfflineNotice, spacing, Text } from '@trustcab/ui';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -21,6 +21,7 @@ export default function LockedScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <OfflineNotice />
         <View style={styles.head}>
           <Text variant="display">{terminouOTeste ? 'Seu mês' : 'Sua assinatura'}</Text>
           <Text variant="display" tone="secondary">

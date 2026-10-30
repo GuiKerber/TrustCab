@@ -168,8 +168,6 @@ export const size = {
   button: { sm: 44, md: 56 },
   iconButton: { sm: 36, md: 48 },
   badge: 12,
-  // Contador de não lidas (pílula com número)
-  badgeCount: 20,
   dot: { xs: 4, md: 8, lg: 12, xl: 16 },
   handle: { width: 40, height: 4 },
   tabSlot: { width: 64, height: 44 },
@@ -186,8 +184,6 @@ export const size = {
   statCardMinHeight: 196,
   // Campo de texto
   field: 56,
-  // Altura máxima do campo de mensagem antes de rolar
-  composerMaxHeight: 120,
   // Caixa de seleção
   checkbox: 24,
   // Interruptor: trilho e bolinha (altura - bordas - respiro)
@@ -213,8 +209,6 @@ export const layout = {
   hairline: borderWidth.hairline,
   // Folhas que sobem do rodapé nunca cobrem a tela inteira
   sheetMaxHeight: '88%',
-  // Largura máxima de uma bolha de mensagem
-  bubbleMaxWidth: '82%',
   // Proporção do cartão de total largo (valor em reais) ao lado do estreito (contagem)
   statWideFlex: 1.6,
   // Espaço no fim das telas roláveis, para o último item não ficar colado no menu
@@ -224,7 +218,8 @@ export const layout = {
 // ─── 6. Movimento e gestos ───────────────────────────────────────────────────
 // Durações entre 150 e 300 ms; tudo desliga com "Remover animações".
 // pulse: meio ciclo do brilho do esqueleto (carregando). É ambiente, não resposta a toque, então fica fora dos 150–300 ms.
-export const motion = { fast: 150, base: 220, slow: 300, pulse: 900 } as const;
+// toast: quanto tempo o aviso de confirmação fica na tela antes de sumir sozinho. Tempo de leitura, não de animação.
+export const motion = { fast: 150, base: 220, slow: 300, pulse: 900, toast: 4500 } as const;
 export const spring = { damping: 18, stiffness: 220 } as const;
 
 export const gesture = {

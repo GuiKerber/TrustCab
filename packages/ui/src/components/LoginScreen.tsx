@@ -41,7 +41,8 @@ export function LoginScreen({
           <View style={styles.mark}>
             <Icon name="navigation" size={size.icon.md} color={colors.ink} />
           </View>
-          <Text variant="bodyMedium">trustcab</Text>
+          {/* A marca se escreve em minúsculas; o leitor de tela lê o nome como ele é. */}
+          <Text variant="bodyMedium">{brand.toLowerCase()}</Text>
         </View>
 
         <View style={styles.headline}>

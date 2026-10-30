@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { borderWidth, colors, radius, size, spacing } from '../theme/tokens';
 
-import { focusRing, useInteraction } from './Button';
+import { badgeLabel, focusRing, useInteraction } from './Button';
 import { Icon } from './ui';
 
 // Só o que a barra usa do navegador, para não depender da tipagem interna do expo-router.
@@ -37,7 +37,7 @@ export function FloatingTabBar({ tabs, state, navigation, descriptors }: TabBarP
             icon={config.icon}
             label={config.label}
             selected={focused}
-            badge={Boolean(descriptors[route.key]?.options.tabBarBadge)}
+            badge={Number(descriptors[route.key]?.options.tabBarBadge) || 0}
             onPress={() => {
               const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
               if (!focused && !event.defaultPrevented) navigation.navigate(route.name);
@@ -59,7 +59,8 @@ function TabItem({
   icon: AndroidSymbol;
   label: string;
   selected: boolean;
-  badge: boolean;
+  // Quantos esperando atrás da aba. Zero esconde o ponto.
+  badge: number;
   onPress: () => void;
 }) {
   const { hovered, focused, handlers } = useInteraction();
@@ -69,7 +70,7 @@ function TabItem({
       onPress={onPress}
       accessibilityRole="tab"
       accessibilityState={{ selected }}
-      accessibilityLabel={label}
+      accessibilityLabel={badge ? badgeLabel(label, badge) : label}
       style={styles.item}>
       {({ pressed }) => (
         <>

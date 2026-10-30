@@ -402,7 +402,6 @@ const styles = StyleSheet.create({
   tripWho: { flex: 1 },
   tripPrice: { flexDirection: 'row', alignItems: 'center', gap: spacing[4] },
   priceSettled: { textDecorationLine: 'line-through' },
-  empty: { paddingTop: spacing[20], paddingHorizontal: spacing[4], gap: spacing[8] },
   charge: { gap: spacing[12], marginTop: spacing[8] },
   chargeHint: { paddingHorizontal: spacing[4], textAlign: 'center' },
   sent: { gap: spacing[4] },

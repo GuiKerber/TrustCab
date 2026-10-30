@@ -17,8 +17,6 @@ import { Icon, Text } from './ui';
 //
 // Some sozinho depois de alguns segundos, e o leitor de tela anuncia sem roubar o foco.
 
-const VISIBLE_MS = 4500;
-
 export function Toast({
   message,
   icon = 'check_circle',
@@ -49,7 +47,7 @@ export function Toast({
     progress.value = withTiming(showing ? 1 : 0, { duration: duracao });
     if (showing) {
       setMontado(true);
-      const relogio = setTimeout(() => sumir.current(), VISIBLE_MS);
+      const relogio = setTimeout(() => sumir.current(), motion.toast);
       return () => clearTimeout(relogio);
     }
     // Enquanto a saída roda, o aviso continua na tela; tirando-o antes, ele some de uma vez.
@@ -92,7 +90,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.block,
     backgroundColor: colors.surfaceRaised,
     borderWidth: borderWidth.hairline,
-    borderColor: colors.line,
+    // Sobre surfaceRaised, "line" é o mesmo tom do fundo e a borda some.
+    borderColor: colors.lineStrong,
   },
   text: { flex: 1 },
 });
