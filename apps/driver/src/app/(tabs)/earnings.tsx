@@ -1,25 +1,23 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import {
   Block,
   Button,
   colors,
   EmptyState,
-  focusRing,
   Icon,
   layout,
+  ListGroup,
   PageHeader,
+  PersonTotalCard,
   Pills,
-  radius,
   ScreenStatus,
   ScrollScreen,
   size,
   spacing,
-  stateOpacity,
   Text,
-  useInteraction,
 } from '@trustcab/ui';
 import { ChargeSheet, type ChargeLine } from '@/components/ChargeSheet';
 import { TopBar } from '@/components/TopBar';
@@ -213,20 +211,19 @@ export default function Earnings() {
       <Pills items={passengerItems} selected={passenger} onSelect={setPassenger} accessibilityLabel="Passageiro" />
 
       {passenger === ALL && byPassenger.length > 0 ? (
-        <View style={styles.people}>
-          {byPassenger.map(({ id, nome, trips, total: personTotal, color }, index) => (
-            <PersonCard
+        <ListGroup>
+          {byPassenger.map(({ id, nome, trips, total: personTotal, color }) => (
+            <PersonTotalCard
               key={id}
-              person={nome}
-              count={trips.length}
-              totalCents={personTotal}
+              name={nome}
+              caption={countLabel(trips.length)}
+              total={formatPriceShort(personTotal)}
               color={color}
-              first={index === 0}
-              last={index === byPassenger.length - 1}
               onPress={() => setPassenger(id)}
+              accessibilityLabel={`${nome}: ${formatPrice(personTotal)} em ${countLabel(trips.length)}. Ver só as viagens de ${nome.split(' ')[0]}`}
             />
           ))}
-        </View>
+        </ListGroup>
       ) : null}
 
       {doneDays.length > 0 ? (
@@ -336,67 +333,7 @@ export default function Earnings() {
   );
 }
 
-// Cartão colorido com o total de um passageiro no mês. Tocar filtra a tela por ele.
-function PersonCard({
-  person,
-  count,
-  totalCents,
-  color,
-  first,
-  last,
-  onPress,
-}: {
-  person: string;
-  count: number;
-  totalCents: number;
-  color: string;
-  first: boolean;
-  last: boolean;
-  onPress: () => void;
-}) {
-  const { hovered, focused, handlers } = useInteraction();
-  return (
-    <Pressable
-      {...handlers}
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={`${person}: ${formatPrice(totalCents)} em ${countLabel(count)}. Ver só as viagens de ${person.split(' ')[0]}`}
-      style={({ pressed }) => [
-        styles.person,
-        { backgroundColor: color, opacity: stateOpacity({ pressed, hovered, disabled: false }) },
-        first && styles.personFirst,
-        last && styles.personLast,
-        focused && focusRing(),
-      ]}>
-      <View style={styles.personText}>
-        <Text variant="heading" tone="onCard" numberOfLines={1}>
-          {person}
-        </Text>
-        <Text variant="small" tone="onCardMuted">
-          {countLabel(count)}
-        </Text>
-      </View>
-      <Text variant="title" tone="onCard">
-        {formatPriceShort(totalCents)}
-      </Text>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
-  people: { gap: spacing[4] },
-  person: {
-    minHeight: size.personCardMinHeight,
-    paddingHorizontal: spacing[20],
-    paddingVertical: spacing[16],
-    borderRadius: radius.joined,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[12],
-  },
-  personFirst: { borderTopLeftRadius: radius.block, borderTopRightRadius: radius.block },
-  personLast: { borderBottomLeftRadius: radius.block, borderBottomRightRadius: radius.block },
-  personText: { flex: 1, gap: spacing[4] },
   days: { gap: layout.gap },
   day: { gap: spacing[8], paddingVertical: spacing[16] },
   dayHead: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing[4] },

@@ -1,33 +1,29 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Linking, Pressable, StyleSheet, View } from 'react-native';
+import { Linking, StyleSheet, View } from 'react-native';
 
 import {
   BackBar,
   Banner,
   Block,
-  borderWidth,
   Button,
   colors,
   ConfirmDialog,
-  focusRing,
-  Icon,
   IconButton,
   InlineNotice,
-  Label,
   layout,
+  ListGroup,
   PageHeader,
   Pills,
-  radius,
   ScreenStatus,
   ScrollScreen,
-  size,
   spacing,
-  stateOpacity,
+  StatCard,
+  Tag,
   Text,
   Toast,
+  TotalRow,
   TripOptions,
-  useInteraction,
 } from '@trustcab/ui';
 import {
   formatPhone,
@@ -56,19 +52,6 @@ const MONTHS = 6;
 type Mes = { month: Date; trips: number; totalCents: number };
 
 type Aba = 'combinado' | 'gastos';
-
-// Ativo ou arquivado, com forma e ícone além da cor: quem não distingue cor precisa enxergar a
-// diferença do mesmo jeito.
-function StatusTag({ archived }: { archived: boolean }) {
-  return (
-    <View style={[styles.tag, archived ? styles.tagArchived : styles.tagActive]}>
-      <Icon name={archived ? 'inventory_2' : 'check_circle'} size={size.icon.sm} color={archived ? colors.textSecondary : colors.ink} />
-      <Text variant="label" style={{ color: archived ? colors.textSecondary : colors.ink }}>
-        {archived ? 'Arquivado' : 'Ativo'}
-      </Text>
-    </View>
-  );
-}
 
 // Página do passageiro: quem é, o que está combinado com ele, quanto ele gastou mês a mês e o
 // atalho para a cobrança. Arquivar tira da lista sem apagar nada — a agenda e as viagens apontam
@@ -214,7 +197,7 @@ export default function PassengerScreen() {
       />
 
       <PageHeader
-        above={<StatusTag archived={passenger.state === 'archived'} />}
+        above={passenger.state === 'archived' ? <Tag label="Arquivado" icon="inventory_2" tone="muted" /> : <Tag label="Ativo" icon="check_circle" />}
         title={passenger.name}
         meta={`${formatPhone(passenger.phone)} · na sua rede desde ${longDate(passenger.since)}`}
       />
@@ -285,18 +268,22 @@ export default function PassengerScreen() {
 
       <View style={[styles.section, aba === 'gastos' ? null : styles.hidden]}>
         {meses.some((m) => m.trips > 0) ? (
-          <View style={styles.table}>
-            {meses.map((m, index) => (
-              <MonthRow
-                key={m.month.toISOString()}
-                spend={m}
-                current={index === 0}
-                first={index === 0}
-                last={index === meses.length - 1}
-                onPress={() => openMonth(m.month)}
-              />
-            ))}
-          </View>
+          <ListGroup>
+            {meses.map((m, index) => {
+              const mes = capitalize(monthName(m.month));
+              return (
+                <TotalRow
+                  key={m.month.toISOString()}
+                  title={mes}
+                  caption={index === 0 ? 'até hoje' : undefined}
+                  count={m.trips === 1 ? '1 viagem' : `${m.trips} viagens`}
+                  value={formatPrice(m.totalCents)}
+                  onPress={() => openMonth(m.month)}
+                  accessibilityLabel={`${mes}: ${m.trips} viagens, ${formatPrice(m.totalCents)}. Abrir em Ganhos`}
+                />
+              );
+            })}
+          </ListGroup>
         ) : (
           <Text variant="small" tone="secondary">
             Nenhuma viagem concluída ainda. Elas aparecem aqui quando você toca em "Concluir viagem".
@@ -319,132 +306,10 @@ export default function PassengerScreen() {
   );
 }
 
-// Cartão de total. Mesma tipografia em todas as cores: título no topo, respiro, número principal
-// e o secundário embaixo.
-function StatCard({
-  color,
-  title,
-  value,
-  detailLabel,
-  detail,
-  wide = false,
-}: {
-  color: string;
-  title: string;
-  value: string;
-  detailLabel: string;
-  detail: string;
-  wide?: boolean;
-}) {
-  return (
-    <View
-      style={[styles.stat, wide && styles.statWide, { backgroundColor: color }]}
-      accessible
-      accessibilityLabel={`${title}: ${value}. ${detailLabel}: ${detail}`}>
-      <Label tone="onCardMuted">{title}</Label>
-      <View style={styles.statBottom}>
-        <Text variant="displaySm" tone="onCard" numberOfLines={1}>
-          {value}
-        </Text>
-        <View style={[styles.statDetail, { borderTopColor: colors.inkLine }]}>
-          <Text variant="small" tone="onCardMuted">
-            {detailLabel}
-          </Text>
-          <Text variant="bodyMedium" tone="onCard">
-            {detail}
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-}
-
-function MonthRow({ spend, current, first, last, onPress }: { spend: Mes; current: boolean; first: boolean; last: boolean; onPress: () => void }) {
-  const { hovered, focused, handlers } = useInteraction();
-  const name = capitalize(monthName(spend.month));
-  return (
-    <Pressable
-      {...handlers}
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={`${name}: ${spend.trips} viagens, ${formatPrice(spend.totalCents)}. Abrir em Ganhos`}
-      style={({ pressed }) => [
-        styles.row,
-        first && styles.rowFirst,
-        last && styles.rowLast,
-        { opacity: stateOpacity({ pressed, hovered, disabled: false }) },
-        focused && focusRing(),
-      ]}>
-      <View style={styles.rowMonth}>
-        <Text variant="bodyMedium">{name}</Text>
-        {current ? (
-          <Text variant="small" tone="secondary">
-            até hoje
-          </Text>
-        ) : null}
-      </View>
-      <Text variant="small" tone="secondary" style={styles.rowTrips}>
-        {spend.trips === 1 ? '1 viagem' : `${spend.trips} viagens`}
-      </Text>
-      <Text variant="bodyMedium" style={styles.rowTotal}>
-        {formatPrice(spend.totalCents)}
-      </Text>
-      <Icon name="chevron_right" size={size.icon.md} color={colors.textSecondary} />
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   hidden: { display: 'none' },
-  tag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    gap: spacing[4],
-    paddingVertical: spacing[4],
-    paddingHorizontal: spacing[8],
-    borderRadius: radius.sm,
-  },
-  tagActive: { backgroundColor: colors.text },
-  tagArchived: { backgroundColor: colors.surfaceRaised },
   stats: { flexDirection: 'row', gap: layout.gap },
-  // Custos ganham mais largura: o valor tem mais dígitos que o número de viagens.
-  statWide: { flex: layout.statWideFlex },
-  stat: {
-    flex: 1,
-    minHeight: size.statCardMinHeight,
-    borderRadius: radius.block,
-    padding: spacing[16],
-    justifyContent: 'space-between',
-    gap: spacing[28],
-  },
-  statBottom: { gap: spacing[12] },
-  statDetail: {
-    borderTopWidth: borderWidth.hairline,
-    paddingTop: spacing[8],
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'baseline',
-    justifyContent: 'space-between',
-    gap: spacing[4],
-  },
   section: { gap: spacing[12] },
-  table: { gap: spacing[4] },
-  row: {
-    minHeight: size.row.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[12],
-    paddingHorizontal: spacing[16],
-    paddingVertical: spacing[8],
-    backgroundColor: colors.surface,
-    borderRadius: radius.joined,
-  },
-  rowFirst: { borderTopLeftRadius: radius.block, borderTopRightRadius: radius.block },
-  rowLast: { borderBottomLeftRadius: radius.block, borderBottomRightRadius: radius.block },
-  rowMonth: { flex: 1 },
-  rowTrips: { fontVariant: ['tabular-nums'] },
-  rowTotal: { fontVariant: ['tabular-nums'] },
   list: { gap: layout.gap },
   deal: { gap: spacing[8], padding: spacing[16] },
   dealActions: { flexDirection: 'row', alignItems: 'center', gap: spacing[8], marginTop: spacing[4] },

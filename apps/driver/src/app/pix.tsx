@@ -1,16 +1,17 @@
 import { useState } from 'react';
 import { StyleSheet } from 'react-native';
 
-import { Button, FormScreen, InfoBlock, PageHeader } from '@trustcab/ui';
+import { Button, FormScreen, PageHeader, Toast } from '@trustcab/ui';
 import { usePixForm } from '@/components/PixForm';
-import { PIX_TYPES, setPix, useProfile } from '@/data/profile';
+import { setPix, useProfile } from '@/data/profile';
 import { goBack } from '@/lib/back';
 
 // Chave Pix: vai junto nas cobranças e gera o QR Code mostrado ao concluir a viagem.
+// Salvar e remover confirmam com o aviso curto (Toast), como as outras ações que não mudam de tela.
 export default function PixKey() {
   const profile = useProfile();
-  const [saved, setSaved] = useState(false);
-  const form = usePixForm({ onChange: () => setSaved(false) });
+  const [feito, setFeito] = useState<string | null>(null);
+  const form = usePixForm();
 
   return (
     <FormScreen
@@ -18,7 +19,7 @@ export default function PixKey() {
       onBack={() => goBack('/profile')}
       footer={
         <>
-          <Button label={profile.pix ? 'Salvar nova chave' : 'Salvar chave'} icon="check" variant="light" onPress={() => setSaved(form.save())} />
+          <Button label={profile.pix ? 'Salvar nova chave' : 'Salvar chave'} icon="check" variant="light" onPress={() => form.save() && setFeito('Chave Pix salva. Ela já vai nas próximas cobranças.')} />
           {profile.pix ? (
             <Button
               label="Remover chave"
@@ -30,7 +31,7 @@ export default function PixKey() {
               onPress={() => {
                 setPix(null);
                 form.clear();
-                setSaved(false);
+                setFeito('Chave Pix removida.');
               }}
             />
           ) : null}
@@ -40,9 +41,7 @@ export default function PixKey() {
 
       {form.fields}
 
-      {saved && profile.pix ? (
-        <InfoBlock label="Salva" value={`${PIX_TYPES[profile.pix.type].label} · ${profile.pix.key}`} live />
-      ) : null}
+      <Toast message={feito} onHide={() => setFeito(null)} />
     </FormScreen>
   );
 }
