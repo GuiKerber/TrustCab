@@ -1,3 +1,11 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<!-- Sem esta linha o celular desenha a página com 980px de largura e encolhe
+     tudo: nenhuma media query chega a valer. O viewport-fit=cover é o que
+     liga os env(safe-area-inset-*) que o CSS usa nas bordas. -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="O aplicativo do motorista particular: a sua rede de passageiros, as viagens do dia e o acerto do mês em um lugar só.">
 <title>TrustCab para motoristas</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 
@@ -21,16 +29,47 @@
 </header>
 
 <main id="topo">
-  <!-- ─────────────────────────────── abertura ─────────────────────────────── -->
-  <!-- Curta de propósito: a maquete precisa aparecer no pé da primeira tela
-       para o leitor entender que há rolagem. -->
-  <section class="hero">
-    <div class="hero__in">
-      <!-- Cada linha é uma máscara com o texto subindo por dentro, como nas
-           peças do Uber. O <br> virou duas máscaras. -->
+  <!-- ──────────────────────── abertura + como funciona ────────────────────── -->
+  <!-- As duas são uma seção só, e o que as liga é o aparelho: ele entra inteiro
+       no fim da abertura, gruda no meio da tela e fica lá enquanto os três
+       passos passam ao lado, trocando de tela a cada um. É o mesmo celular do
+       começo ao fim — por isso ele é um elemento só, e não um por seção.
+
+       As telas que ainda não existem são caixas tracejadas dentro do aparelho,
+       dizendo o que precisa ser exportado. Nenhuma imagem foi inventada. -->
+  <div class="fio" id="abertura">
+    <div class="fio__cena" id="palco-abertura" role="img"
+         aria-label="Maquete 3D de uma cidade vista de cima. O carro preto do motorista cumpre um trajeto pelas ruas, para ao lado de um passageiro e a viagem vira R$ 25 ganhos.">
+      <canvas class="fio__tela" id="cena-abertura"></canvas>
+      <div class="pinos" id="pinos">
+        <span class="pino" data-cor="peach" data-estado="espera">
+          <span class="pino__bolha"><span class="pino__letra">D</span></span>
+          <span class="pino__valor">+ R$ 25</span>
+          <span class="pino__bico"></span>
+        </span>
+        <span class="pino" data-cor="yellow" data-estado="espera">
+          <span class="pino__bolha"><span class="pino__letra">A</span></span>
+          <span class="pino__valor">+ R$ 25</span>
+          <span class="pino__bico"></span>
+        </span>
+        <span class="pino" data-cor="sky" data-estado="espera">
+          <span class="pino__bolha"><span class="pino__letra">C</span></span>
+          <span class="pino__valor">+ R$ 25</span>
+          <span class="pino__bico"></span>
+        </span>
+        <span class="pino" data-cor="lilac" data-estado="espera">
+          <span class="pino__bolha"><span class="pino__letra">B</span></span>
+          <span class="pino__valor">+ R$ 25</span>
+          <span class="pino__bico"></span>
+        </span>
+      </div>
+    </div>
+
+    <div class="fio__topo">
+      <!-- Cada linha é uma máscara com o texto subindo por dentro. -->
       <h1 class="hero__title">
-        <span class="linha"><span>Dirija para quem</span></span>
-        <span class="linha"><span>você conhece.</span></span>
+        <span class="linha"><span>Construa e dirija para sua</span></span>
+        <span class="linha"><span>rede de confiança</span></span>
       </h1>
       <p class="hero__lead">
         O aplicativo do motorista particular: a sua rede de passageiros, as viagens
@@ -39,381 +78,178 @@
       <a class="btn btn--light" href="https://expo.dev/artifacts/eas/SVqlvX1TbmTszYxKzQ1oLmzIPlr17tf8AO4BAeWwwzg.apk">
         Baixar para Android <i class="ms" aria-hidden="true">download</i>
       </a>
-      <p class="hero__note">
-        <i class="ms" aria-hidden="true">check_circle</i>
-        Grátis até 3 passageiros
-      </p>
     </div>
-  </section>
 
-  <!-- ──────────────────────────── a viagem, em 3D ─────────────────────────── -->
-  <section class="story" id="rede">
-    <div class="story__stage">
-      <canvas class="story__canvas" id="cena" aria-hidden="true"></canvas>
-      <p class="story__loading" id="carregando">Montando a maquete…</p>
-      <p class="story__fallback" id="semWebgl" hidden>
-        A maquete em 3D não abriu neste navegador. A história continua abaixo, inteira.
-      </p>
+    <!-- Reserva a altura do aparelho inteiro na abertura: é ela que garante que
+         ele nunca apareça cortado, e é daqui que ele começa a grudar. -->
+    <div class="fio__vao" aria-hidden="true"></div>
 
-      <div class="story__grid">
-        <!-- trilha de capítulos: sempre os quatro à vista. O clique leva a
-             rolagem até a parada inteira — quem toca no 02 chega no 02. -->
-        <ol class="track" id="trilha">
-          <li class="track__item is-on"><a href="#rede"><span class="track__n">01</span><span class="track__t">A rede</span></a></li>
-          <li class="track__item"><a href="#dia"><span class="track__n">02</span><span class="track__t">O dia</span></a></li>
-          <li class="track__item"><a href="#viagem"><span class="track__n">03</span><span class="track__t">A viagem</span></a></li>
-          <li class="track__item"><a href="#acerto"><span class="track__n">04</span><span class="track__t">O acerto</span></a></li>
-        </ol>
+    <!-- O aparelho. A moldura, os brilhos e os quatro botões vêm do Figma
+         inteiros; o que muda é só o que está na tela. -->
+    <div class="fio__fone" role="img" aria-label="Celular do motorista com a agenda do dia aberta no aplicativo.">
+      <div class="fone">
+        <div class="fone__corpo">
+          <div class="fone__tela">
+            <img src="img/tela-app.png" alt="" width="780" height="1688" fetchpriority="high" decoding="async">
+          </div>
 
-        <div class="chapters" id="capitulos">
-          <!-- 01 ───────────────────────────────────────────────────────────── -->
-          <article class="chapter is-on" data-chapter="0">
-            <div class="chapter__text">
-              <h2>
-                <span class="linha"><span>Quem entra,</span></span>
-                <span class="linha"><span>entra pela sua mão.</span></span>
-              </h2>
-              <p>
-                Você manda um link para quem já anda com você. A pessoa entra por ele e pede para
-                fazer parte da sua rede. Quem aprova é você — ninguém cai no seu dia sem passar por aqui.
-              </p>
-            </div>
+          <div class="fone__ilha">
+            <img class="fone__lente-aro" src="img/lente.svg" alt="" width="13.0524" height="13.0524">
+            <img class="fone__lente" src="img/lente.png" alt="" width="15" height="16">
+            <span class="fone__risco"><img src="img/linha.svg" alt="" width="7.13695" height="0.583645"></span>
+          </div>
 
-            <div class="chapter__ui">
-              <div class="ui ui--sheet">
-                <p class="t-label t-dim">Pediu para entrar</p>
-                <p class="t-display">Ana Prado</p>
-                <p class="t-small t-dim">Entrou pelo seu link · hoje, 08:12</p>
-                <div class="ui__row">
-                  <span class="chip"><i class="ms" aria-hidden="true">call</i>(51) 99812-4477</span>
-                </div>
-                <div class="ui__actions">
-                  <span class="btn btn--light btn--sm btn--grow"><i class="ms" aria-hidden="true">check</i>Aprovar</span>
-                  <span class="btn btn--ghost btn--sm">Recusar</span>
-                </div>
-              </div>
-            </div>
-          </article>
+          <span class="fone__brilho fone__brilho--difuso"></span>
+          <span class="fone__brilho"></span>
 
-          <!-- 02 ───────────────────────────────────────────────────────────── -->
-          <article class="chapter" data-chapter="1" id="dia">
-            <div class="chapter__text">
-              <h2>
-                <span class="linha"><span>As viagens chegam</span></span>
-                <span class="linha"><span>empilhadas.</span></span>
-              </h2>
-              <p>
-                Abriu o app, o dia está pronto: as viagens de hoje na ordem do relógio, a próxima
-                no topo. Cada passageiro tem a sua cor, e dá para ler o dia inteiro sem abrir nada.
-              </p>
-            </div>
+          <span class="fone__faixa fone__faixa--topo"></span>
+          <span class="fone__faixa fone__faixa--dir-a"></span>
+          <span class="fone__faixa fone__faixa--esq-a"></span>
+          <span class="fone__faixa fone__faixa--dir-b"></span>
+          <span class="fone__faixa fone__faixa--esq-b"></span>
+          <span class="fone__faixa fone__faixa--base"></span>
 
-            <div class="chapter__ui">
-              <!-- A pilha é a do app: de cada cartão aparece só a faixa de cima,
-                   com o rótulo, o nome e o horário. O último abre inteiro. -->
-              <div class="stack" aria-label="Viagens de hoje">
-                <article class="card card--yellow">
-                  <div class="card__head">
-                    <div class="card__headtext">
-                      <span class="t-label">Próxima</span>
-                      <span class="t-heading">Ana Prado</span>
-                    </div>
-                    <span class="t-display">07:40</span>
-                  </div>
-                  <div class="card__body">
-                    <span class="t-small">Rua Marquês do Pombal, 1120</span>
-                    <span class="t-small">→ Av. Ipiranga, 6681</span>
-                  </div>
-                  <div class="card__foot">
-                    <span class="t-body-md">R$ 25</span>
-                    <span class="card__arrow"><i class="ms" aria-hidden="true">north_east</i></span>
-                  </div>
-                </article>
-
-                <article class="card card--lilac">
-                  <div class="card__head">
-                    <div class="card__headtext">
-                      <span class="t-label">Agendada</span>
-                      <span class="t-heading">Bruno Lima</span>
-                    </div>
-                    <span class="t-display">12:15</span>
-                  </div>
-                  <div class="card__body">
-                    <span class="t-small">Av. Protásio Alves, 2340</span>
-                    <span class="t-small">→ Rua da Praia, 450</span>
-                  </div>
-                  <div class="card__foot">
-                    <span class="t-body-md">R$ 18</span>
-                    <span class="card__arrow"><i class="ms" aria-hidden="true">north_east</i></span>
-                  </div>
-                </article>
-
-                <article class="card card--done">
-                  <div class="card__head">
-                    <div class="card__headtext">
-                      <span class="t-label">Concluída</span>
-                      <span class="t-heading">Carla Dias</span>
-                    </div>
-                    <span class="t-display">06:10</span>
-                  </div>
-                  <div class="card__body">
-                    <span class="t-small">Rua Fernandes Vieira, 88</span>
-                    <span class="t-small">→ Av. Carlos Gomes, 1200</span>
-                  </div>
-                  <div class="card__foot">
-                    <span class="t-body-md">R$ 22</span>
-                    <span class="card__arrow"><i class="ms" aria-hidden="true">north_east</i></span>
-                  </div>
-                </article>
-              </div>
-            </div>
-          </article>
-
-          <!-- 03 ───────────────────────────────────────────────────────────── -->
-          <article class="chapter" data-chapter="2" id="viagem">
-            <div class="chapter__text">
-              <h2>
-                <span class="linha"><span>Quatro toques,</span></span>
-                <span class="linha"><span>do portão ao destino.</span></span>
-              </h2>
-              <p>
-                A caminho, cheguei, em viagem, concluída. Cada toque seu aparece na hora para quem
-                está esperando do outro lado, e o tempo de chegada se ajusta sozinho.
-              </p>
-            </div>
-
-            <div class="chapter__ui">
-              <div class="ui ui--trip">
-                <div class="trip__head">
-                  <div>
-                    <p class="t-label t-ink2">Em viagem</p>
-                    <p class="t-displaysm">Ana Prado</p>
-                  </div>
-                  <span class="t-display">07:40</span>
-                </div>
-
-                <ol class="route" aria-label="Percurso">
-                  <li class="stop is-done">
-                    <span class="stop__node" aria-hidden="true"></span>
-                    <span class="stop__text"><b class="t-label t-ink2">Partida</b><span class="t-body">Rua Marquês do Pombal, 1120</span></span>
-                  </li>
-                  <li class="leg is-now" aria-hidden="true"></li>
-                  <li class="stop">
-                    <span class="stop__node" aria-hidden="true"></span>
-                    <span class="stop__text"><b class="t-label t-ink2">Destino</b><span class="t-body">Av. Ipiranga, 6681</span></span>
-                  </li>
-                </ol>
-
-                <div class="metrics">
-                  <div class="metric"><span class="t-label t-ink2">Valor combinado</span><span class="t-displaysm">R$ 25</span></div>
-                  <div class="metric"><span class="t-label t-ink2">Chegada em</span><span class="t-displaysm">18 min</span></div>
-                </div>
-
-                <span class="btn btn--ink btn--grow">Concluir viagem</span>
-              </div>
-            </div>
-          </article>
-
-          <!-- 04 ───────────────────────────────────────────────────────────── -->
-          <article class="chapter" data-chapter="3" id="acerto">
-            <div class="chapter__text">
-              <h2>
-                <span class="linha"><span>Um mês,</span></span>
-                <span class="linha"><span>uma cobrança.</span></span>
-              </h2>
-              <p>
-                No fim do mês o app soma as viagens de cada passageiro e monta a cobrança. A pessoa
-                paga no Pix, você marca como pago, e o mês fecha sem planilha e sem conversa difícil.
-              </p>
-            </div>
-
-            <div class="chapter__ui">
-              <div class="ui ui--sheet">
-                <p class="t-label t-dim">Outubro · Ana Prado</p>
-                <p class="t-display">R$ 450</p>
-                <p class="t-small t-dim">18 viagens · 2 já pagas</p>
-                <ul class="bill" aria-label="Viagens do mês">
-                  <li class="bill__row is-paid">
-                    <span class="bill__when t-small">Seg 05 · 07:40</span>
-                    <span class="bill__val t-body-md">R$ 25</span>
-                    <i class="ms bill__check" aria-hidden="true">check_circle</i>
-                    <span class="sr">Pago</span>
-                  </li>
-                  <li class="bill__row is-paid">
-                    <span class="bill__when t-small">Ter 06 · 07:40</span>
-                    <span class="bill__val t-body-md">R$ 25</span>
-                    <i class="ms bill__check" aria-hidden="true">check_circle</i>
-                    <span class="sr">Pago</span>
-                  </li>
-                  <li class="bill__row">
-                    <span class="bill__when t-small">Qua 07 · 07:40</span>
-                    <span class="bill__val t-body-md">R$ 25</span>
-                  </li>
-                  <li class="bill__row bill__row--resto">
-                    <span class="bill__when t-small">Mais 15 viagens</span>
-                    <span class="bill__val t-body-md">R$ 375</span>
-                  </li>
-                </ul>
-                <div class="ui__actions">
-                  <span class="btn btn--light btn--sm btn--grow">Confirmar pagamento · R$ 450</span>
-                </div>
-                <p class="t-small t-dim">Chave Pix (Celular) · (51) 99812-4477</p>
-              </div>
-            </div>
-          </article>
+          <img class="fone__bt fone__bt--silencioso" src="img/botao-volume-cima.svg" alt="" width="2.17541" height="23.2043">
+          <img class="fone__bt fone__bt--mais" src="img/botao-volume.svg" alt="" width="2.17541" height="47.1338">
+          <img class="fone__bt fone__bt--menos" src="img/botao-volume.svg" alt="" width="2.17541" height="47.1338">
+          <img class="fone__bt fone__bt--lado" src="img/botao-lateral.svg" alt="" width="2.17541" height="75.414">
         </div>
       </div>
     </div>
-  </section>
 
-  <!-- ──────────────────────────────── planos ──────────────────────────────── -->
-  <section class="close" id="baixar">
-    <div class="close__in">
-      <div class="close__head">
-        <h2 class="close__title">
-          <span class="linha"><span>Feito para quem já tem</span></span>
-          <span class="linha"><span>os seus passageiros.</span></span>
-        </h2>
-        <p class="close__lead">
-          Sem corrida de aplicativo, sem leilão de preço, sem passageiro desconhecido.
-          O preço é o que você combinou, e a rede é a sua.
-        </p>
+
+    <!-- ─────────────────────── o dia do motorista ─────────────────────────
+         Mesma grade da abertura, três linhas abaixo dela: o aparelho continua
+         na coluna do meio e grudado, e o material se arruma dos dois lados.
+         É o mesmo celular do título — por isso ele é um elemento só na
+         página inteira, e não um por seção. -->
+    <div class="vitrine" id="o-dia">
+      <div class="vitrine__lado">
+        <div class="peca peca--titulo">
+          <h2 class="vitrine__title">
+            <span class="linha"><span>O dia inteiro</span></span>
+            <span class="linha"><span>do motorista,</span></span>
+            <span class="linha"><span>numa tela só.</span></span>
+          </h2>
+          <p class="vitrine__lead">
+            Cada pedido chega com nome, endereço e horário, na ordem em que você vai
+            dirigir. Você aceita ou recusa num toque, e o passageiro é avisado na hora.
+          </p>
+        </div>
+
+        <div class="peca peca--solta">
+          <figure class="foto foto--mapa">
+            <img src="img/mapa.png" alt="Mapa de Porto Alegre com o trajeto de uma viagem marcado da Avenida Assis Brasil até a Benjamin Constant."
+                 width="573" height="550" loading="lazy" decoding="async">
+          </figure>
+          <span class="pilula-valor"><i class="ms" aria-hidden="true">directions_car</i>R$ 18,00</span>
+          <div class="cartao cartao--azul cartao--solto">
+            <p class="cartao__rotulo">Próxima</p>
+            <div class="cartao__linha"><span class="cartao__nome">Bruno Lima</span><span class="cartao__hora">12:15</span></div>
+            <p class="cartao__end">Av. Protásio Alves, 2340</p>
+          </div>
+        </div>
       </div>
 
-      <!-- Três painéis, como no Figma: os dois planos com as mesmas seis linhas
-           na mesma ordem — só a primeira muda — e o aparelho com o único botão
-           da seção. -->
-      <div class="planos">
-        <article class="plano">
-          <i class="ms plano__marca" aria-hidden="true">directions_car</i>
-          <h3 class="plano__nome">Inicial</h3>
-          <p class="plano__nota">Para começar com quem você já leva toda semana.</p>
-          <p class="plano__preco">Grátis</p>
-          <dl class="specs">
-            <div class="spec spec--chave">
-              <dt><i class="ms" aria-hidden="true">group</i>Passageiros</dt>
-              <dd>Até 3</dd>
-            </div>
-            <div class="spec">
-              <dt><i class="ms" aria-hidden="true">route</i>Viagens por mês</dt>
-              <dd>Ilimitadas</dd>
-            </div>
-            <div class="spec">
-              <dt><i class="ms" aria-hidden="true">calendar_month</i>Agenda</dt>
-              <dd>Sim</dd>
-            </div>
-            <div class="spec">
-              <dt><i class="ms" aria-hidden="true">receipt_long</i>Cobrança do mês</dt>
-              <dd>Sim</dd>
-            </div>
-            <div class="spec">
-              <dt><i class="ms" aria-hidden="true">notifications_active</i>Avisos ao passageiro</dt>
-              <dd>Automáticos</dd>
-            </div>
-            <div class="spec">
-              <dt><i class="ms" aria-hidden="true">payments</i>Pagamento</dt>
-              <dd>Pix, sua chave</dd>
-            </div>
-          </dl>
-        </article>
+      <div class="vitrine__lado">
+        <div class="peca peca--solta">
+          <figure class="foto foto--retrato">
+            <img src="img/motorista.webp" alt="Motorista sorrindo ao volante, olhando por cima do ombro para o banco de trás."
+                 width="1086" height="1448" loading="lazy" decoding="async">
+          </figure>
+          <span class="selo"><i class="ms" aria-hidden="true">push_pin</i></span>
+        </div>
 
-        <article class="plano plano--pro">
-          <i class="ms plano__marca" aria-hidden="true">all_inclusive</i>
-          <h3 class="plano__nome">Pro</h3>
-          <p class="plano__nota">Para quando a sua rede passar de três pessoas.</p>
-          <p class="plano__preco">R$ 19,90<span class="plano__ciclo">/mês</span></p>
-          <dl class="specs">
-            <div class="spec spec--chave">
-              <dt><i class="ms" aria-hidden="true">group</i>Passageiros</dt>
-              <dd>Ilimitados</dd>
-            </div>
-            <div class="spec">
-              <dt><i class="ms" aria-hidden="true">route</i>Viagens por mês</dt>
-              <dd>Ilimitadas</dd>
-            </div>
-            <div class="spec">
-              <dt><i class="ms" aria-hidden="true">calendar_month</i>Agenda</dt>
-              <dd>Sim</dd>
-            </div>
-            <div class="spec">
-              <dt><i class="ms" aria-hidden="true">receipt_long</i>Cobrança do mês</dt>
-              <dd>Sim</dd>
-            </div>
-            <div class="spec">
-              <dt><i class="ms" aria-hidden="true">notifications_active</i>Avisos ao passageiro</dt>
-              <dd>Automáticos</dd>
-            </div>
-            <div class="spec">
-              <dt><i class="ms" aria-hidden="true">payments</i>Pagamento</dt>
-              <dd>Pix, sua chave</dd>
-            </div>
-          </dl>
-        </article>
+        <div class="peca">
+          <p class="peca__num"><span>comissão</span><b>0%</b></p>
+          <p class="peca__preco">Primeiro mês gratuito, depois R$ 19,90 por mês.</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        <!-- O painel do aparelho vem do Figma inteiro: a foto de fundo e a tela
-             do app são os arquivos exportados de lá, não desenho em HTML. O
-             corpo do aparelho é a única parte montada aqui, porque no Figma ela
-             também é — molduras, brilhos e os quatro botões. Tudo é ilustração,
-             então sai da leitura de tela; o que importa é o botão no pé. -->
-        <article class="plano plano--app">
-          <div class="painel__foto" aria-hidden="true">
-            <img src="img/painel-fundo.png" alt="" width="1585" height="992" loading="lazy" decoding="async">
+  <!-- ───────────────────────────── como funciona ──────────────────────────── -->
+  <!-- Fundo escuro da marca, que é também o fundo do aplicativo: a página muda
+       de lado e passa a falar de dentro do produto. Três passos, sem imagem
+       nenhuma — aqui o que precisa ficar é a frase. -->
+  <section class="como" id="como-funciona">
+    <div class="como__in">
+      <p class="t-label como__olho">Como funciona</p>
+      <h2 class="como__title">
+        <span class="linha"><span>Três passos</span></span>
+        <span class="linha"><span>e o mês fecha</span></span>
+      </h2>
+
+      <ol class="como__passos">
+        <li class="degrau">
+          <p class="degrau__n" aria-hidden="true">01</p>
+          <!-- O pedido chegando: o cartão do passageiro e o aceite. Mínimo de
+               propósito — o quadro ilustra a frase, não concorre com ela. -->
+          <div class="degrau__quadro" aria-hidden="true">
+            <img src="img/passo-1.png" alt="" width="1120" height="630" loading="lazy" decoding="async">
           </div>
+          <h3 class="degrau__t">Ele agenda, você aprova.</h3>
+          <p class="degrau__p">
+            O passageiro abre o seu link no navegador, escolhe o dia e o horário e
+            manda. O pedido cai na sua agenda com nome, endereço e hora — você
+            aceita ou recusa, e ele é avisado na hora.
+          </p>
+        </li>
 
-          <div class="fone__area" aria-hidden="true">
-            <div class="fone">
-              <div class="fone__corpo">
-                <div class="fone__tela">
-                  <img src="img/tela-app.png" alt="" width="780" height="1688" loading="lazy" decoding="async">
-                </div>
-
-                <div class="fone__ilha">
-                  <img class="fone__lente-aro" src="img/lente.svg" alt="" width="13.0524" height="13.0524">
-                  <img class="fone__lente" src="img/lente.png" alt="" width="15" height="16">
-                  <span class="fone__risco"><img src="img/linha.svg" alt="" width="7.13695" height="0.583645"></span>
-                </div>
-
-                <span class="fone__brilho fone__brilho--difuso"></span>
-                <span class="fone__brilho"></span>
-
-                <span class="fone__faixa fone__faixa--topo"></span>
-                <span class="fone__faixa fone__faixa--dir-a"></span>
-                <span class="fone__faixa fone__faixa--esq-a"></span>
-                <span class="fone__faixa fone__faixa--dir-b"></span>
-                <span class="fone__faixa fone__faixa--esq-b"></span>
-                <span class="fone__faixa fone__faixa--base"></span>
-
-                <img class="fone__bt fone__bt--silencioso" src="img/botao-volume-cima.svg" alt="" width="2.17541" height="23.2043">
-                <img class="fone__bt fone__bt--mais" src="img/botao-volume.svg" alt="" width="2.17541" height="47.1338">
-                <img class="fone__bt fone__bt--menos" src="img/botao-volume.svg" alt="" width="2.17541" height="47.1338">
-                <img class="fone__bt fone__bt--lado" src="img/botao-lateral.svg" alt="" width="2.17541" height="75.414">
-              </div>
-            </div>
-            <span class="fone__esfuma"></span>
+        <li class="degrau">
+          <p class="degrau__n" aria-hidden="true">02</p>
+          <!-- A viagem andando: três paradas numa linha, a do meio acesa. -->
+          <div class="degrau__quadro" aria-hidden="true">
+            <img src="img/passo-2.png" alt="" width="1120" height="630" loading="lazy" decoding="async">
           </div>
+          <h3 class="degrau__t">Você dirige e ele acompanha.</h3>
+          <p class="degrau__p">
+            Cada toque avança a viagem: a caminho, cheguei, concluída. O passageiro
+            recebe o aviso no WhatsApp sem você escrever nada, e sabe onde você está
+            sem precisar perguntar.
+          </p>
+        </li>
 
-          <a class="btn btn--light plano__cta" href="https://expo.dev/artifacts/eas/SVqlvX1TbmTszYxKzQ1oLmzIPlr17tf8AO4BAeWwwzg.apk">Baixar o App</a>
-        </article>
+        <li class="degrau">
+          <p class="degrau__n" aria-hidden="true">03</p>
+          <!-- O cartão do passageiro com o fechamento do mês, como no Figma. -->
+          <div class="degrau__quadro" aria-hidden="true">
+            <img src="img/passo-3.png" alt="" width="1120" height="630" loading="lazy" decoding="async">
+          </div>
+          <h3 class="degrau__t">Você cobra pelo Pix.</h3>
+          <p class="degrau__p">
+            No fim de cada viagem ou no fechamento do mês, o app monta a cobrança
+            com a lista das viagens e a sua chave Pix. O dinheiro vai do passageiro
+            direto para a sua conta.
+          </p>
+        </li>
+      </ol>
+
+      <div class="como__pe" id="baixar">
+        <a class="btn btn--ink-claro" href="https://expo.dev/artifacts/eas/SVqlvX1TbmTszYxKzQ1oLmzIPlr17tf8AO4BAeWwwzg.apk">
+          Baixar para Android <i class="ms" aria-hidden="true">download</i>
+        </a>
+        <p class="como__nota">Primeiro mês gratuito, depois R$ 19,90 por mês. Sem comissão nunca.</p>
       </div>
     </div>
   </section>
 
   <!-- ──────────────────────────────── dúvidas ─────────────────────────────── -->
+  <!-- Coluna única e centrada: a pergunta é o assunto, não a diagramação. Cada
+       item é um <details> nativo — abre no teclado, abre sem JS, e o sinal gira
+       de + para ×, então o estado não depende só da cor. -->
   <section class="faq" id="duvidas">
     <div class="faq__in">
-      <div class="faq__lado">
+      <div class="faq__topo">
+        <p class="t-label faq__olho">Dúvidas</p>
         <h2 class="faq__title">
-          <span class="linha"><span>Dúvidas de</span></span>
-          <span class="linha"><span>quem vai começar.</span></span>
+          <span class="linha"><span>Dúvidas de quem</span></span>
+          <span class="linha"><span>vai começar.</span></span>
         </h2>
-        <p class="faq__nota">
-          Ficou faltando alguma coisa, ou achou algo estranho na página? Me conta —
-          chega direto no meu e-mail.
+        <p class="faq__lead">
+          O que costuma vir antes de baixar: como o passageiro entra na sua rede,
+          quem põe o preço e por onde o dinheiro passa.
         </p>
-        <a class="btn btn--ghost faq__btn" data-abre="feedback"
-           href="mailto:contact@guikerber.com?subject=Feedback%20do%20site%20TrustCab">
-          <i class="ms" aria-hidden="true">forum</i>Enviar feedback
-        </a>
       </div>
 
       <div class="faq__lista">
@@ -463,12 +299,13 @@
 
         <details class="qa">
           <summary>
-            <span class="qa__p">E se eu passar de três passageiros?</span>
+            <span class="qa__p">Quanto custa?</span>
             <i class="ms qa__sinal" aria-hidden="true">add</i>
           </summary>
           <p class="qa__r">
-            O plano Inicial atende três. Passando disso, o Pro libera quantos você quiser por
-            R$ 19,90 por mês. Se cancelar, quem já está na rede continua lá.
+            O primeiro mês é gratuito, com tudo liberado. Depois são R$ 19,90 por mês, sem
+            limite de passageiros nem de viagens. A comissão é zero em qualquer caso: o valor
+            da viagem é o que vocês combinaram, e ele vai inteiro para você.
           </p>
         </details>
 
@@ -483,8 +320,17 @@
           </p>
         </details>
       </div>
+
+      <div class="faq__pe">
+        <p class="faq__nota">Ficou faltando alguma coisa, ou achou algo estranho na página?</p>
+        <a class="btn btn--ghost" data-abre="feedback"
+           href="mailto:contact@guikerber.com?subject=Feedback%20do%20site%20TrustCab">
+          <i class="ms" aria-hidden="true">forum</i>Enviar feedback
+        </a>
+      </div>
     </div>
   </section>
+
 </main>
 
 <!-- O formulário abre o programa de e-mail da pessoa já preenchido: a página é
@@ -521,20 +367,50 @@
 </dialog>
 
 <footer class="foot">
-  <!-- A marca em 3D, com os carros dando a volta: é a mesma maquete da
-       história, em miniatura. Sem WebGL, fica só o texto — e a página não
-       perde nada que ela precise dizer. -->
-  <div class="foot__cena" id="palco-rodape">
-    <canvas class="foot__tela" id="cena-rodape"></canvas>
-  </div>
+  <!-- O fim da viagem: o vale com o rio, a ponte de pedra e o vilarejo. É a
+       última das maquetes que a página mostrava no caminho antigo, e agora ela
+       fecha a página inteira. Sem WebGL o bloco some e o rodapé continua
+       dizendo tudo o que precisa. -->
+  <div class="foot__cena" id="palco-rodape"></div>
 
   <div class="foot__in">
-    <p class="foot__nome">TrustCab</p>
+    <div class="foot__marca">
+      <a class="marca" href="#topo" aria-label="TrustCab, início">
+        <svg class="marca__icone" viewBox="0 0 1024 1024" role="img" aria-hidden="true" focusable="false">
+          <rect width="1024" height="1024" rx="232" fill="#0b0a0f"/>
+          <path d="M230 283 L408 283 L462 381 L230 381 Z" fill="#f4e04d"/>
+          <path d="M465 283 L753 283 L790 332 L753 381 L558 381 L558 735 L465 735 Z" fill="#f2f2ee"/>
+        </svg>
+        <span class="marca__nome">TrustCab</span>
+      </a>
+      <p class="foot__frase">O aplicativo do motorista particular.</p>
+      <p class="foot__texto">
+        A sua rede de passageiros, as viagens do dia e o acerto do mês em um lugar
+        só. Sem comissão, porque não há ninguém no meio.
+      </p>
+      <a class="btn btn--light" href="https://expo.dev/artifacts/eas/SVqlvX1TbmTszYxKzQ1oLmzIPlr17tf8AO4BAeWwwzg.apk">
+        Baixar para Android <i class="ms" aria-hidden="true">download</i>
+      </a>
+      <p class="foot__copy">© 2026 · Feito em Porto Alegre</p>
+    </div>
+
+    <nav class="foot__cols" aria-label="Rodapé">
+      <div class="foot__col">
+        <p class="t-label">Falar comigo</p>
+        <ul>
+          <li><a href="mailto:contact@guikerber.com">contact@guikerber.com</a></li>
+          <li>
+            <a data-abre="feedback" href="mailto:contact@guikerber.com?subject=Feedback%20do%20site%20TrustCab">
+              Enviar feedback
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
   </div>
 
-  <div class="foot__base">
-    <span>© 2026 · Feito em Porto Alegre</span>
-    <a class="foot__contato" href="mailto:contact@guikerber.com">contact@guikerber.com</a>
+  <div class="foot__marcadagua" aria-hidden="true">
+    <p class="foot__nome">TrustCab</p>
   </div>
 </footer>
 
@@ -546,6 +422,8 @@
   }
 }
 </script>
-<script type="module" src="scene.js"></script>
+<script type="module" src="abertura.js"></script>
 <script type="module" src="rodape.js"></script>
+<script type="module" src="jornada.js"></script>
 <script type="module" src="ui.js"></script>
+</html>
