@@ -12,21 +12,22 @@ import { PassengerCardContent } from './PassengerCard';
 const now = new Date();
 const passengers = samplePassengers(now);
 
-function PassengerStack({ pending = false }: { pending?: boolean }) {
-  const items = passengers.filter((p) => (pending ? p.status === 'invited' : p.status === 'active'));
+// Os dados de exemplo ainda são da versão 1: quem não está ativo faz as vezes do arquivado.
+function PassengerStack({ archived = false }: { archived?: boolean }) {
+  const items = passengers.filter((p) => (archived ? p.status !== 'active' : p.status === 'active'));
   return (
     <ScrollView contentContainerStyle={{ paddingBottom: layout.scrollEnd }} showsVerticalScrollIndicator={false}>
       <CardStack
         items={items}
         sizes={size.passengerStack}
         keyOf={(p) => p.id}
-        colorOf={(_, index) => (pending ? colors.cardDone : colors.cards[index % colors.cards.length])}
+        colorOf={(_, index) => (archived ? colors.cardDone : colors.cards[index % colors.cards.length])}
         accessibilityLabelOf={(p) => p.name}
         accessibilityHint="Abre a página do passageiro"
         onOpen={fn()}
         renderCard={(p, { dark }) =>
-          pending ? (
-            <PassengerCardContent name={p.name} dark={dark} subtitle="Convite enviado · há 3 dias" />
+          archived ? (
+            <PassengerCardContent name={p.name} dark={dark} subtitle="Na sua rede desde 2 de junho · arquivado" />
           ) : (
             <PassengerCardContent name={p.name} dark={dark} subtitle="8 viagens" month={{ label: 'Setembro', totalCents: 24000 }} />
           )
@@ -48,4 +49,4 @@ type Story = StoryObj<typeof meta>;
 
 export const Ativos: Story = {};
 
-export const Pendentes: Story = { args: { pending: true } };
+export const Arquivados: Story = { args: { archived: true } };

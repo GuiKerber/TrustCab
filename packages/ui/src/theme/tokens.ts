@@ -1,6 +1,6 @@
 import { Platform, type TextStyle } from 'react-native';
 
-// Design system do TrustCab. Documentação: projects/trustcab/design.md.
+// Design system do TrustCab. Documentação: design.md, na raiz do repositório.
 // Nenhum componente usa cor, tamanho, espaço, raio, opacidade ou tempo fora deste arquivo.
 // Camadas: primitivos (valores crus, sem significado) → semânticos (o papel na interface) → componentes.
 

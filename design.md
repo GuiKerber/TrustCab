@@ -1,7 +1,7 @@
 # TrustCab — Design System
 
 Fonte única de decisões visuais do TrustCab Driver e, no futuro, do app do passageiro.
-Os valores vivem em código em `apps/driver/src/theme/tokens.ts`. Este documento explica o que cada token é e quando usar.
+Os valores vivem em código em `packages/ui/src/theme/tokens.ts`. Este documento explica o que cada token é e quando usar. O Storybook (`npm run storybook`) mostra cada token e cada componente em todos os estados.
 
 **Regra geral:** nenhum componente usa cor, tamanho, espaço, raio, borda, opacidade, duração ou limite de gesto fora dos tokens. Se faltar um valor, ele entra primeiro em `tokens.ts` (e aqui), depois no componente.
 
@@ -54,7 +54,7 @@ Revisão de 18/09/2026: tons com contraste menor que 1,15:1 entre si eram indist
 |---|---|---|
 | `ground` | neutral.900 | Fundo de todas as telas, topo e menu |
 | `surface` | neutral.850 | Blocos, células do calendário, botões "surface" |
-| `surfaceRaised` | neutral.750 | Bloco dentro de bloco, bolha do chat |
+| `surfaceRaised` | neutral.750 | Bloco dentro de bloco, pedido já respondido, prévia da cobrança, Toast |
 | `line` | neutral.750 | Bordas e divisores sobre `ground` e `surface` |
 | `lineStrong` | neutral.600 | Bordas e divisores sobre `cardDone` e `surfaceRaised`, bolinha de viagem cancelada |
 | `text` | neutral.50 | Texto principal no escuro; fundo do botão "light" e da pílula escolhida |
@@ -91,16 +91,18 @@ Famílias (`fonts`): Inter 400/500/600 para texto e Inter Tight 700 para número
 
 | Degrau | `fontSize` | `lineHeight` |
 |---|---|---|
-| xs | 11 | 14 |
-| sm | 14 | 19 |
-| md | 16 | 22 |
-| lg | 20 | 26 |
-| xl | 30 | 34 |
-| 2xl | 40 | 42 |
+| xs | 12 | 16 |
+| sm | 14 | 20 |
+| md | 16 | 24 |
+| lg | 20 | 28 |
+| xl | 28 | 32 |
+| 2xl | 40 | 44 |
 | 3xl | 56 | 56 |
 | 4xl | 88 | 84 |
 
-No Android, a linha de xl, 2xl, 3xl e 4xl cresce para ~1,22× o tamanho (37, 49, 68, 108): com a linha justa ele recorta as letras. iOS e web mantêm a linha justa.
+Régua de 4: todo tamanho e toda linha são múltiplos de 4. A exceção documentada é `sm` (14), o tamanho de apoio: 12 fica ilegível num endereço longo e 16 apaga a hierarquia contra o corpo.
+
+No Android, a linha de xl, 2xl, 3xl e 4xl cresce para o menor múltiplo de 4 acima de ~1,22× o tamanho (36, 52, 72, 108): com a linha justa ele recorta as letras. iOS e web mantêm a linha justa.
 
 `letterSpacing`: label 0,9 · none 0 · body −0,1 · heading −0,4 · title −1 · displaySm −1,4 · display −2,2 · hero −3,6.
 
@@ -121,9 +123,9 @@ Regra: um título nunca passa de duas linhas. Se a data não cabe em `display`, 
 
 ## 5. Espaço, raio, borda, opacidade
 
-- **`spacing`**: 2 · 4 · 6 · 8 · 12 · 16 · 20 · 28 · 40 · 56. Nada fora dessa escala.
-- **`layout`**: margem da tela 16 · recuo do texto solto `textInset` 4 (títulos de página, dicas e cabeçalhos de folha entram 4 além da margem) · intervalo entre blocos 8 · alvo de toque 48 · linha 1 · altura máxima de folha 88% · espaço no fim de telas roláveis 96.
-- **`radius`**: xs 2 (alça) · joined 4 (bloco colado a outro) · sm 8 (linhas dentro de bloco) · md 14 (célula do calendário) · blockSm 18 (mapa, opções, QR) · block 24 (blocos e folhas) · card 32 (cartões de viagem). Pílulas e círculos não têm token: o raio é metade da altura do elemento (um raio "infinito" é ignorado pelo Android em formas não quadradas).
+- **`spacing`**: 4 · 8 · 12 · 16 · 20 · 28 · 40 · 56. Régua de 4, nada fora dessa escala.
+- **`layout`**: margem da tela `screenPadding` 16 · recuo do texto solto `textInset` 4 (títulos de página, dicas e cabeçalhos de folha entram 4 além da margem) · intervalo entre blocos `gap` 8 · alvo de toque `touchTarget` 48 · linha `hairline` 1 · altura máxima de folha `sheetMaxHeight` 88% · proporção do cartão de total largo `statWideFlex` 1,6 · espaço no fim de telas roláveis `scrollEnd` 96.
+- **`radius`**: joined 4 (bloco colado a outro, alça das folhas) · sm 8 (linhas dentro de bloco, etiqueta) · md 16 (célula do calendário) · blockSm 20 (campo de texto, opções) · block 24 (blocos e folhas) · card 32 (cartões de viagem). Pílulas e círculos não têm token: o raio é metade da altura do elemento (um raio "infinito" é ignorado pelo Android em formas não quadradas).
 - **`borderWidth`**: hairline 1 · strong 2 (seleção, hoje, anel de foco).
 - **`opacity`**: hover 0,94 · pressed 0,88 · pending 0,7 (mensagem esperando internet, pulso do esqueleto) · disabled 0,35.
 - **`gradient.routeFade`**: degradê da rua no percurso — cheia entre 0,2 e 0,8 do comprimento, termina com opacidade 0,2.
@@ -133,40 +135,37 @@ Regra: um título nunca passa de duas linhas. Se a data não cabe em `display`, 
 | Token | Valor | Uso |
 |---|---|---|
 | `touchTarget` | 48 | Área mínima de toque de qualquer controle |
-| `icon.sm / md / lg / xl / 2xl` | 18 / 20 / 22 / 40 / 64 | Botão pequeno / botão médio e avisos / ícones soltos e menu / ícone grande / QR reservado |
+| `icon.sm / md / lg / xl / 2xl` | 16 / 20 / 24 / 40 / 64 | Botão pequeno e avisos em linha / botão médio / ícones soltos e menu / tela de erro / viagem paga |
 | `button.sm / md` | 44 / 56 | Altura dos botões com texto |
 | `iconButton.sm / md` | 36 / 48 | Botões redondos (o pequeno ganha área de toque até 48) |
 | `row.md / lg` | 56 / 72 | Linha de lista com uma linha de texto (opções, meses) / com título e valor (Perfil) |
 | `avatar` | 48 | Inicial do passageiro |
 | `brandMark` | 36 | Círculo da marca no login |
-| `badge` | 10 | Ponto de não lido |
-| `dot.xs / sm / md / lg / xl` | 5 / 6 / 8 / 10 / 14 | Bolinhas de viagem, nós e marcadores |
+| `badge` | 12 | Ponto laranja de pendência (pedidos esperando) |
+| `dot.xs / md / lg / xl` | 4 / 8 / 12 / 16 | Bolinhas de viagem, nós e marcadores |
 | `handle` | 40 × 4 | Alça das folhas |
 | `tabSlot` / `tabItem` | 64 × 44 / 56 | Menu inferior |
 | `pillMinWidth` / `dayPillMinWidth` | 64 / 72 | Pílulas de mês/passageiro e de dia |
 | `calendarCell` | 56 | Célula do calendário |
 | `agendaDayMinHeight` / `agendaDayNumber` | 132 / 72 | Lista dia a dia da agenda |
 | `personCardMinHeight` | 88 | Cartão de passageiro em Ganhos |
-| `passengerCard` | 208 | Cartão de passageiro na lista |
 | `statCardMinHeight` | 196 | Cartões de total na página do passageiro |
 | `field` | 56 | Campo de texto |
 | `checkbox` | 24 | Caixa de seleção |
 | `toggle` | 48 × 28, bolinha 20 | Interruptor (liga/desliga) |
-| `composerMaxHeight` | 120 | Campo de mensagem do chat antes de rolar |
-| `badgeCount` | 20 | Contador de não lidas |
 | `routeBubble` | 44 | Círculo da seta no percurso |
-| `routeStroke` | 14 | Espessura da rua no percurso |
+| `routeStroke` | 16 | Espessura da rua no percurso |
 | `layout.statWideFlex` | 1,6 | Proporção do cartão de total largo ao lado do estreito |
 | `passengerStack.*` | card 208 · peek 92 | Pilha de passageiros |
 | `timeColumn` | 44 | Coluna de horário em listas |
 | `routeNode` / `routeRail` / `routeLeg` | 24 / 2 / 12 | Linha do tempo do percurso (nó, trilho, altura mínima do trecho) |
-| `routeMapWidth` / `routeMinHeight` | 104 / 150 | Ilustração do percurso |
+| `routeMapWidth` / `routeMinHeight` | 104 / 152 | Ilustração do percurso |
 | `qr` | 240 | QR Code Pix, grande para a câmera do passageiro ler |
 | `stack.*` | card 236 · peek 116 | Pilha de viagens da home |
 
 ## 7. Movimento e gestos
 
-- **`motion`**: fast 150 · base 220 · slow 300 ms. Nada de resposta a toque fora de 150–300 ms. `pulse` 900 ms é só o brilho ambiente do esqueleto (carregando); com "Remover animações", fica parado.
+- **`motion`**: fast 150 · base 220 · slow 300 ms. Nada de resposta a toque fora de 150–300 ms. `pulse` 900 ms é só o brilho ambiente do esqueleto (carregando); com "Remover animações", fica parado. `toast` 4500 ms é tempo de leitura, não de animação: quanto o aviso de confirmação fica na tela.
 - **`maxFontScale.display`** 1,25: com fonte grande no celular, textos comuns crescem livremente; `hero`, `display`, `displaySm` e `title` param nesse limite para não quebrar horários e títulos.
 - **`spring`**: damping 18 · stiffness 220 (cartão voltando para a pilha).
 - **`gesture`**: activation 10 · hold 200 ms (segurar antes de puxar; antes disso, arrastar rola a tela) · holdScale 1,02 (o cartão cresce ao ser pego) · reveal 96 (o cartão puxado mostra o que estava escondido) · resistance 0,4 · expand 150 (a partir daqui o cartão cresce até a folha da viagem) · closeThreshold 120 · scrollThrottle 32 ms.
@@ -180,9 +179,9 @@ Dois tamanhos: **médio (padrão)** e **pequeno (só para ações secundárias)*
 
 | | Médio `md` | Pequeno `sm` |
 |---|---|---|
-| Altura | 56 | 44 |
+| Altura | 56 | 44 (área de toque continua 48) |
 | Padding horizontal | 20 | 16 |
-| Ícone | 20 | 18 |
+| Ícone | 20 | 16 |
 | Texto | `bodyMedium` | `small` |
 
 Variantes:
@@ -191,11 +190,13 @@ Variantes:
 |---|---|---|---|
 | `ink` | ink | text | Ação principal sobre cartão claro |
 | `light` | text (neutral.50) | ink | Ação principal sobre o escuro |
-| `accent` | cards[0] | ink | Destaque pontual |
-| `surface` | surface | text | Ação secundária no escuro |
-| `ghost` | transparente | text (ou ink sobre cartão) | Ação terciária ("Voltar sem enviar") |
+| `surface` | surface | text | Ação secundária direto sobre o fundo |
+| `ghost` | transparente | text (ou ink sobre cartão) | Ação terciária ("Voltar sem enviar") e secundária dentro de um bloco `surface` |
+| `danger` | danger | ink | Só o que não tem volta (excluir conta) |
 
-`destructive` troca o texto para `orange` (ex.: "Desfazer envio").
+`destructive` troca o texto para `orange` (ex.: "Não aconteceu", "Marcar como não enviada").
+
+Dentro de um bloco `surface`, um botão `surface` some no fundo: lá a ação secundária é `ghost`.
 
 Estados (todos obrigatórios):
 
@@ -206,29 +207,31 @@ Estados (todos obrigatórios):
 | Foco (teclado) | Anel `borderWidth.strong` por fora, `focusOnDark` ou `focusOnCard` (`onCard`) |
 | Pressionado | Opacidade `pressed` |
 | Desabilitado | Opacidade `disabled`, não recebe toque |
-| Carregando | Indicador de atividade no lugar do ícone, texto mantido, toque bloqueado, leitor de tela anuncia "ocupado" |
+| Carregando | Indicador de atividade no lugar do ícone, texto mantido, toque bloqueado, leitor de tela anuncia "ocupado". Nunca trocar o rótulo por "Salvando…" com o botão desabilitado: use `loading`. Com duas ações lado a lado, só a tocada carrega; a outra fica desabilitada. |
 
 Erro e vazio não são estados do botão: o erro aparece em texto perto da ação (o que houve e o que fazer), e um botão nunca fica sem rótulo.
 
 ### 8.2 IconButton
 
-Botão redondo só com ícone. Mesmos estados do Button, incluindo carregando. Variantes `surface`, `light`, `ink`. Tamanhos `md` 48 (padrão) e `sm` 36, este com a área de toque ampliada até 48. Aceita `badge` (ponto laranja + "N não lidas" para o leitor de tela). Sempre com `label` descritivo.
+Botão redondo só com ícone. Mesmos estados do Button, incluindo carregando. Variantes `surface`, `light`, `ink`. Tamanhos `md` 48 (padrão) e `sm` 36, este com a área de toque ampliada até 48. Aceita `badge` (ponto laranja; o leitor de tela ouve "Pedidos, 2 esperando você"). Sempre com `label` descritivo e curto: a contagem é o badge que junta.
 
 ### 8.3 Pills e DaySlider
 
 Faixas horizontais fundidas ao fundo. Selecionado: pílula `text` com texto `ink`. Hover e pressionado: fundo `surface`. Foco: anel. Sem barra de rolagem; o corte na borda da tela mostra que há mais.
 
+`Pills` troca o que a tela mostra (abas: Ativos/Arquivados, mês, passageiro) ou responde um formulário (`role="radio"`: intervalo, vagas, tipo de chave Pix). O desenho é o mesmo; muda o que o leitor de tela anuncia.
+
 ### 8.4 TopBar
 
-Topo de toda aba: nome da página à esquerda e **chat sempre no canto direito**, com ponto de não lidas.
+Topo de toda aba: nome da página à esquerda e, no canto direito, a ação da página ou, quando ela não tem, a **caixa de pedidos** com o ponto laranja de quem está esperando resposta. Sem internet, a faixa `OfflineNotice` aparece logo abaixo.
 
 ### 8.5 TripStack (home)
 
-Pilha de cartões das viagens do dia, em ordem de embarque; concluídas e canceladas vão para o fim, escuras e com borda. Tocar ou arrastar para cima (`gesture.openThreshold`) abre o cartão ampliado. O foco fica por dentro do cartão.
+Pilha de cartões das viagens do dia, em ordem de embarque; concluídas e canceladas vão para o fim, escuras e com borda. Tocar, ou segurar e puxar para cima além de `gesture.expand`, abre o cartão ampliado (ver CardStack). O foco fica por dentro do cartão.
 
 ### 8.6 TripSheet (cartão ampliado)
 
-Sobe do rodapé com a cor do cartão. Mostra horário (`hero`), nome (`heading`), a linha do tempo do percurso ao lado da ilustração, valor combinado e tempo estimado (`displaySm`), e a próxima ação.
+Sobe do rodapé com a cor do cartão. Mostra horário (`hero`), nome (`heading`), a linha do tempo do percurso ao lado da ilustração, o valor combinado (`displaySm`) e a próxima ação.
 
 Fluxo da viagem, sempre nesta ordem:
 
@@ -253,15 +256,13 @@ O botão de mapa (IconButton `map`) fica ao lado da ação principal. Endereços
 
 ### 8.8 MonthGrid e Agenda
 
-O mês é navegável (setas, ±6 meses). O número de viagens fica junto do mês. Cada célula mostra uma bolinha por viagem na cor do cartão (até 4, depois "+N"); sem bolinha = dia livre. Hoje: número e borda laranja. Selecionado: borda clara. Abaixo, o mês dia a dia; tocar um dia na grade rola até ele.
+O mês é navegável (setas, ±6 meses). O número de viagens fica junto do mês. Cada célula mostra uma bolinha por viagem na cor do cartão (até 3; acima disso, o número sozinho, que sempre cabe na célula); sem bolinha = dia livre. Hoje: número e borda laranja. Selecionado: borda clara. Abaixo, o mês dia a dia; tocar um dia na grade rola até ele.
 
 ### 8.9 Passageiros
 
-- **Lista:** convite no topo (título editorial + botão "Convidar passageiro") e abas **Ativos** e **Pendentes**, nunca misturadas. Cartões inteiros, separados por `layout.gap`.
-- **PassengerCard:** topo com o nome (e uma linha de apoio nos pendentes), respiro, e na base os números e "Ver detalhes" com a seta. Ativo: cor da sequência de cartões, com "Total de <mês>", valor (`displaySm`) e viagens lado a lado, só concluídas. Pendente: `cardDone` com borda e "Pediu para entrar · quando" ou "Convite enviado · quando"; dias e horários pedidos ficam só na página interna.
-- **StatCard (página do passageiro):** "Viagens concluídas" e "Custo total" no topo, respiro, valor (`displaySm`) e o número secundário embaixo (duração média / ticket médio).
-- **Página do passageiro:** nome (`display`), desde quando. Ativo: cartões coloridos de viagens e custos, tabela de gastos por mês (abre Ganhos) e "Gerar cobrança". Pedido: o que pediu + Aprovar / Recusar. Convite: WhatsApp + Reenviar / Cancelar. Toda ação mostra um aviso com "Desfazer"; recusado, cancelado e encerrado sempre podem voltar.
-- **Convite:** nome e celular com WhatsApp, prévia da mensagem, envio pelo WhatsApp com o link do motorista.
+- **Lista:** título editorial ("Sua rede de confiança") com o atalho para o link no topo, e abas **Ativos** e **Arquivados**, nunca misturadas. Ninguém espera aprovação para ser passageiro: quem marca pelo link entra sozinho; o que o motorista confirma são os pedidos (tela Pedidos).
+- **PassengerCard:** topo com o nome e uma linha de apoio, respiro, e na base "Ver detalhes" com a seta. Ativo: cor da sequência de cartões, com o mês e o total (`displaySm`), só concluídas. Arquivado: `cardDone` com borda.
+- **Página do passageiro:** `Tag` (Ativo/Arquivado), nome (`display`), telefone e desde quando. Pedido esperando vira `Banner` com "Abrir os pedidos". Dois `StatCard` (viagens concluídas e custo total), abas "Combinado" e "Gastos por mês" (`TotalRow` em `ListGroup`, abre Ganhos) e "Gerar cobrança". Arquivar e encerrar confirmam com `Toast`; erro fica fixo, com ícone, até a próxima tentativa. Arquivado sempre pode voltar ("Tirar do arquivo").
 
 ### 8.10 TextField
 
@@ -275,12 +276,12 @@ Pilha de cartões usada na home (viagens) e em Passageiros. Cada cartão mostra 
 
 - **TextButton:** texto grande (`title`) com seta; ação única de telas editoriais (login). Estados do Button, incluindo carregando.
 - **Checkbox:** linha inteira tocável, caixa `size.checkbox`; marcada mostra ✓ (não só cor).
-- **ListRow:** linha em blocos conectados (Perfil) com ícone, título, valor e chevron; `pending` marca o que falta configurar com ícone + texto laranja.
+- **ListRow:** linha em blocos conectados (Perfil) com ícone, título, valor e chevron; `pending` marca o que falta configurar com ícone + texto laranja. Fica dentro de um `ListGroup`, que diz quem é a primeira e a última.
 - **Avatar:** inicial do passageiro na cor dele; decorativo, o nome sempre aparece ao lado.
 
-### 8.13 Conversas
+### 8.13 WhatsApp no lugar de conversa
 
-Lista com uma conversa por passageiro ativo (mais recente no topo, contador laranja de não lidas). Na conversa: suas mensagens à direita em `text` com texto `ink`, as do passageiro à esquerda em `surface`, avisos do app centralizados. A cobrança enviada em Ganhos chega como mensagem e sai dela ao desfazer.
+Na versão 2 não existe conversa dentro do app. O ícone de chat (página do passageiro, folha da viagem) abre o WhatsApp com a pessoa, e toda mensagem que o produto escreve (a caminho, cheguei, cancelei, cobrança do mês, resposta a um pedido) abre o WhatsApp com o texto pronto. Quem envia é sempre o motorista.
 
 ### 8.14 Cancelamento
 
@@ -299,36 +300,51 @@ Toda tela com campo usa o FormScreen: o conteúdo rola por cima do teclado (iOS 
 
 ### 8.17 Regras de horário e cadastro na viagem
 
-- **"Estou a caminho"** só libera 1 hora antes (`data/rules.ts`). Antes disso, o botão fica desabilitado e embaixo aparece quando libera ("Libera às 06:30, 1 hora antes da viagem").
+- **"Estou a caminho"** só libera 1 hora antes (`START_WINDOW_MINUTES` em `packages/core/src/rules.ts`). Antes disso, o botão fica desabilitado e embaixo aparece quando libera ("Libera às 06:30, 1 hora antes da viagem").
 - **Carro e Pix obrigatórios:** sem eles, no lugar do botão aparece um Banner sobre o cartão com "Cadastrar carro" / "Cadastrar Pix". A Home mostra o mesmo aviso no topo.
-- **Avisos ao passageiro:** a caminho, cheguei (com modelo, cor e placa), concluída, cancelada, reativada e pagamento confirmado viram mensagem no chat (centro, com sino) e notificação no celular dele.
+- **Avisos ao passageiro:** a caminho, cheguei (com modelo, cor e placa) e cancelei abrem o WhatsApp do motorista com a mensagem escrita. Concluir e marcar como pago são contas do motorista e fecham na cobrança do mês.
 - **Marcar como pago:** na viagem concluída. Paga, sai da cobrança do mês e o QR Code dá lugar ao ✓.
-- **Viagens esquecidas:** ao abrir o app, as viagens que passaram do fim previsto (+30 min) ainda abertas aparecem numa folha: "Concluída" ou "Não aconteceu". "Responder depois" pergunta de novo na próxima abertura.
+- **Viagens esquecidas:** ao abrir o app, as viagens que passaram do fim previsto (`FORGOTTEN_AFTER_MINUTES`, 30 min) ainda abertas aparecem numa folha: "Concluída" ou "Não aconteceu". "Responder depois" pergunta de novo na próxima abertura.
 
 ### 8.18 Banner, ConfirmDialog, Toggle
 
 - **Banner:** aviso dentro da tela: ícone, título, texto e até duas ações (a primeira `light`, a segunda `surface`; sobre cartão, `ink` e `ghost`). `warning` pinta ícone e título de `orange`.
-- **ConfirmDialog:** folha de confirmação: pergunta, consequência, botão de confirmar e "Voltar". Tem carregando e erro. Excluir conta usa o botão `danger`.
+- **ConfirmDialog:** folha de confirmação (`Sheet`): pergunta, consequência, botão de confirmar e "Voltar". Tem carregando (tocar fora não fecha enquanto processa) e erro (`InlineNotice`). Excluir conta usa o botão `danger`.
 - **Toggle:** linha inteira tocável; ligado = trilho `text` com bolinha `ink` à direita, e "Ligado"/"Desligado" escrito embaixo.
 
 ### 8.19 Estados de tela: carregando, erro, sem internet
 
 - **Skeleton:** cada tela tem um esqueleto com a mesma estrutura (home, agenda, lista, conversas), em `surface`, pulsando devagar.
 - **ErrorState:** o que houve, o que fazer, "Tentar de novo" e "Voltar para o início". Texto próprio sem internet. Também é o ErrorBoundary do app inteiro.
-- **OfflineNotice:** faixa no topo (TopBar e FormScreen) quando o celular fica sem internet. Mensagens e avisos feitos offline ficam "Enviando…" e saem sozinhos quando a conexão volta.
+- **OfflineNotice:** faixa no topo quando o celular fica sem internet. Vem dentro do `TopBar` (abas) e do `BackBar` (FormScreen, Configurações, página do passageiro); a tela de app fechado também mostra. O que foi feito offline sai sozinho quando a conexão volta.
 
-### 8.20 Chat: estado das mensagens
+### 8.20 Avisos depois de uma ação
 
-Suas mensagens mostram ícone + texto: "Enviando…" (sem internet, bolha em `opacity.pending`), "Enviada" e "Não enviada" (laranja) com "Tentar de novo". Passageiro encerrado: histórico fica, o campo de mensagem dá lugar a um aviso.
+Um jeito só de dizer como a ação foi:
 
-### 8.21 Componentes comuns aos dois apps (packages/ui)
+- **Deu certo e a tela não muda:** `Toast` ("Link novo criado", "Chave Pix salva", "Ana foi para o arquivo"). Some sozinho depois de `motion.toast` e o leitor de tela anuncia sem roubar o foco. Não leva botão: um "Desfazer" que some com o tempo é uma armadilha para quem lê devagar. O desfazer de cada ação mora na própria tela ("Tirar do arquivo", "Marcar como não enviada", os três pontos da viagem).
+- **Deu errado:** `InlineNotice` em laranja, com ícone, perto do controle que falhou. Fica até a próxima tentativa.
+- **Dica ou motivo de um bloqueio:** `InlineNotice` neutro ("Libera às 06:30, 1 hora antes da viagem").
 
-- **TripSheetFrame:** a folha da viagem comum: cor e animação a partir do cartão, horário, pessoa (e linha de apoio, como o carro), percurso, valor e tempo, menu ⋯ e cancelar. Cada app passa só as ações (`footer`) e o que aparece na concluída (`completedBody`). Motorista: avisos a caminho → concluir e QR Code Pix. Passageiro: em que pé está a viagem, "Estou descendo" e "Já paguei".
-- **AgendaDay:** um dia da lista da Agenda. `personOf` escolhe o nome (passageiro ou motorista). Mostra o estado escrito quando a viagem está encerrada ou esperando aprovação.
+### 8.21 Estrutura e blocos (packages/ui)
+
+Peças que toda tela usa. Se uma tela precisa de algo parecido, ela usa a peça; se a peça não serve, a peça muda (com story), em vez de a tela refazer à mão.
+
+- **ScrollScreen:** tela que rola, sem campos: área segura, margem, topo, intervalo de 20 entre blocos e o fim da rolagem (`layout.scrollEnd` nas abas). Folhas e avisos vão em `overlay`. Telas com campo usam o FormScreen.
+- **PageHeader:** título editorial: assunto (`display`), complemento apagado na linha de baixo, `meta` colado ao título (e-mail, telefone) e `lead` com respiro (a frase que explica a tela). `size="displaySm"` para palavra que quebraria no meio ("Configurações").
+- **BackBar:** voltar + ações da tela + `OfflineNotice`. Já vem dentro do FormScreen.
+- **Sheet:** a folha do rodapé (camada escura, alça, cantos, altura máxima de 88%, área segura, modal para o leitor de tela). Base do ConfirmDialog, do TripOptions e das folhas do app. `inline` desenha por cima de outra camada modal (a folha da viagem).
+- **InfoBlock:** bloco sem ação: rótulo e o que ele explica (`text`), o dado em destaque (`value`) ou conteúdo próprio.
+- **InlineNotice:** ícone + texto curto perto do que explica: erro (`warning`, laranja) ou dica (`neutral`). `onCard` sobre os cartões claros.
+- **ListGroup:** linhas em blocos conectados com rótulo opcional; calcula primeira e última. Serve a ListRow, TotalRow e PersonTotalCard.
+- **Tag:** etiqueta de estado com ícone (Ativo, Arquivado).
+- **StatCard, TotalRow, PersonTotalCard:** cartão de total, linha de total por período e total por pessoa.
+- **TripSheetFrame:** a estrutura da folha da viagem: cor e animação a partir do cartão, horário, pessoa, percurso, valor, menu ⋯ e cancelar. O app passa as ações (`footer`) e o que aparece na concluída (`completedBody`: QR Code Pix).
+- **AgendaDay:** um dia da lista da Agenda. Mostra o estado escrito quando a viagem está encerrada ou esperando aprovação.
 - **ChipGroup:** várias opções ao mesmo tempo (dias da semana). Marcada: clara e com ✓. Quebra linha em vez de rolar.
-- **ConversationRow, ChatScreen:** lista e conversa do chat, iguais nos dois lados (`viewer` diz quem lê).
-- **LoginScreen, SettingsScreen:** login e configurações; cada app passa a frase do login e os próprios grupos de avisos.
-- **Estados de viagem:** além de agendada → concluída, o passageiro vê "Esperando o motorista" (pedida) e "Recusada".
+- **LoginScreen, SettingsScreen:** login e configurações; o app passa a frase do login e os grupos de avisos.
+
+O app do passageiro da versão 1 (`legacy/passenger/`) ainda importa deste pacote, mas fica fora dos workspaces e não entra em build.
 
 ## 9. Regras de interface
 
@@ -336,10 +352,11 @@ Suas mensagens mostram ícone + texto: "Enviando…" (sem internet, bolha em `op
 - Cartões têm respiro entre o topo (identificação) e a base (números e ação).
 
 - Nunca usar a barra de rolagem padrão do navegador. Esconder e sinalizar com conteúdo cortado ou degradê.
-- Chat sempre visível no topo de todas as abas.
+- Pedidos esperando sempre à vista: canto direito do topo das abas e ponto na aba Passageiros, com a contagem para o leitor de tela.
 - Totais de ganhos e cobranças contam só viagens concluídas.
 - Datas: "Hoje", "Amanhã", "Ontem"; fora disso, "Domingo, 20/09".
 - Toda ação que muda o estado de uma viagem ou cobrança é reversível.
-- Passageiro entra só por convite do motorista e já entra ativo. O que o motorista aprova são as viagens pedidas, uma por uma.
+- O passageiro chega pelo link do motorista e já entra na rede dele. O que o motorista confirma são os pedidos, um por um.
+- Depois de uma ação: `Toast` para o que deu certo, `InlineNotice` laranja e fixo para o erro (8.20).
 - Texto: voz ativa, segunda pessoa, sem jargão. Erro diz o que houve e o que fazer.
 - Acessibilidade: contraste de texto ≥ 4,5:1, alvo de toque ≥ 48, foco visível, rótulo em todo controle, estado nunca só por cor.

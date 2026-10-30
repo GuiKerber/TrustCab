@@ -1,15 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-native';
-import { StyleSheet, View } from 'react-native';
-
-import { colors, radius, spacing } from '../theme/tokens';
 
 import { PageHeader } from './PageHeader';
-import { Label } from './ui';
+import { Tag } from './Tag';
 
-// Etiqueta de exemplo para o espaço acima do título.
-const styles = StyleSheet.create({
-  tag: { alignSelf: 'flex-start', backgroundColor: colors.text, borderRadius: radius.sm, paddingHorizontal: spacing[8], paddingVertical: spacing[4] },
-});
 
 // Título editorial de página: assunto, complemento apagado e o texto de apoio.
 const meta = {
@@ -50,10 +43,6 @@ export const ComEtiqueta: Story = {
     subtitle: undefined,
     lead: undefined,
     meta: '(41) 99876-5432 · na sua rede desde 3 de março',
-    above: (
-      <View style={styles.tag}>
-        <Label tone="onCard">Ativo</Label>
-      </View>
-    ),
+    above: <Tag label="Ativo" icon="check_circle" />,
   },
 };

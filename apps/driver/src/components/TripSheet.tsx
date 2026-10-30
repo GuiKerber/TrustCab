@@ -11,7 +11,7 @@ type TripSheetProps = {
   color: string;
   date: Date;
   now: Date;
-  // Fica escondido (sem perder o estado) enquanto outra tela, como o chat, está por cima.
+  // Fica escondido (sem perder o estado) enquanto outra tela está por cima.
   visible: boolean;
   onClose: () => void;
   onStatus: (trip: Trip, status: TripStatus) => void;

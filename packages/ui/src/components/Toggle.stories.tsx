@@ -50,8 +50,8 @@ export const ListaDeNotificacoes: Story = {
     <View>
       {[
         { title: 'Hora de sair', text: 'Quando libera o "Estou a caminho", 1 hora antes da viagem.' },
-        { title: 'Pedidos de viagem', text: 'Quando um passageiro pede uma viagem para você aprovar.' },
-        { title: 'Mensagens', text: 'Quando alguém escreve no chat.' },
+        { title: 'Viagem sem conclusão', text: 'Se uma viagem passou do horário e você não concluiu.' },
+        { title: 'Pedidos e lembretes', text: 'Quando alguém marca pelo seu link, a lista das viagens de amanhã e o fim do mês grátis.' },
       ].map((n) => (
         <Interactive key={n.title} label={n.title} hint={n.text} value onChange={fn()} />
       ))}

@@ -23,7 +23,7 @@ import { FadeScroll } from './FadeScroll';
 import { ROUTE_PALETTES, RouteMap, RouteNode, routeStep, type RouteTone } from './Route';
 import { isClosed, routeProgress, statusLabel } from './TripBlocks';
 import { TripOptions, type TripOption } from './TripOptions';
-import { Handle, Icon, Label, Text, type Tone } from './ui';
+import { Handle, Label, Text, type Tone } from './ui';
 
 // O que cada app desenha embaixo da folha, já com as cores certas para o fundo atual.
 export type TripSheetFooterContext = {
@@ -44,7 +44,7 @@ export type TripSheetFrameProps = {
   color: string;
   date: Date;
   now: Date;
-  // Fica escondido (sem perder o estado) enquanto outra tela, como o chat, está por cima.
+  // Fica escondido (sem perder o estado) enquanto outra tela está por cima.
   visible: boolean;
   onClose: () => void;
   // Nome em destaque e linha de apoio (ex.: motorista vê o passageiro; passageiro vê quem dirige e o carro).
@@ -52,7 +52,6 @@ export type TripSheetFrameProps = {
   personDetail?: string;
   // Primeiro ponto do percurso. Motorista: "Você · Sua localização". Passageiro: o motorista saindo.
   start?: { label: string; text: string };
-  // Rótulo do tempo estimado. Motorista: "Chegada em" (quando chega ao destino). Passageiro: "Tempo de viagem".
   onChat: (trip: Trip) => void;
   // Opções dos três pontos. "Cancelar viagem" entra no fim quando a viagem ainda vai acontecer.
   options: TripOption[];
@@ -66,8 +65,8 @@ export type TripSheetFrameProps = {
   origin?: CardOrigin | null;
 };
 
-// O cartão ampliado, igual nos dois apps: sobe do rodapé com a mesma cor e mostra horário, pessoa, percurso,
-// valor e tempo. Cada app só preenche as ações. Arrastar para baixo (ou tocar na seta) fecha.
+// O cartão ampliado: sobe do rodapé com a mesma cor e mostra horário, pessoa, percurso e valor.
+// Quem usa só preenche as ações. Arrastar para baixo (ou tocar na seta) fecha.
 export function TripSheetFrame({
   trip,
   color,
