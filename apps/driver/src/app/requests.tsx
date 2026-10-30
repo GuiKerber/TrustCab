@@ -19,8 +19,9 @@ import {
   colors,
   EmptyState,
   FormScreen,
+  InlineNotice,
   Label,
-  layout,
+  PageHeader,
   ScreenStatus,
   spacing,
   Text,
@@ -53,16 +54,16 @@ export default function Requests() {
 
   return (
     <FormScreen backLabel="Voltar" onBack={() => goBack('/')}>
-      <View style={styles.head}>
-        <Text variant="display">Pedidos</Text>
-        <Text variant="body" tone="secondary" style={styles.lead}>
-          {waiting.length === 0
+      <PageHeader
+        title="Pedidos"
+        lead={
+          waiting.length === 0
             ? 'Nada esperando você agora.'
             : waiting.length === 1
               ? '1 pessoa esperando sua resposta.'
-              : `${waiting.length} pessoas esperando sua resposta.`}
-        </Text>
-      </View>
+              : `${waiting.length} pessoas esperando sua resposta.`
+        }
+      />
 
       {waiting.length === 0 && done.length === 0 ? (
         <EmptyState
@@ -134,11 +135,7 @@ function RequestCard({ agenda, onAnswered }: { agenda: Agenda; onAnswered: (stat
         hint="Dá para acertar o valor depois, no WhatsApp."
       />
 
-      {error ? (
-        <Text variant="small" tone="orange" accessibilityLiveRegion="polite">
-          {error}
-        </Text>
-      ) : null}
+      {error ? <InlineNotice tone="warning" text={error} /> : null}
 
       <View style={styles.actions}>
         <Button
@@ -153,7 +150,8 @@ function RequestCard({ agenda, onAnswered }: { agenda: Agenda; onAnswered: (stat
         <Button
           label="Não consigo"
           icon="close"
-          variant="surface"
+          // Sobre o bloco "surface", um botão "surface" some no fundo: o fantasma é o que ele já parecia.
+          variant="ghost"
           loading={busy === 'declined'}
           disabled={busy === 'confirmed'}
           onPress={() => responder('declined')}
@@ -210,11 +208,7 @@ function AnsweredCard({
           : `Avise ${firstName} e mande o link de novo, para ele escolher outro horário.`}
       </Text>
 
-      {error ? (
-        <Text variant="small" tone="orange" accessibilityLiveRegion="polite">
-          {error}
-        </Text>
-      ) : null}
+      {error ? <InlineNotice tone="warning" text={error} /> : null}
 
       <Button
         label={sent ? `Mandar de novo para ${firstName}` : `Avisar ${firstName} no WhatsApp`}
@@ -236,8 +230,6 @@ function Line({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  head: { paddingHorizontal: layout.textInset },
-  lead: { marginTop: spacing[12] },
   card: { gap: spacing[16] },
   who: { gap: spacing[4] },
   lines: { gap: spacing[12] },

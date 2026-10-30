@@ -1,12 +1,13 @@
 import type { AndroidSymbol } from 'expo-symbols';
 import type { ReactNode } from 'react';
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StyleSheet, View } from 'react-native';
 
-import { colors, layout, radius, spacing } from '../theme/tokens';
+import { layout, spacing } from '../theme/tokens';
 
 import { Button, type ButtonVariant } from './Button';
-import { Handle, Text } from './ui';
+import { InlineNotice } from './InlineNotice';
+import { Sheet } from './Sheet';
+import { Text } from './ui';
 
 // Confirmação que sobe do rodapé: pergunta, o que acontece e duas saídas. "Voltar" sempre existe.
 // "inline" desenha por cima de outra camada (ex.: a folha da viagem), sem abrir um segundo modal.
@@ -42,59 +43,31 @@ export function ConfirmDialog({
   onClose: () => void;
   inline?: boolean;
 }) {
-  const insets = useSafeAreaInsets();
-
-  const content = (
-    <View style={styles.layer}>
-      <Pressable style={styles.scrim} onPress={loading ? undefined : onClose} accessibilityLabel={cancelLabel} />
-      <View style={[styles.sheet, { paddingBottom: insets.bottom + spacing[16] }]} accessibilityViewIsModal>
-        <Handle />
-        <View style={styles.head}>
-          <Text variant="title" accessibilityRole="header">
-            {title}
-          </Text>
-          <Text variant="body" tone="secondary">
-            {text}
-          </Text>
-        </View>
-        {children}
-        {error ? (
-          <Text variant="small" tone="orange" accessibilityLiveRegion="polite" style={styles.error}>
-            {error}
-          </Text>
-        ) : null}
-        <View style={styles.actions}>
-          <Button label={confirmLabel} icon={confirmIcon} variant={confirmVariant} destructive={destructive} loading={loading} onPress={onConfirm} />
-          <Button label={cancelLabel} size="sm" variant="ghost" disabled={loading} onPress={onClose} style={styles.center} />
-        </View>
-      </View>
-    </View>
-  );
-
-  if (inline) return visible ? content : null;
-
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={loading ? undefined : onClose} statusBarTranslucent>
-      {content}
-    </Modal>
+    <Sheet visible={visible} onClose={onClose} closeLabel={cancelLabel} dismissible={!loading} inline={inline}>
+      <View style={styles.head}>
+        <Text variant="title" accessibilityRole="header">
+          {title}
+        </Text>
+        <Text variant="body" tone="secondary">
+          {text}
+        </Text>
+      </View>
+      {children}
+      {error ? (
+        <View style={styles.error}>
+          <InlineNotice tone="warning" text={error} />
+        </View>
+      ) : null}
+      <View style={styles.actions}>
+        <Button label={confirmLabel} icon={confirmIcon} variant={confirmVariant} destructive={destructive} loading={loading} onPress={onConfirm} />
+        <Button label={cancelLabel} size="sm" variant="ghost" disabled={loading} onPress={onClose} style={styles.center} />
+      </View>
+    </Sheet>
   );
 }
 
 const styles = StyleSheet.create({
-  layer: { ...StyleSheet.absoluteFill },
-  scrim: { ...StyleSheet.absoluteFill, backgroundColor: colors.scrim },
-  sheet: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: colors.ground,
-    borderTopLeftRadius: radius.block,
-    borderTopRightRadius: radius.block,
-    paddingHorizontal: layout.screenPadding,
-    paddingTop: spacing[12],
-    gap: spacing[20],
-  },
   head: { gap: spacing[8], paddingHorizontal: layout.textInset },
   error: { paddingHorizontal: layout.textInset },
   actions: { gap: spacing[8] },

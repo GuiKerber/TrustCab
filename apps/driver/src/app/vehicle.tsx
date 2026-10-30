@@ -1,8 +1,6 @@
-import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
 
-import { Block, Button, FormScreen, Label, layout, spacing, Text } from '@trustcab/ui';
+import { Button, FormScreen, InfoBlock, PageHeader } from '@trustcab/ui';
 import { useVehicleForm } from '@/components/VehicleForm';
 import { useProfile } from '@/data/profile';
 import { goBack } from '@/lib/back';
@@ -19,32 +17,17 @@ export default function Vehicle() {
       backLabel="Voltar"
       onBack={() => goBack('/profile')}
       footer={<Button label="Salvar carro" icon="check" variant="light" onPress={() => setSaved(form.save())} />}>
-      <View style={styles.head}>
-        <Text variant="display">Seu</Text>
-        <Text variant="display" tone="secondary">
-          carro
-        </Text>
-        <Text variant="body" tone="secondary" style={styles.lead}>
-          Quando você avisa que chegou, o passageiro recebe o modelo, a cor e a placa.
-        </Text>
-      </View>
+      <PageHeader title="Seu" subtitle="carro" lead="Quando você avisa que chegou, o passageiro recebe o modelo, a cor e a placa." />
 
       {form.fields}
 
       {saved && profile.vehicle ? (
-        <Block style={styles.saved}>
-          <Label>Assim aparece no aviso</Label>
-          <Text variant="bodyMedium" accessibilityLiveRegion="polite">
-            {`${driver.firstName} chegou · ${profile.vehicle.model} ${profile.vehicle.color}, placa ${profile.vehicle.plate}`}
-          </Text>
-        </Block>
+        <InfoBlock
+          label="Assim aparece no aviso"
+          value={`${driver.firstName} chegou · ${profile.vehicle.model} ${profile.vehicle.color}, placa ${profile.vehicle.plate}`}
+          live
+        />
       ) : null}
     </FormScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  head: { paddingHorizontal: layout.textInset },
-  lead: { marginTop: spacing[12] },
-  saved: { gap: spacing[4] },
-});

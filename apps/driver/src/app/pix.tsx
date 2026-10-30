@@ -1,8 +1,7 @@
-import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 
-import { Block, Button, FormScreen, Label, layout, spacing, Text } from '@trustcab/ui';
+import { Button, FormScreen, InfoBlock, PageHeader } from '@trustcab/ui';
 import { usePixForm } from '@/components/PixForm';
 import { PIX_TYPES, setPix, useProfile } from '@/data/profile';
 import { goBack } from '@/lib/back';
@@ -37,33 +36,17 @@ export default function PixKey() {
           ) : null}
         </>
       }>
-      <View style={styles.head}>
-        <Text variant="display">Chave</Text>
-        <Text variant="display" tone="secondary">
-          Pix
-        </Text>
-        <Text variant="body" tone="secondary" style={styles.lead}>
-          Vai junto nas cobranças do mês e vira o QR Code que o passageiro lê ao fim da viagem.
-        </Text>
-      </View>
+      <PageHeader title="Chave" subtitle="Pix" lead="Vai junto nas cobranças do mês e vira o QR Code que o passageiro lê ao fim da viagem." />
 
       {form.fields}
 
       {saved && profile.pix ? (
-        <Block style={styles.saved}>
-          <Label>Salva</Label>
-          <Text variant="bodyMedium" accessibilityLiveRegion="polite">
-            {`${PIX_TYPES[profile.pix.type].label} · ${profile.pix.key}`}
-          </Text>
-        </Block>
+        <InfoBlock label="Salva" value={`${PIX_TYPES[profile.pix.type].label} · ${profile.pix.key}`} live />
       ) : null}
     </FormScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  head: { paddingHorizontal: layout.textInset },
-  lead: { marginTop: spacing[12] },
-  saved: { gap: spacing[4] },
   center: { alignSelf: 'center' },
 });

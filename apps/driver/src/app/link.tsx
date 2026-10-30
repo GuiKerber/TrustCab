@@ -1,10 +1,10 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 import { bookingShortUrl, shareLink } from '@trustcab/core';
 import { rotateLink } from '@trustcab/core/db';
-import { Banner, Block, Button, ConfirmDialog, FormScreen, Label, layout, spacing, Text, Toast } from '@trustcab/ui';
+import { Banner, Button, ConfirmDialog, FormScreen, InfoBlock, InlineNotice, PageHeader, Text, Toast } from '@trustcab/ui';
 
 import { useDriver } from '@/data/driver';
 import { shareText } from '@/data/whatsapp';
@@ -68,15 +68,11 @@ export default function LinkScreen() {
           <Button label="Gerar meu link" icon="link" variant="light" loading={busy} disabled={!phone || !uid} onPress={gerar} />
         )
       }>
-      <View style={styles.head}>
-        <Text variant="display">Seu link</Text>
-        <Text variant="display" tone="secondary">
-          de agenda
-        </Text>
-        <Text variant="body" tone="secondary" style={styles.lead}>
-          Mande este link para quem anda com você. A pessoa escolhe o dia e o horário, e você confirma.
-        </Text>
-      </View>
+      <PageHeader
+        title="Seu link"
+        subtitle="de agenda"
+        lead="Mande este link para quem anda com você. A pessoa escolhe o dia e o horário, e você confirma."
+      />
 
       {!phone ? (
         <Banner
@@ -89,22 +85,14 @@ export default function LinkScreen() {
       ) : null}
 
       {url ? (
-        <Block style={styles.link}>
-          <Label>Seu endereço</Label>
+        <InfoBlock label="Seu endereço" text="Toque e segure para copiar.">
           <Text variant="heading" selectable accessibilityLiveRegion="polite">
             {url}
           </Text>
-          <Text variant="small" tone="secondary">
-            Toque e segure para copiar.
-          </Text>
-        </Block>
+        </InfoBlock>
       ) : null}
 
-      {error ? (
-        <Text variant="small" tone="orange" accessibilityLiveRegion="polite">
-          {error}
-        </Text>
-      ) : null}
+      {error ? <InlineNotice tone="warning" text={error} /> : null}
 
       <Toast message={aviso} onHide={() => setAviso(null)} />
 
@@ -123,8 +111,5 @@ export default function LinkScreen() {
 }
 
 const styles = StyleSheet.create({
-  head: { paddingHorizontal: layout.textInset },
-  lead: { marginTop: spacing[12] },
-  link: { gap: spacing[4] },
   center: { alignSelf: 'center' },
 });

@@ -1,9 +1,8 @@
 import { useIsFocused } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AgendaDay, cardColor, colors, IconButton, layout, MonthGrid, ScreenStatus, spacing, Text } from '@trustcab/ui';
+import { AgendaDay, cardColor, colors, IconButton, MonthGrid, ScreenStatus, ScrollScreen, spacing, Text } from '@trustcab/ui';
 import { TripSheet } from '@/components/TripSheet';
 import { TopBar } from '@/components/TopBar';
 import { dayKey, isSameDay, monthName, useNow } from '@trustcab/core';
@@ -57,69 +56,62 @@ export default function Agenda() {
     return <ScreenStatus state={error ? 'error' : 'loading'} layout="agenda" onRetry={() => router.replace('/agenda')} />;
   }
 
+  const sheet = (
+    <TripSheet
+      trip={openTrip}
+      color={open?.color ?? colors.cards[0]}
+      date={open?.date ?? now}
+      now={now}
+      visible={focused}
+      onClose={() => setOpen(null)}
+      onStatus={actions.setStatus}
+      onMaps={actions.openMaps}
+      onChat={actions.openChat}
+      options={actions.options}
+      onSpending={actions.openSpending}
+      onCancel={actions.cancel}
+      paid={actions.isPaid(openTrip)}
+      paidByPassenger={actions.isReported()}
+      onPaid={actions.setPaid}
+      onSetup={actions.openSetup}
+    />
+  );
+
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <ScrollView ref={scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <TopBar title="Agenda" />
+    <ScrollScreen ref={scroll} overlay={sheet}>
+      <TopBar title="Agenda" />
 
-        <View style={styles.monthNav}>
-          <IconButton name="chevron_left" label="Mês anterior" onPress={() => changeMonth(-1)} disabled={offset <= -RANGE} />
-          <View style={styles.monthTitle} accessibilityLiveRegion="polite">
-            <Text variant="title">{`${title[0].toUpperCase()}${title.slice(1)}`}</Text>
-            <Text variant="small" tone="secondary">
-              {`${month.getFullYear()} · ${monthTrips === 1 ? '1 viagem' : `${monthTrips} viagens`}`}
-            </Text>
+      <View style={styles.monthNav}>
+        <IconButton name="chevron_left" label="Mês anterior" onPress={() => changeMonth(-1)} disabled={offset <= -RANGE} />
+        <View style={styles.monthTitle} accessibilityLiveRegion="polite">
+          <Text variant="title">{`${title[0].toUpperCase()}${title.slice(1)}`}</Text>
+          <Text variant="small" tone="secondary">
+            {`${month.getFullYear()} · ${monthTrips === 1 ? '1 viagem' : `${monthTrips} viagens`}`}
+          </Text>
+        </View>
+        <IconButton name="chevron_right" label="Próximo mês" onPress={() => changeMonth(1)} disabled={offset >= RANGE} />
+      </View>
+
+      <MonthGrid days={days} selected={null} today={now} onSelect={selectDay} />
+
+      <View style={styles.list} onLayout={(event) => (listY.current = event.nativeEvent.layout.y)}>
+        {days.map(({ date, trips }) => (
+          <View key={date.toISOString()} onLayout={(event) => (dayY.current[dayKey(date)] = event.nativeEvent.layout.y)}>
+            <AgendaDay
+              date={date}
+              trips={trips}
+              today={now}
+              selected={false}
+              onOpen={(trip, index) => setOpen({ id: trip.id, date, color: cardColor(trip, index) })}
+            />
           </View>
-          <IconButton name="chevron_right" label="Próximo mês" onPress={() => changeMonth(1)} disabled={offset >= RANGE} />
-        </View>
-
-        <MonthGrid days={days} selected={null} today={now} onSelect={selectDay} />
-
-        <View style={styles.list} onLayout={(event) => (listY.current = event.nativeEvent.layout.y)}>
-          {days.map(({ date, trips }) => (
-            <View key={date.toISOString()} onLayout={(event) => (dayY.current[dayKey(date)] = event.nativeEvent.layout.y)}>
-              <AgendaDay
-                date={date}
-                trips={trips}
-                today={now}
-                selected={false}
-                onOpen={(trip, index) => setOpen({ id: trip.id, date, color: cardColor(trip, index) })}
-              />
-            </View>
-          ))}
-        </View>
-      </ScrollView>
-
-      <TripSheet
-        trip={openTrip}
-        color={open?.color ?? colors.cards[0]}
-        date={open?.date ?? now}
-        now={now}
-        visible={focused}
-        onClose={() => setOpen(null)}
-        onStatus={actions.setStatus}
-        onMaps={actions.openMaps}
-        onChat={actions.openChat}
-        options={actions.options}
-        onSpending={actions.openSpending}
-        onCancel={actions.cancel}
-        paid={actions.isPaid(openTrip)}
-        paidByPassenger={actions.isReported()}
-        onPaid={actions.setPaid}
-        onSetup={actions.openSetup}
-      />
-    </SafeAreaView>
+        ))}
+      </View>
+    </ScrollScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.ground },
-  content: {
-    paddingHorizontal: layout.screenPadding,
-    paddingTop: spacing[8],
-    paddingBottom: layout.scrollEnd,
-    gap: spacing[20],
-  },
   monthNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   monthTitle: { alignItems: 'center', gap: spacing[4] },
   list: { gap: spacing[8], marginTop: spacing[8] },

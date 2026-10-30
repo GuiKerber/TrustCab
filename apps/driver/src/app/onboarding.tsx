@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { Button, colors, FormScreen, Icon, Label, layout, size, spacing, Text } from '@trustcab/ui';
+import { Button, colors, FormScreen, Icon, InlineNotice, Label, PageHeader, size, spacing, Text } from '@trustcab/ui';
 import { usePhoneForm } from '@/components/PhoneForm';
 import { usePixForm } from '@/components/PixForm';
 import { useVehicleForm } from '@/components/VehicleForm';
@@ -65,15 +65,7 @@ export default function Onboarding() {
             </>
           )
         }>
-        <View style={styles.head}>
-          <Text variant="display">Avisos</Text>
-          <Text variant="display" tone="secondary">
-            na hora certa
-          </Text>
-          <Text variant="body" tone="secondary" style={styles.lead}>
-            Você fica sabendo de:
-          </Text>
-        </View>
+        <PageHeader title="Avisos" subtitle="na hora certa" lead="Você fica sabendo de:" />
         <View style={styles.list}>
           {NOTIFY_LIST.map((title) => (
             <View key={title} style={styles.item}>
@@ -83,9 +75,10 @@ export default function Onboarding() {
           ))}
         </View>
         {permission === 'denied' ? (
-          <Text variant="small" tone="orange" accessibilityLiveRegion="polite">
-            As notificações ficaram bloqueadas. Para ativar, abra as configurações do celular e permita notificações do TrustCab.
-          </Text>
+          <InlineNotice
+            tone="warning"
+            text="As notificações ficaram bloqueadas. Para ativar, abra as configurações do celular e permita notificações do TrustCab."
+          />
         ) : (
           <Text variant="small" tone="secondary">
             Dá para escolher quais avisos receber depois, em Perfil → Configurações.
@@ -117,23 +110,13 @@ export default function Onboarding() {
           }}
         />
       }>
-      <View style={styles.head}>
-        <Text variant="display">{atual.titulo}</Text>
-        <Text variant="display" tone="secondary">
-          {atual.destaque}
-        </Text>
-        <Text variant="body" tone="secondary" style={styles.lead}>
-          {atual.lead}
-        </Text>
-      </View>
+      <PageHeader title={atual.titulo} subtitle={atual.destaque} lead={atual.lead} />
       {atual.form.fields}
     </FormScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  head: { paddingHorizontal: layout.textInset },
-  lead: { marginTop: spacing[12] },
   list: { gap: spacing[12] },
   item: { flexDirection: 'row', alignItems: 'center', gap: spacing[12] },
   center: { alignSelf: 'center' },

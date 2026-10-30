@@ -1,10 +1,9 @@
-import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { maskTime, minutesOf, slotTimes, timeError, WEEKDAY_SHORT, type Slots } from '@trustcab/core';
 import { setSlots } from '@trustcab/core/db';
-import { Block, Button, ChipGroup, FormScreen, Label, layout, Pills, spacing, Text, TextField } from '@trustcab/ui';
+import { Button, ChipGroup, FormScreen, InfoBlock, Label, PageHeader, Pills, spacing, Text, TextField } from '@trustcab/ui';
 
 import { useDriver } from '@/data/driver';
 import { goBack } from '@/lib/back';
@@ -77,15 +76,7 @@ export default function Hours() {
       backLabel="Voltar"
       onBack={() => goBack('/profile')}
       footer={<Button label="Salvar" icon="check" variant="light" loading={busy} onPress={salvar} />}>
-      <View style={styles.head}>
-        <Text variant="display">Seus</Text>
-        <Text variant="display" tone="secondary">
-          horários
-        </Text>
-        <Text variant="body" tone="secondary" style={styles.lead}>
-          É isto que aparece para quem abre seu link. Fora daqui, ninguém consegue marcar.
-        </Text>
-      </View>
+      <PageHeader title="Seus" subtitle="horários" lead="É isto que aparece para quem abre seu link. Fora daqui, ninguém consegue marcar." />
 
       <View style={styles.section}>
         <Label>Dias em que você roda</Label>
@@ -137,23 +128,20 @@ export default function Hours() {
         <Pills items={VAGAS} selected={seats} onSelect={setSeats} role="radio" accessibilityLabel="Pessoas por horário" />
       </View>
 
-      <Block style={styles.note}>
-        <Label>Por que isso importa</Label>
-        <Text variant="small" tone="secondary">
-          {Number(seats) === 1
+      <InfoBlock
+        label="Por que isso importa"
+        text={
+          Number(seats) === 1
             ? 'Com 1 pessoa por horário, o primeiro que marcar as 07:00 fecha esse horário para os outros. Se você leva mais de um junto no mesmo trajeto, aumente aqui.'
-            : `Com ${seats} pessoas por horário, as 07:00 só aparecem cheias depois que ${seats} marcarem. Deixe só o que cabe no carro.`}
-        </Text>
-      </Block>
+            : `Com ${seats} pessoas por horário, as 07:00 só aparecem cheias depois que ${seats} marcarem. Deixe só o que cabe no carro.`
+        }
+      />
     </FormScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  head: { paddingHorizontal: layout.textInset },
-  lead: { marginTop: spacing[12] },
   section: { gap: spacing[8] },
   row: { flexDirection: 'row', gap: spacing[12] },
   half: { flex: 1 },
-  note: { gap: spacing[4] },
 });

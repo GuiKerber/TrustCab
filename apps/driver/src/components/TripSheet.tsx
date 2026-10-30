@@ -2,7 +2,7 @@ import type { AndroidSymbol } from 'expo-symbols';
 import { StyleSheet, View } from 'react-native';
 
 import { canStart, formatPrice, formatPriceShort, formatTime, isSameDay, relativeDay, START_WINDOW_MINUTES, startOpensAt, useNow, type Trip, type TripStatus } from '@trustcab/core';
-import { Banner, Button, colors, Icon, IconButton, Label, size, spacing, Text, TripSheetFrame, type CardOrigin, type TripOption } from '@trustcab/ui';
+import { Banner, Button, colors, Icon, IconButton, InlineNotice, Label, size, spacing, Text, TripSheetFrame, type CardOrigin, type TripOption } from '@trustcab/ui';
 
 import { missingSetup, PIX_TYPES, useProfile } from '@/data/profile';
 
@@ -92,7 +92,7 @@ export function TripSheet({
       onCancel={onCancel}
       origin={origin}
       completedBody={<PixCharge price={price} firstName={firstName} paid={paid} />}
-      footer={({ dark, onCard, muted, actionVariant, close }) => (
+      footer={({ onCard, actionVariant, close }) => (
         <>
           {needsSetup ? (
             <Banner
@@ -126,14 +126,7 @@ export function TripSheet({
                   onPress={() => onMaps(next.mapsTo === 'origin' ? trip.origin : trip.destination)}
                 />
               </View>
-              {locked ? (
-                <View style={styles.lockedText}>
-                  <Icon name="schedule" size={size.icon.sm} color={dark ? colors.textSecondary : colors.inkSecondary} />
-                  <Text variant="small" tone={muted}>
-                    {opensText}
-                  </Text>
-                </View>
-              ) : null}
+              {locked ? <InlineNotice icon="schedule" text={opensText} onCard={onCard} /> : null}
             </View>
           ) : null}
           {trip.status === 'completed' ? (
@@ -250,7 +243,6 @@ const styles = StyleSheet.create({
   actions: { flexDirection: 'row', alignItems: 'center', gap: spacing[8] },
   mainAction: { flex: 1 },
   locked: { gap: spacing[8] },
-  lockedText: { flexDirection: 'row', alignItems: 'center', gap: spacing[8] },
   paidRow: { flexDirection: 'row', alignItems: 'center', gap: spacing[8] },
   paidText: { flex: 1 },
   charge: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing[20] },

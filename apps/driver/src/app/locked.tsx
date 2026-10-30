@@ -1,8 +1,8 @@
 import { router } from 'expo-router';
 
 import { priceLabel } from '@trustcab/core';
-import { Block, Button, colors, Label, layout, OfflineNotice, spacing, Text } from '@trustcab/ui';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Button, colors, InfoBlock, layout, OfflineNotice, PageHeader, spacing, Text } from '@trustcab/ui';
+import { ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useDriver } from '@/data/driver';
@@ -22,17 +22,15 @@ export default function LockedScreen() {
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <OfflineNotice />
-        <View style={styles.head}>
-          <Text variant="display">{terminouOTeste ? 'Seu mês' : 'Sua assinatura'}</Text>
-          <Text variant="display" tone="secondary">
-            {terminouOTeste ? 'grátis acabou' : 'acabou'}
-          </Text>
-          <Text variant="body" tone="secondary" style={styles.lead}>
-            {terminouOTeste
+        <PageHeader
+          title={terminouOTeste ? 'Seu mês' : 'Sua assinatura'}
+          subtitle={terminouOTeste ? 'grátis acabou' : 'acabou'}
+          lead={
+            terminouOTeste
               ? `Os 30 dias terminaram. Para voltar a receber pedidos, ver sua agenda e confirmar viagens, a assinatura é ${priceLabel()} por mês.`
-              : `Para voltar a usar o TrustCab, assine de novo por ${priceLabel()} por mês.`}
-          </Text>
-        </View>
+              : `Para voltar a usar o TrustCab, assine de novo por ${priceLabel()} por mês.`
+          }
+        />
 
         <Button
           label={`Assinar por ${priceLabel()}`}
@@ -41,21 +39,15 @@ export default function LockedScreen() {
           onPress={() => router.push('/plan')}
         />
 
-        <Block style={styles.nota}>
-          <Label>Nada foi apagado</Label>
-          <Text variant="small" tone="secondary">
-            Seus passageiros, suas agendas, suas viagens e seu histórico continuam guardados. Assinando,
-            tudo volta como estava e seu link volta a receber pedidos no mesmo instante.
-          </Text>
-        </Block>
+        <InfoBlock
+          label="Nada foi apagado"
+          text="Seus passageiros, suas agendas, suas viagens e seu histórico continuam guardados. Assinando, tudo volta como estava e seu link volta a receber pedidos no mesmo instante."
+        />
 
-        <Block style={styles.nota}>
-          <Label>Enquanto isso</Label>
-          <Text variant="small" tone="secondary">
-            Quem já tinha carona combinada com você não recebe aviso nenhum do TrustCab. Fale com essas
-            pessoas pelo seu WhatsApp, como você fazia antes.
-          </Text>
-        </Block>
+        <InfoBlock
+          label="Enquanto isso"
+          text="Quem já tinha carona combinada com você não recebe aviso nenhum do TrustCab. Fale com essas pessoas pelo seu WhatsApp, como você fazia antes."
+        />
 
         <Button
           label="Configurações"
@@ -82,9 +74,6 @@ const styles = StyleSheet.create({
     paddingBottom: layout.scrollEnd,
     gap: spacing[20],
   },
-  head: { paddingHorizontal: layout.textInset },
-  lead: { marginTop: spacing[12] },
-  nota: { gap: spacing[4] },
   centro: { alignSelf: 'center' },
   rodape: { paddingHorizontal: layout.textInset, textAlign: 'center' },
 });

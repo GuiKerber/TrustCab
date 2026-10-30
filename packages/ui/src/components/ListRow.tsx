@@ -4,17 +4,19 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { colors, radius, size, spacing } from '../theme/tokens';
 
 import { focusRing, stateOpacity, useInteraction } from './Button';
+import { joinedCorners } from './ListGroup';
 import { Icon, Text } from './ui';
 
-// Linha de lista em blocos conectados (Perfil). O primeiro e o último arredondam as pontas do grupo.
+// Linha de lista em blocos conectados (Perfil). Dentro de um ListGroup, o grupo diz quem é a
+// primeira e a última, e só elas arredondam as pontas.
 // "pending" destaca o que ainda falta configurar (ícone + texto laranja, não só a cor).
 export function ListRow({
   icon,
   title,
   value,
   pending = false,
-  first,
-  last,
+  first = false,
+  last = false,
   onPress,
   accessibilityHint,
 }: {
@@ -22,8 +24,8 @@ export function ListRow({
   title: string;
   value: string;
   pending?: boolean;
-  first: boolean;
-  last: boolean;
+  first?: boolean;
+  last?: boolean;
   onPress: () => void;
   accessibilityHint?: string;
 }) {
@@ -38,8 +40,7 @@ export function ListRow({
       accessibilityHint={accessibilityHint}
       style={({ pressed }) => [
         styles.row,
-        first && styles.first,
-        last && styles.last,
+        joinedCorners(first, last, radius.block, radius.joined),
         { opacity: stateOpacity({ pressed, hovered, disabled: false }) },
         focused && focusRing(),
       ]}>
@@ -67,10 +68,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[16],
     paddingVertical: spacing[12],
     backgroundColor: colors.surface,
-    borderRadius: radius.joined,
   },
-  first: { borderTopLeftRadius: radius.block, borderTopRightRadius: radius.block },
-  last: { borderBottomLeftRadius: radius.block, borderBottomRightRadius: radius.block },
   text: { flex: 1, gap: spacing[4] },
   value: { flexDirection: 'row', alignItems: 'center', gap: spacing[4] },
   valueText: { flex: 1 },

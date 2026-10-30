@@ -7,6 +7,7 @@ import { colors, layout, size, spacing } from '../theme/tokens';
 
 import { TextButton } from './Button';
 import { GoogleButton } from './GoogleButton';
+import { InlineNotice } from './InlineNotice';
 import { Icon, Text } from './ui';
 
 // Login dos dois apps: marca, uma frase em três linhas, o botão do Google e o aceite dos termos.
@@ -60,11 +61,7 @@ export function LoginScreen({
             </Text>
           ) : null}
           {onSignIn ? <GoogleButton loading={busy} onPress={onSignIn} accessibilityHint="Abre a escolha de conta do Google" /> : null}
-          {error ? (
-            <Text variant="small" tone="orange" accessibilityLiveRegion="polite">
-              {error}
-            </Text>
-          ) : null}
+          {error ? <InlineNotice tone="warning" text={error} /> : null}
           {onSignIn ? (
             <Text variant="small" tone="secondary">
               Ao entrar, você aceita os{' '}
