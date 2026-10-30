@@ -1,17 +1,17 @@
-import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 
-import { Block, Button, FormScreen, Label, spacing, Text } from '@trustcab/ui';
+import { Button, FormScreen, PageHeader, Toast } from '@trustcab/ui';
 import { usePixForm } from '@/components/PixForm';
-import { PIX_TYPES, setPix, useProfile } from '@/data/profile';
+import { setPix, useProfile } from '@/data/profile';
 import { goBack } from '@/lib/back';
 
 // Chave Pix: vai junto nas cobranças e gera o QR Code mostrado ao concluir a viagem.
+// Salvar e remover confirmam com o aviso curto (Toast), como as outras ações que não mudam de tela.
 export default function PixKey() {
   const profile = useProfile();
-  const [saved, setSaved] = useState(false);
-  const form = usePixForm({ onChange: () => setSaved(false) });
+  const [feito, setFeito] = useState<string | null>(null);
+  const form = usePixForm();
 
   return (
     <FormScreen
@@ -19,7 +19,7 @@ export default function PixKey() {
       onBack={() => goBack('/profile')}
       footer={
         <>
-          <Button label={profile.pix ? 'Salvar nova chave' : 'Salvar chave'} icon="check" variant="light" onPress={() => setSaved(form.save())} />
+          <Button label={profile.pix ? 'Salvar nova chave' : 'Salvar chave'} icon="check" variant="light" onPress={() => form.save() && setFeito('Chave Pix salva. Ela já vai nas próximas cobranças.')} />
           {profile.pix ? (
             <Button
               label="Remover chave"
@@ -31,39 +31,21 @@ export default function PixKey() {
               onPress={() => {
                 setPix(null);
                 form.clear();
-                setSaved(false);
+                setFeito('Chave Pix removida.');
               }}
             />
           ) : null}
         </>
       }>
-      <View style={styles.head}>
-        <Text variant="display">Chave</Text>
-        <Text variant="display" tone="secondary">
-          Pix
-        </Text>
-        <Text variant="body" tone="secondary" style={styles.lead}>
-          Vai junto nas cobranças do mês e vira o QR Code que o passageiro lê ao fim da viagem.
-        </Text>
-      </View>
+      <PageHeader title="Chave" subtitle="Pix" lead="Vai junto nas cobranças do mês e vira o QR Code que o passageiro lê ao fim da viagem." />
 
       {form.fields}
 
-      {saved && profile.pix ? (
-        <Block style={styles.saved}>
-          <Label>Salva</Label>
-          <Text variant="bodyMedium" accessibilityLiveRegion="polite">
-            {`${PIX_TYPES[profile.pix.type].label} · ${profile.pix.key}`}
-          </Text>
-        </Block>
-      ) : null}
+      <Toast message={feito} onHide={() => setFeito(null)} />
     </FormScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  head: { paddingHorizontal: spacing[4] },
-  lead: { marginTop: spacing[12] },
-  saved: { gap: spacing[4] },
   center: { alignSelf: 'center' },
 });

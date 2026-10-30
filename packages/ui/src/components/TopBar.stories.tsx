@@ -11,7 +11,7 @@ const meta = {
   tags: ['autodocs'],
   args: {
     title: 'Olá, Carlos',
-    action: { icon: 'inbox', label: 'Pedidos esperando você', onPress: fn() },
+    action: { icon: 'inbox', label: 'Pedidos', onPress: fn() },
   },
 } satisfies Meta<typeof TopBar>;
 
@@ -23,7 +23,7 @@ export const Padrao: Story = { name: 'Padrão' };
 
 export const ComPedidos: Story = {
   name: 'Com pedidos esperando',
-  args: { action: { icon: 'inbox', label: '2 pedidos esperando você', badge: 2, onPress: fn() } },
+  args: { action: { icon: 'inbox', label: 'Pedidos', badge: 2, onPress: fn() } },
 };
 
 export const SemAcao: Story = { name: 'Sem ação', args: { action: undefined } };

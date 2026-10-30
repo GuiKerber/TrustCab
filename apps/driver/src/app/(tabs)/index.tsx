@@ -1,9 +1,8 @@
 import { router, useIsFocused, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { AppState, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { AppState } from 'react-native';
 
-import { cardColor, type CardOrigin, colors, DaySlider, EmptyState, isClosed, layout, ScreenStatus, spacing, Text, TripStack } from '@trustcab/ui';
+import { cardColor, type CardOrigin, colors, DaySlider, EmptyState, isClosed, PageHeader, ScreenStatus, ScrollScreen, TripStack } from '@trustcab/ui';
 import { ForgottenTripsDialog, type ForgottenTrip } from '@/components/ForgottenTripsDialog';
 import { TripSheet } from '@/components/TripSheet';
 import { TopBar } from '@/components/TopBar';
@@ -90,50 +89,9 @@ export default function Home() {
     return <ScreenStatus state={error ? 'error' : 'loading'} layout="home" onRetry={() => router.replace('/')} />;
   }
 
-  return (
-    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <TopBar title={`Olá, ${name.split(' ')[0] || 'motorista'}`} />
-
-        <View style={styles.title}>
-          <Text variant="display">{dayTitle}</Text>
-          <Text variant="display" tone="secondary">
-            {trips.length === 1 ? '1 viagem' : `${trips.length} viagens`}
-          </Text>
-          <Text variant="bodyMedium" tone="secondary" style={styles.total}>
-            {/* Zero reais no dia de hoje, às seis da manhã, com dez viagens pela frente, lê como
-                fracasso em vez de "ainda não começou". Enquanto nada foi concluído, a frase é a
-                mesma dos dias futuros. */}
-            {trips.length === 0
-              ? 'Dia livre'
-              : future || earned === 0
-                ? 'Os ganhos entram quando você concluir as viagens'
-                : `${formatPrice(earned)} ganhos no dia`}
-          </Text>
-        </View>
-
-        <DaySlider days={days} selected={selected} today={now} onSelect={setSelected} />
-
-        {trips.length > 0 ? (
-          <TripStack trips={trips} onOpen={(trip, color, origin) => setOpen({ id: trip.id, color, origin })} />
-        ) : (
-          <EmptyState
-            art="viagens"
-            title="Nenhuma viagem neste dia."
-            text={
-              agendas.length === 0
-                ? 'Mande seu link para quem já anda com você: os pedidos chegam aqui.'
-                : 'Seus passageiros podem pedir pelo seu link a qualquer momento.'
-            }
-            {...(agendas.length === 0
-              ? // Quem nunca mandou o link está lendo a única instrução que importa. Mandar essa
-                // pessoa procurar o caminho no Perfil é perdê-la no primeiro dia.
-                { action: { label: 'Ver meu link', icon: 'link' as const, onPress: () => router.push('/link') } }
-              : {})}
-          />
-        )}
-      </ScrollView>
-
+  // Folha da viagem e pergunta das esquecidas: abrem por cima da tela, fora da rolagem.
+  const sheets = (
+    <>
       <TripSheet
         trip={openTrip}
         color={open?.color ?? colors.cards[0]}
@@ -161,21 +119,48 @@ export default function Home() {
         onDidNotHappen={({ trip }) => actions.setStatus(trip, 'cancelled')}
         onLater={() => setAskLater(true)}
       />
-    </SafeAreaView>
+    </>
+  );
+
+  return (
+    <ScrollScreen overlay={sheets}>
+      <TopBar title={`Olá, ${name.split(' ')[0] || 'motorista'}`} />
+
+      {/* Zero reais no dia de hoje, às seis da manhã, com dez viagens pela frente, lê como
+          fracasso em vez de "ainda não começou". Enquanto nada foi concluído, a frase é a
+          mesma dos dias futuros. */}
+      <PageHeader
+        title={dayTitle}
+        subtitle={trips.length === 1 ? '1 viagem' : `${trips.length} viagens`}
+        lead={
+          trips.length === 0
+            ? 'Dia livre'
+            : future || earned === 0
+              ? 'Os ganhos entram quando você concluir as viagens'
+              : `${formatPrice(earned)} ganhos no dia`
+        }
+      />
+
+      <DaySlider days={days} selected={selected} today={now} onSelect={setSelected} />
+
+      {trips.length > 0 ? (
+        <TripStack trips={trips} onOpen={(trip, color, origin) => setOpen({ id: trip.id, color, origin })} />
+      ) : (
+        <EmptyState
+          art="viagens"
+          title="Nenhuma viagem neste dia."
+          text={
+            agendas.length === 0
+              ? 'Mande seu link para quem já anda com você: os pedidos chegam aqui.'
+              : 'Seus passageiros podem pedir pelo seu link a qualquer momento.'
+          }
+          {...(agendas.length === 0
+            ? // Quem nunca mandou o link está lendo a única instrução que importa. Mandar essa
+              // pessoa procurar o caminho no Perfil é perdê-la no primeiro dia.
+              { action: { label: 'Ver meu link', icon: 'link' as const, onPress: () => router.push('/link') } }
+            : {})}
+        />
+      )}
+    </ScrollScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.ground },
-  // Com muitas viagens a pilha fica mais alta que a tela: a home rola.
-  content: {
-    paddingHorizontal: layout.screenPadding,
-    paddingTop: spacing[8],
-    paddingBottom: layout.scrollEnd,
-    gap: spacing[20],
-  },
-  title: { paddingHorizontal: spacing[4] },
-  total: { marginTop: spacing[8] },
-  emptyAction: { marginTop: spacing[16] },
-  empty: { paddingTop: spacing[40], paddingHorizontal: spacing[4], gap: spacing[8] },
-});

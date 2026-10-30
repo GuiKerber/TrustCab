@@ -9,7 +9,7 @@ const meta = {
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen' },
   args: { layout: 'home' },
-  argTypes: { layout: { control: 'inline-radio', options: ['home', 'agenda', 'list', 'chat'] } },
+  argTypes: { layout: { control: 'inline-radio', options: ['home', 'agenda', 'list'] } },
 } satisfies Meta<typeof ScreenSkeleton>;
 
 export default meta;
@@ -22,4 +22,3 @@ export const Agenda: Story = { args: { layout: 'agenda' } };
 
 export const Lista: Story = { name: 'Lista (Ganhos, Passageiros)', args: { layout: 'list' } };
 
-export const Conversas: Story = { args: { layout: 'chat' } };

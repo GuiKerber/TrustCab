@@ -40,7 +40,15 @@ export const Informativo: Story = {
   },
 };
 
-export const SemAcao: Story = { name: 'Sem ação', args: { icon: 'person_search', title: 'Você já convidou Rafael Costa neste número', actions: [] } };
+export const SemAcao: Story = {
+  name: 'Sem ação',
+  args: {
+    icon: 'lock',
+    title: 'O app está fechado',
+    text: 'Sem assinatura você não vê a agenda, não recebe pedidos e não confirma viagens. Nada foi apagado.',
+    actions: [],
+  },
+};
 
 export const SobreCartao: Story = {
   name: 'Sobre o cartão (folha da viagem)',

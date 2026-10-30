@@ -15,8 +15,9 @@ const meta = {
     title: 'Ana Souza · 07:40',
     onClose: fn(),
     options: [
-      { key: 'chat', label: 'Mandar mensagem', icon: 'chat', onPress: fn() },
       { key: 'undo', label: 'Desfazer "cheguei"', icon: 'undo', onPress: fn() },
+      { key: 'call', label: 'Ligar para Ana', icon: 'call', onPress: fn() },
+      { key: 'spending', label: 'Ver gastos de Ana', icon: 'receipt_long', onPress: fn() },
       { key: 'cancel', label: 'Cancelar viagem', icon: 'close', destructive: true, onPress: fn() },
     ],
   },

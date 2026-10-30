@@ -1,9 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-native';
-import { StyleSheet, View } from 'react-native';
 import { fn } from 'storybook/test';
 
-import { layout } from '../theme/tokens';
-
+import { ListGroup } from './ListGroup';
 import { ListRow } from './ListRow';
 
 // Linha de lista do Perfil. "Pendente" troca o texto por laranja com ícone de alerta (não só a cor).
@@ -30,16 +28,13 @@ export const Padrao: Story = { name: 'Padrão' };
 
 export const Pendente: Story = { args: { value: 'Adicione: aparece no aviso "Cheguei"', pending: true } };
 
+// Dentro do ListGroup: o grupo arredonda só as pontas, e o rótulo vai em cima.
 export const Grupo: Story = {
   render: (args) => (
-    <View style={styles.group}>
-      <ListRow {...args} icon="qr_code_2" title="Chave Pix" value="CPF · 123.456.789-00" first last={false} />
-      <ListRow {...args} first={false} last={false} />
-      <ListRow {...args} icon="share" title="Seu link de convite" value="trustcab.app/i/exemplo" first={false} last />
-    </View>
+    <ListGroup label="Sua agenda">
+      <ListRow {...args} icon="chat" title="Seu WhatsApp" value="(41) 99876-5432" />
+      <ListRow {...args} icon="link" title="Seu link" value="trustcab-9bab6.web.app/a/carlos" />
+      <ListRow {...args} icon="schedule" title="Horários" value="segunda a sexta · 06:00 às 20:00" />
+    </ListGroup>
   ),
 };
-
-const styles = StyleSheet.create({
-  group: { gap: layout.hairline },
-});

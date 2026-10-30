@@ -23,7 +23,7 @@ import { FadeScroll } from './FadeScroll';
 import { ROUTE_PALETTES, RouteMap, RouteNode, routeStep, type RouteTone } from './Route';
 import { isClosed, routeProgress, statusLabel } from './TripBlocks';
 import { TripOptions, type TripOption } from './TripOptions';
-import { Handle, Icon, Label, Text, type Tone } from './ui';
+import { Handle, Label, Text, type Tone } from './ui';
 
 // O que cada app desenha embaixo da folha, já com as cores certas para o fundo atual.
 export type TripSheetFooterContext = {
@@ -44,7 +44,7 @@ export type TripSheetFrameProps = {
   color: string;
   date: Date;
   now: Date;
-  // Fica escondido (sem perder o estado) enquanto outra tela, como o chat, está por cima.
+  // Fica escondido (sem perder o estado) enquanto outra tela está por cima.
   visible: boolean;
   onClose: () => void;
   // Nome em destaque e linha de apoio (ex.: motorista vê o passageiro; passageiro vê quem dirige e o carro).
@@ -52,7 +52,6 @@ export type TripSheetFrameProps = {
   personDetail?: string;
   // Primeiro ponto do percurso. Motorista: "Você · Sua localização". Passageiro: o motorista saindo.
   start?: { label: string; text: string };
-  // Rótulo do tempo estimado. Motorista: "Chegada em" (quando chega ao destino). Passageiro: "Tempo de viagem".
   onChat: (trip: Trip) => void;
   // Opções dos três pontos. "Cancelar viagem" entra no fim quando a viagem ainda vai acontecer.
   options: TripOption[];
@@ -66,8 +65,8 @@ export type TripSheetFrameProps = {
   origin?: CardOrigin | null;
 };
 
-// O cartão ampliado, igual nos dois apps: sobe do rodapé com a mesma cor e mostra horário, pessoa, percurso,
-// valor e tempo. Cada app só preenche as ações. Arrastar para baixo (ou tocar na seta) fecha.
+// O cartão ampliado: sobe do rodapé com a mesma cor e mostra horário, pessoa, percurso e valor.
+// Quem usa só preenche as ações. Arrastar para baixo (ou tocar na seta) fecha.
 export function TripSheetFrame({
   trip,
   color,
@@ -194,8 +193,8 @@ export function TripSheetFrame({
   const closed = isClosed(trip);
   const step = routeStep(routeProgress(trip.status));
   const routeTone: RouteTone = dark ? 'onDark' : 'onCard';
-  const palette = ROUTE_PALETTES[routeTone];
-  const rail = (done: boolean) => (done ? palette.stroke : palette.faint);
+  const routeColors = ROUTE_PALETTES[routeTone];
+  const rail = (done: boolean) => (done ? routeColors.stroke : routeColors.faint);
   return (
     <Modal visible={visible} transparent animationType="none" onRequestClose={close} statusBarTranslucent>
       <GestureHandlerRootView style={styles.root}>
@@ -246,9 +245,9 @@ export function TripSheetFrame({
                   <View style={styles.route}>
                     <View style={styles.timeline}>
                       <Stop label={start.label} text={start.text} reached rail={rail(step >= 1)} routeTone={routeTone} background={color} tone={tone} muted={muted} />
-                      <Leg first={rail(step >= 1)} second={rail(step >= 2)} label={step === 1 ? 'A caminho' : undefined} tone={tone} dot={palette.stroke} />
+                      <Leg first={rail(step >= 1)} second={rail(step >= 2)} label={step === 1 ? 'A caminho' : undefined} tone={tone} dot={routeColors.stroke} />
                       <Stop label="Partida" text={trip.origin} reached={step >= 2} rail={rail(step >= 3)} routeTone={routeTone} background={color} tone={tone} muted={muted} />
-                      <Leg first={rail(step >= 3)} second={rail(step >= 4)} label={step === 3 ? 'Em viagem' : undefined} tone={tone} dot={palette.stroke} />
+                      <Leg first={rail(step >= 3)} second={rail(step >= 4)} label={step === 3 ? 'Em viagem' : undefined} tone={tone} dot={routeColors.stroke} />
                       <Stop label="Destino" text={trip.destination} reached={step >= 4} routeTone={routeTone} background={color} tone={tone} muted={muted} />
                     </View>
                     <RouteMap progress={routeProgress(trip.status)} tone={routeTone} cardColor={color} />
@@ -373,7 +372,7 @@ const styles = StyleSheet.create({
   timeline: { flex: 1 },
   stop: { flexDirection: 'row', gap: spacing[12] },
   stopText: { flex: 1, gap: spacing[4], paddingTop: spacing[4], paddingBottom: spacing[8] },
-  leg: { flex: 1, minHeight: spacing[12], flexDirection: 'row', alignItems: 'center', gap: spacing[12] },
+  leg: { flex: 1, minHeight: size.routeLeg, flexDirection: 'row', alignItems: 'center', gap: spacing[12] },
   rail: { width: size.routeNode, alignSelf: 'stretch', alignItems: 'center' },
   railPart: { flex: 1, width: size.routeRail },
   railDot: { width: size.dot.md, height: size.dot.md, borderRadius: size.dot.md / 2 },

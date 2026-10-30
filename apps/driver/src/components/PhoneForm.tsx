@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { formatPhone, parsePhone } from '@trustcab/core';
@@ -19,6 +19,12 @@ export function usePhoneForm({ onChange }: { onChange?: () => void } = {}) {
   const [value, setValue] = useState(() => (phone ? formatPhone(phone) : ''));
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // O número salvo pode chegar do banco depois que a tela abriu. Ele entra só se o campo ainda
+  // estiver vazio: o que a pessoa já digitou não é apagado.
+  useEffect(() => {
+    if (phone) setValue((atual) => atual || formatPhone(phone));
+  }, [phone]);
 
   const save = async () => {
     const digits = parsePhone(value);

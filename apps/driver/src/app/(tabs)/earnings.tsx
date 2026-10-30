@@ -1,12 +1,27 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet, View } from 'react-native';
 
-import { Block, Button, colors, EmptyState, focusRing, Icon, layout, Pills, radius, ScreenStatus, size, spacing, stateOpacity, Text, useInteraction } from '@trustcab/ui';
+import {
+  Block,
+  Button,
+  colors,
+  EmptyState,
+  Icon,
+  layout,
+  ListGroup,
+  PageHeader,
+  PersonTotalCard,
+  Pills,
+  ScreenStatus,
+  ScrollScreen,
+  size,
+  spacing,
+  Text,
+} from '@trustcab/ui';
 import { ChargeSheet, type ChargeLine } from '@/components/ChargeSheet';
 import { TopBar } from '@/components/TopBar';
-import { formatPrice, formatPriceShort, isSameDay, monthName, type Day, type Trip, useNow, weekdayShort } from '@trustcab/core';
+import { formatPrice, formatPriceShort, monthName, type Day, type Trip, useNow, weekdayShort } from '@trustcab/core';
 import { clearChargeSent, setChargeSent, setTripPaidAt, useCharges } from '@trustcab/core/db';
 import { tripBase, useDays } from '@/data/days';
 import { useDriver } from '@/data/driver';
@@ -144,256 +159,181 @@ export default function Earnings() {
     return <ScreenStatus state={error ? 'error' : 'loading'} layout="list" onRetry={() => router.replace('/earnings')} />;
   }
 
+  // A prévia da cobrança abre por cima da tela, fora da rolagem.
+  const chargeSheet = key ? (
+    <ChargeSheet
+      visible={preview}
+      passenger={fullName}
+      monthLabel={name}
+      lines={chargeLines}
+      totalCents={chargeTotal}
+      pixKey={pixKey}
+      paidCount={paidCount}
+      onClose={() => setPreview(false)}
+      onAddPix={() => {
+        setPreview(false);
+        router.push('/pix');
+      }}
+      onSend={() => {
+        // O texto é o mesmo que a prévia mostra: o WhatsApp abre com ele escrito e o
+        // motorista toca em enviar. Marcar como enviada é dele — nós não temos como saber.
+        const lines = chargeLines.map(({ date, trip }) => `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')} · ${trip.time} — ${formatPrice(trip.priceCents)}`);
+        void sendTo(
+          phoneOf(passenger),
+          [`Olá, ${firstName}! Estas são as suas viagens de ${name}:`, ...lines, `Total: ${formatPrice(chargeTotal)}`, `Pix: ${pixKey}`].join('\n'),
+        );
+        if (uid) {
+          void setChargeSent({
+            driverId: uid,
+            passengerId: key,
+            month: chargeMonth,
+            totalCents: chargeTotal,
+            trips: chargeLines.length,
+          }).catch(() => undefined);
+        }
+        setPreview(false);
+      }}
+    />
+  ) : null;
+
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <TopBar title="Ganhos" />
+    <ScrollScreen overlay={chargeSheet}>
+      <TopBar title="Ganhos" />
 
-        <Pills items={monthItems} selected={monthKey(current.month)} onSelect={setMonth} accessibilityLabel="Mês" />
+      <Pills items={monthItems} selected={monthKey(current.month)} onSelect={setMonth} accessibilityLabel="Mês" />
 
-        <View style={styles.title}>
-          <Text variant="display">{formatPriceShort(total)}</Text>
-          <Text variant="display" tone="secondary">
-            {passenger === ALL ? `em ${name}` : `de ${firstName}`}
-          </Text>
-          <Text variant="bodyMedium" tone="secondary" style={styles.subtitle}>
-            {done.length > 0 ? `${countLabel(done.length)} concluídas` : 'Nenhuma viagem concluída'}
-          </Text>
-        </View>
+      <PageHeader
+        title={formatPriceShort(total)}
+        subtitle={passenger === ALL ? `em ${name}` : `de ${firstName}`}
+        lead={done.length > 0 ? `${countLabel(done.length)} concluídas` : 'Nenhuma viagem concluída'}
+      />
 
-        <Pills items={passengerItems} selected={passenger} onSelect={setPassenger} accessibilityLabel="Passageiro" />
+      <Pills items={passengerItems} selected={passenger} onSelect={setPassenger} accessibilityLabel="Passageiro" />
 
-        {passenger === ALL && byPassenger.length > 0 ? (
-          <View style={styles.people}>
-            {byPassenger.map(({ id, nome, trips, total: personTotal, color }, index) => (
-              <PersonCard
-                key={id}
-                person={nome}
-                count={trips.length}
-                totalCents={personTotal}
-                color={color}
-                first={index === 0}
-                last={index === byPassenger.length - 1}
-                onPress={() => setPassenger(id)}
-              />
-            ))}
-          </View>
-        ) : null}
-
-        {doneDays.length > 0 ? (
-          <View style={styles.days}>
-            {doneDays.map(({ date, trips }) => (
-              <Block key={date.toISOString()} style={styles.day}>
-                <View style={styles.dayHead}>
-                  <Text variant="bodyMedium">{`${weekdayShort(date)}, ${date.getDate()}`}</Text>
-                  <Text variant="bodyMedium">{formatPrice(sum(trips))}</Text>
-                </View>
-                {trips.map((trip) => (
-                  <View key={trip.id} style={styles.tripRow}>
-                    <Text variant="small" tone="secondary" style={styles.tripTime}>
-                      {trip.time}
-                    </Text>
-                    <Text variant="small" tone="secondary" style={styles.tripWho} numberOfLines={1}>
-                      {passenger === ALL ? trip.passenger : `${trip.origin} → ${trip.destination}`}
-                    </Text>
-                    {/* Pago: o valor fica riscado com um visto do lado. O risco diz "não conta mais"
-                        e o ícone repete a informação, para o estado não depender só do traço. */}
-                    <View style={styles.tripPrice}>
-                      <Text
-                        variant="small"
-                        tone="secondary"
-                        style={paid.has(trip.id) ? styles.priceSettled : undefined}
-                        accessibilityLabel={paid.has(trip.id) ? `${formatPrice(trip.priceCents)}, pago` : undefined}>
-                        {formatPrice(trip.priceCents)}
-                      </Text>
-                      {paid.has(trip.id) ? <Icon name="check" size={size.icon.sm} color={colors.textSecondary} /> : null}
-                    </View>
-                  </View>
-                ))}
-              </Block>
-            ))}
-          </View>
-        ) : (
-          <EmptyState
-            art="ganhos"
-            title={passenger === ALL ? `Nenhuma viagem concluída em ${name}.` : `${firstName} não tem viagens concluídas em ${name}.`}
-            text='As viagens entram aqui quando você toca em "Concluir viagem".'
-          />
-        )}
-
-        {passenger !== ALL && done.length > 0 && key ? (
-          <View style={styles.charge}>
-            {sentAt ? (
-              <Block style={styles.sent}>
-                <Text variant="bodyMedium">{`Cobrança de ${name} enviada para ${firstName}`}</Text>
-                <Text variant="small" tone="secondary">
-                  {`Enviada em ${sentAt.getDate()}/${sentAt.getMonth() + 1}, às ${String(sentAt.getHours()).padStart(2, '0')}:${String(
-                    sentAt.getMinutes(),
-                  ).padStart(2, '0')}.`}
-                </Text>
-                {/* Fechar o mês de uma vez: o padrão é o passageiro ter pago tudo, e marcar
-                    viagem por viagem num mês de 30 corridas não é trabalho de ninguém. A exceção
-                    continua possível — desmarcar uma viagem depois, na folha dela. */}
-                <Button
-                  label={`Confirmar pagamento · ${formatPrice(chargeTotal)}`}
-                  icon="paid"
-                  variant="light"
-                  onPress={() =>
-                    chargeLines.forEach(({ trip }) => {
-                      const base = tripBase(agendas, trip);
-                      if (base) void setTripPaidAt(base, true).catch(() => undefined);
-                    })
-                  }
-                  accessibilityHint={`Marca as ${chargeLines.length} viagens de ${name} como pagas de uma vez`}
-                />
-                <View style={styles.sentActions}>
-                  <Button
-                    label="Abrir o WhatsApp"
-                    icon="chat"
-                    size="sm"
-                    variant="surface"
-                    onPress={() => sendTo(phoneOf(passenger), '')}
-                  />
-                  <Button
-                    label="Marcar como não enviada"
-                    icon="undo"
-                    size="sm"
-                    variant="ghost"
-                    destructive
-                    onPress={() => uid && void clearChargeSent(uid, key, chargeMonth).catch(() => undefined)}
-                  />
-                </View>
-              </Block>
-            ) : chargeLines.length === 0 ? (
-              <Block style={styles.sent}>
-                <Text variant="bodyMedium">{`${firstName} já pagou todas as viagens de ${name}`}</Text>
-                <Text variant="small" tone="secondary">
-                  Cada viagem foi marcada como paga na hora. Não há o que cobrar neste mês.
-                </Text>
-              </Block>
-            ) : (
-              <>
-                <Button label="Gerar cobrança" icon="request_quote" variant="light" onPress={() => setPreview(true)} />
-                <Text variant="small" tone="secondary" style={styles.chargeHint}>
-                  {paidCount > 0
-                    ? `Abre o WhatsApp de ${firstName} com as viagens de ${name} ainda não pagas, com data, horário e valor, o total e sua chave Pix.`
-                    : `Abre o WhatsApp de ${firstName} com as viagens de ${name}, com data, horário e valor, o total e sua chave Pix.`}
-                </Text>
-              </>
-            )}
-          </View>
-        ) : null}
-      </ScrollView>
-
-      {key ? (
-        <ChargeSheet
-          visible={preview}
-          passenger={fullName}
-          monthLabel={name}
-          lines={chargeLines}
-          totalCents={chargeTotal}
-          pixKey={pixKey}
-          paidCount={paidCount}
-          onClose={() => setPreview(false)}
-          onAddPix={() => {
-            setPreview(false);
-            router.push('/pix');
-          }}
-          onSend={() => {
-            // O texto é o mesmo que a prévia mostra: o WhatsApp abre com ele escrito e o
-            // motorista toca em enviar. Marcar como enviada é dele — nós não temos como saber.
-            const lines = chargeLines.map(({ date, trip }) => `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')} · ${trip.time} — ${formatPrice(trip.priceCents)}`);
-            void sendTo(
-              phoneOf(passenger),
-              [`Olá, ${firstName}! Estas são as suas viagens de ${name}:`, ...lines, `Total: ${formatPrice(chargeTotal)}`, `Pix: ${pixKey}`].join('\n'),
-            );
-            if (uid) {
-              void setChargeSent({
-                driverId: uid,
-                passengerId: key,
-                month: chargeMonth,
-                totalCents: chargeTotal,
-                trips: chargeLines.length,
-              }).catch(() => undefined);
-            }
-            setPreview(false);
-          }}
-        />
+      {passenger === ALL && byPassenger.length > 0 ? (
+        <ListGroup>
+          {byPassenger.map(({ id, nome, trips, total: personTotal, color }) => (
+            <PersonTotalCard
+              key={id}
+              name={nome}
+              caption={countLabel(trips.length)}
+              total={formatPriceShort(personTotal)}
+              color={color}
+              onPress={() => setPassenger(id)}
+              accessibilityLabel={`${nome}: ${formatPrice(personTotal)} em ${countLabel(trips.length)}. Ver só as viagens de ${nome.split(' ')[0]}`}
+            />
+          ))}
+        </ListGroup>
       ) : null}
-    </SafeAreaView>
-  );
-}
 
-// Cartão colorido com o total de um passageiro no mês. Tocar filtra a tela por ele.
-function PersonCard({
-  person,
-  count,
-  totalCents,
-  color,
-  first,
-  last,
-  onPress,
-}: {
-  person: string;
-  count: number;
-  totalCents: number;
-  color: string;
-  first: boolean;
-  last: boolean;
-  onPress: () => void;
-}) {
-  const { hovered, focused, handlers } = useInteraction();
-  return (
-    <Pressable
-      {...handlers}
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={`${person}: ${formatPrice(totalCents)} em ${countLabel(count)}. Ver só as viagens de ${person.split(' ')[0]}`}
-      style={({ pressed }) => [
-        styles.person,
-        { backgroundColor: color, opacity: stateOpacity({ pressed, hovered, disabled: false }) },
-        first && styles.personFirst,
-        last && styles.personLast,
-        focused && focusRing(),
-      ]}>
-      <View style={styles.personText}>
-        <Text variant="heading" tone="onCard" numberOfLines={1}>
-          {person}
-        </Text>
-        <Text variant="small" tone="onCardMuted">
-          {countLabel(count)}
-        </Text>
-      </View>
-      <Text variant="title" tone="onCard">
-        {formatPriceShort(totalCents)}
-      </Text>
-    </Pressable>
+      {doneDays.length > 0 ? (
+        <View style={styles.days}>
+          {doneDays.map(({ date, trips }) => (
+            <Block key={date.toISOString()} style={styles.day}>
+              <View style={styles.dayHead}>
+                <Text variant="bodyMedium">{`${weekdayShort(date)}, ${date.getDate()}`}</Text>
+                <Text variant="bodyMedium">{formatPrice(sum(trips))}</Text>
+              </View>
+              {trips.map((trip) => (
+                <View key={trip.id} style={styles.tripRow}>
+                  <Text variant="small" tone="secondary" style={styles.tripTime}>
+                    {trip.time}
+                  </Text>
+                  <Text variant="small" tone="secondary" style={styles.tripWho} numberOfLines={1}>
+                    {passenger === ALL ? trip.passenger : `${trip.origin} → ${trip.destination}`}
+                  </Text>
+                  {/* Pago: o valor fica riscado com um visto do lado. O risco diz "não conta mais"
+                      e o ícone repete a informação, para o estado não depender só do traço. */}
+                  <View style={styles.tripPrice}>
+                    <Text
+                      variant="small"
+                      tone="secondary"
+                      style={paid.has(trip.id) ? styles.priceSettled : undefined}
+                      accessibilityLabel={paid.has(trip.id) ? `${formatPrice(trip.priceCents)}, pago` : undefined}>
+                      {formatPrice(trip.priceCents)}
+                    </Text>
+                    {paid.has(trip.id) ? <Icon name="check" size={size.icon.sm} color={colors.textSecondary} /> : null}
+                  </View>
+                </View>
+              ))}
+            </Block>
+          ))}
+        </View>
+      ) : (
+        <EmptyState
+          art="ganhos"
+          title={passenger === ALL ? `Nenhuma viagem concluída em ${name}.` : `${firstName} não tem viagens concluídas em ${name}.`}
+          text='As viagens entram aqui quando você toca em "Concluir viagem".'
+        />
+      )}
+
+      {passenger !== ALL && done.length > 0 && key ? (
+        <View style={styles.charge}>
+          {sentAt ? (
+            <Block style={styles.sent}>
+              <Text variant="bodyMedium">{`Cobrança de ${name} enviada para ${firstName}`}</Text>
+              <Text variant="small" tone="secondary">
+                {`Enviada em ${sentAt.getDate()}/${sentAt.getMonth() + 1}, às ${String(sentAt.getHours()).padStart(2, '0')}:${String(
+                  sentAt.getMinutes(),
+                ).padStart(2, '0')}.`}
+              </Text>
+              {/* Fechar o mês de uma vez: o padrão é o passageiro ter pago tudo, e marcar
+                  viagem por viagem num mês de 30 corridas não é trabalho de ninguém. A exceção
+                  continua possível — desmarcar uma viagem depois, na folha dela. */}
+              <Button
+                label={`Confirmar pagamento · ${formatPrice(chargeTotal)}`}
+                icon="paid"
+                variant="light"
+                onPress={() =>
+                  chargeLines.forEach(({ trip }) => {
+                    const base = tripBase(agendas, trip);
+                    if (base) void setTripPaidAt(base, true).catch(() => undefined);
+                  })
+                }
+                accessibilityHint={`Marca as ${chargeLines.length} viagens de ${name} como pagas de uma vez`}
+              />
+              <View style={styles.sentActions}>
+                <Button
+                  label="Abrir o WhatsApp"
+                  icon="chat"
+                  size="sm"
+                  variant="surface"
+                  onPress={() => sendTo(phoneOf(passenger), '')}
+                />
+                <Button
+                  label="Marcar como não enviada"
+                  icon="undo"
+                  size="sm"
+                  variant="ghost"
+                  destructive
+                  onPress={() => uid && void clearChargeSent(uid, key, chargeMonth).catch(() => undefined)}
+                />
+              </View>
+            </Block>
+          ) : chargeLines.length === 0 ? (
+            <Block style={styles.sent}>
+              <Text variant="bodyMedium">{`${firstName} já pagou todas as viagens de ${name}`}</Text>
+              <Text variant="small" tone="secondary">
+                Cada viagem foi marcada como paga na hora. Não há o que cobrar neste mês.
+              </Text>
+            </Block>
+          ) : (
+            <>
+              <Button label="Gerar cobrança" icon="request_quote" variant="light" onPress={() => setPreview(true)} />
+              <Text variant="small" tone="secondary" style={styles.chargeHint}>
+                {paidCount > 0
+                  ? `Abre o WhatsApp de ${firstName} com as viagens de ${name} ainda não pagas, com data, horário e valor, o total e sua chave Pix.`
+                  : `Abre o WhatsApp de ${firstName} com as viagens de ${name}, com data, horário e valor, o total e sua chave Pix.`}
+              </Text>
+            </>
+          )}
+        </View>
+      ) : null}
+    </ScrollScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.ground },
-  content: {
-    paddingHorizontal: layout.screenPadding,
-    paddingTop: spacing[8],
-    paddingBottom: layout.scrollEnd,
-    gap: spacing[20],
-  },
-  title: { paddingHorizontal: spacing[4] },
-  subtitle: { marginTop: spacing[8] },
-  people: { gap: spacing[4] },
-  person: {
-    minHeight: size.personCardMinHeight,
-    paddingHorizontal: spacing[20],
-    paddingVertical: spacing[16],
-    borderRadius: radius.joined,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[12],
-  },
-  personFirst: { borderTopLeftRadius: radius.block, borderTopRightRadius: radius.block },
-  personLast: { borderBottomLeftRadius: radius.block, borderBottomRightRadius: radius.block },
-  personText: { flex: 1, gap: spacing[4] },
   days: { gap: layout.gap },
   day: { gap: spacing[8], paddingVertical: spacing[16] },
   dayHead: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing[4] },
@@ -402,9 +342,8 @@ const styles = StyleSheet.create({
   tripWho: { flex: 1 },
   tripPrice: { flexDirection: 'row', alignItems: 'center', gap: spacing[4] },
   priceSettled: { textDecorationLine: 'line-through' },
-  empty: { paddingTop: spacing[20], paddingHorizontal: spacing[4], gap: spacing[8] },
   charge: { gap: spacing[12], marginTop: spacing[8] },
-  chargeHint: { paddingHorizontal: spacing[4], textAlign: 'center' },
+  chargeHint: { paddingHorizontal: layout.textInset, textAlign: 'center' },
   sent: { gap: spacing[4] },
   sentActions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[8], marginTop: spacing[8] },
 });

@@ -37,10 +37,11 @@ export function Text({ variant = 'body', tone = 'text', style, ...rest }: TextPr
   );
 }
 
+// Caixa alta só no desenho: o texto continua normal para o leitor de tela, que soletraria "PARTIDA" letra a letra.
 export function Label({ children, tone = 'secondary' }: { children: string; tone?: Tone }) {
   return (
     <Text variant="label" tone={tone} style={styles.label}>
-      {children.toUpperCase()}
+      {children}
     </Text>
   );
 }
