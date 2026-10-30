@@ -20,6 +20,7 @@ import {
   EmptyState,
   FormScreen,
   Label,
+  layout,
   ScreenStatus,
   spacing,
   Text,
@@ -235,7 +236,7 @@ function Line({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  head: { paddingHorizontal: spacing[4] },
+  head: { paddingHorizontal: layout.textInset },
   lead: { marginTop: spacing[12] },
   card: { gap: spacing[16] },
   who: { gap: spacing[4] },

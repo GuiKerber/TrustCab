@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
   },
   list: { gap: layout.gap },
   option: {
-    minHeight: size.button.md,
+    minHeight: size.row.md,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[12],

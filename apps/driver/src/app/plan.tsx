@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { daysOfAccess, priceLabel, SUPPORT_PHONE, todayISO, TRIAL_DAYS } from '@trustcab/core';
-import { Banner, Block, Button, colors, FormScreen, Icon, Label, size, spacing, Text } from '@trustcab/ui';
+import { Banner, Block, Button, colors, FormScreen, Icon, Label, layout, size, spacing, Text } from '@trustcab/ui';
 
 import { useDriver } from '@/data/driver';
 import { sendTo } from '@/data/whatsapp';
@@ -110,9 +110,9 @@ export default function PlanScreen() {
 }
 
 const styles = StyleSheet.create({
-  head: { paddingHorizontal: spacing[4] },
+  head: { paddingHorizontal: layout.textInset },
   lead: { marginTop: spacing[12] },
-  list: { gap: spacing[12], paddingHorizontal: spacing[4] },
+  list: { gap: spacing[12], paddingHorizontal: layout.textInset },
   item: { flexDirection: 'row', alignItems: 'center', gap: spacing[12] },
   itemText: { flex: 1 },
   note: { gap: spacing[4] },

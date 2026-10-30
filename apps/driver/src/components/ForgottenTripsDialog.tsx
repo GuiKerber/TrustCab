@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing[12],
     gap: spacing[16],
   },
-  head: { gap: spacing[8], paddingHorizontal: spacing[4] },
+  head: { gap: spacing[8], paddingHorizontal: layout.textInset },
   list: { gap: spacing[8] },
   item: { backgroundColor: colors.surface, borderRadius: radius.block, padding: spacing[16], gap: spacing[8] },
   itemHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: spacing[12] },

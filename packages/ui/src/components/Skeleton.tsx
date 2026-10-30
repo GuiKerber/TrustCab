@@ -52,7 +52,7 @@ export function ScreenSkeleton({ layout: kind }: { layout: SkeletonLayout }) {
           kind === 'home' ? (
             <SkeletonBlock key={i} width={size.dayPillMinWidth} height={size.calendarCell} rounded={radius.block} />
           ) : (
-            <SkeletonBlock key={i} width={size.pillMinWidth} height={size.button.sm} round />
+            <SkeletonBlock key={i} width={size.pillMinWidth} height={size.touchTarget} round />
           ),
         )}
       </View>

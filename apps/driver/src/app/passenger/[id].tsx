@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: layout.screenPadding, paddingTop: spacing[8], paddingBottom: spacing[40], gap: spacing[20] },
   topBar: { flexDirection: 'row', justifyContent: 'space-between' },
   topActions: { flexDirection: 'row', gap: spacing[8] },
-  head: { gap: spacing[4], paddingHorizontal: spacing[4], paddingTop: spacing[20] },
+  head: { gap: spacing[4], paddingHorizontal: layout.textInset, paddingTop: spacing[20] },
   notice: { flexDirection: 'row', alignItems: 'center', gap: spacing[8], paddingVertical: spacing[8], paddingRight: spacing[8] },
   noticeText: { flex: 1 },
   stats: { flexDirection: 'row', gap: layout.gap },
@@ -441,7 +441,7 @@ const styles = StyleSheet.create({
   section: { gap: spacing[12] },
   table: { gap: spacing[4] },
   row: {
-    minHeight: size.button.md,
+    minHeight: size.row.md,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[12],

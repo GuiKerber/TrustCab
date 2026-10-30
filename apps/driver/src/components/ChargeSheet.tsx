@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing[12],
     gap: spacing[16],
   },
-  head: { gap: spacing[4], paddingHorizontal: spacing[4] },
+  head: { gap: spacing[4], paddingHorizontal: layout.textInset },
   bubble: {
     flexShrink: 1,
     backgroundColor: colors.surfaceRaised,
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     borderTopColor: colors.lineStrong,
     paddingTop: spacing[12],
   },
-  notice: { flexDirection: 'row', gap: spacing[8], alignItems: 'flex-start', paddingHorizontal: spacing[4] },
+  notice: { flexDirection: 'row', gap: spacing[8], alignItems: 'flex-start', paddingHorizontal: layout.textInset },
   noticeText: { flex: 1 },
   back: { alignSelf: 'center' },
 });

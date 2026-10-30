@@ -60,7 +60,7 @@ export function ListRow({
 
 const styles = StyleSheet.create({
   row: {
-    minHeight: size.button.md + spacing[16],
+    minHeight: size.row.lg,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[12],

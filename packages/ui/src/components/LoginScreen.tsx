@@ -94,12 +94,12 @@ export function LoginScreen({
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.ground },
-  content: { flex: 1, paddingHorizontal: layout.screenPadding + spacing[4], paddingTop: spacing[20], paddingBottom: spacing[40] },
+  content: { flex: 1, paddingHorizontal: layout.screenPadding + layout.textInset, paddingTop: spacing[20], paddingBottom: spacing[40] },
   brand: { flexDirection: 'row', alignItems: 'center', gap: spacing[8] },
   mark: {
-    width: size.iconButton.sm,
-    height: size.iconButton.sm,
-    borderRadius: size.iconButton.sm / 2,
+    width: size.brandMark,
+    height: size.brandMark,
+    borderRadius: size.brandMark / 2,
     backgroundColor: colors.cards[0],
     alignItems: 'center',
     justifyContent: 'center',

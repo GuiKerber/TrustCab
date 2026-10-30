@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
     paddingBottom: layout.scrollEnd,
     gap: spacing[20],
   },
-  title: { paddingHorizontal: spacing[4] },
+  title: { paddingHorizontal: layout.textInset },
   subtitle: { marginTop: spacing[8] },
   people: { gap: spacing[4] },
   person: {
@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
   tripPrice: { flexDirection: 'row', alignItems: 'center', gap: spacing[4] },
   priceSettled: { textDecorationLine: 'line-through' },
   charge: { gap: spacing[12], marginTop: spacing[8] },
-  chargeHint: { paddingHorizontal: spacing[4], textAlign: 'center' },
+  chargeHint: { paddingHorizontal: layout.textInset, textAlign: 'center' },
   sent: { gap: spacing[4] },
   sentActions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[8], marginTop: spacing[8] },
 });

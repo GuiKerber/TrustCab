@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { bookingShortUrl, shareLink } from '@trustcab/core';
 import { rotateLink } from '@trustcab/core/db';
-import { Banner, Block, Button, ConfirmDialog, FormScreen, Label, spacing, Text, Toast } from '@trustcab/ui';
+import { Banner, Block, Button, ConfirmDialog, FormScreen, Label, layout, spacing, Text, Toast } from '@trustcab/ui';
 
 import { useDriver } from '@/data/driver';
 import { shareText } from '@/data/whatsapp';
@@ -123,7 +123,7 @@ export default function LinkScreen() {
 }
 
 const styles = StyleSheet.create({
-  head: { paddingHorizontal: spacing[4] },
+  head: { paddingHorizontal: layout.textInset },
   lead: { marginTop: spacing[12] },
   link: { gap: spacing[4] },
   center: { alignSelf: 'center' },

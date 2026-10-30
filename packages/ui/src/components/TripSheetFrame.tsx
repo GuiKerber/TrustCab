@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
   timeline: { flex: 1 },
   stop: { flexDirection: 'row', gap: spacing[12] },
   stopText: { flex: 1, gap: spacing[4], paddingTop: spacing[4], paddingBottom: spacing[8] },
-  leg: { flex: 1, minHeight: spacing[12], flexDirection: 'row', alignItems: 'center', gap: spacing[12] },
+  leg: { flex: 1, minHeight: size.routeLeg, flexDirection: 'row', alignItems: 'center', gap: spacing[12] },
   rail: { width: size.routeNode, alignSelf: 'stretch', alignItems: 'center' },
   railPart: { flex: 1, width: size.routeRail },
   railDot: { width: size.dot.md, height: size.dot.md, borderRadius: size.dot.md / 2 },

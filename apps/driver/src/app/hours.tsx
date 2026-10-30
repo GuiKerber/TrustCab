@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { maskTime, minutesOf, slotTimes, timeError, WEEKDAY_SHORT, type Slots } from '@trustcab/core';
 import { setSlots } from '@trustcab/core/db';
-import { Block, Button, ChipGroup, FormScreen, Label, Pills, spacing, Text, TextField } from '@trustcab/ui';
+import { Block, Button, ChipGroup, FormScreen, Label, layout, Pills, spacing, Text, TextField } from '@trustcab/ui';
 
 import { useDriver } from '@/data/driver';
 import { goBack } from '@/lib/back';
@@ -150,7 +150,7 @@ export default function Hours() {
 }
 
 const styles = StyleSheet.create({
-  head: { paddingHorizontal: spacing[4] },
+  head: { paddingHorizontal: layout.textInset },
   lead: { marginTop: spacing[12] },
   section: { gap: spacing[8] },
   row: { flexDirection: 'row', gap: spacing[12] },

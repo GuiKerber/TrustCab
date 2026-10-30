@@ -82,9 +82,9 @@ const styles = StyleSheet.create({
     paddingBottom: layout.scrollEnd,
     gap: spacing[20],
   },
-  head: { paddingHorizontal: spacing[4] },
+  head: { paddingHorizontal: layout.textInset },
   lead: { marginTop: spacing[12] },
   nota: { gap: spacing[4] },
   centro: { alignSelf: 'center' },
-  rodape: { paddingHorizontal: spacing[4], textAlign: 'center' },
+  rodape: { paddingHorizontal: layout.textInset, textAlign: 'center' },
 });

@@ -126,6 +126,6 @@ export default function Profile() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.ground },
   content: { paddingHorizontal: layout.screenPadding, paddingTop: spacing[8], paddingBottom: layout.scrollEnd, gap: spacing[28] },
-  head: { gap: spacing[4], paddingHorizontal: spacing[4], paddingTop: spacing[20] },
+  head: { gap: spacing[4], paddingHorizontal: layout.textInset, paddingTop: spacing[20] },
   section: { gap: spacing[8] },
 });

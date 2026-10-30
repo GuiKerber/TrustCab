@@ -122,7 +122,7 @@ Regra: um título nunca passa de duas linhas. Se a data não cabe em `display`, 
 ## 5. Espaço, raio, borda, opacidade
 
 - **`spacing`**: 2 · 4 · 6 · 8 · 12 · 16 · 20 · 28 · 40 · 56. Nada fora dessa escala.
-- **`layout`**: margem da tela 16 · intervalo entre blocos 8 · alvo de toque 48 · linha 1 · altura máxima de folha 88% · espaço no fim de telas roláveis 96.
+- **`layout`**: margem da tela 16 · recuo do texto solto `textInset` 4 (títulos de página, dicas e cabeçalhos de folha entram 4 além da margem) · intervalo entre blocos 8 · alvo de toque 48 · linha 1 · altura máxima de folha 88% · espaço no fim de telas roláveis 96.
 - **`radius`**: xs 2 (alça) · joined 4 (bloco colado a outro) · sm 8 (linhas dentro de bloco) · md 14 (célula do calendário) · blockSm 18 (mapa, opções, QR) · block 24 (blocos e folhas) · card 32 (cartões de viagem). Pílulas e círculos não têm token: o raio é metade da altura do elemento (um raio "infinito" é ignorado pelo Android em formas não quadradas).
 - **`borderWidth`**: hairline 1 · strong 2 (seleção, hoje, anel de foco).
 - **`opacity`**: hover 0,94 · pressed 0,88 · pending 0,7 (mensagem esperando internet, pulso do esqueleto) · disabled 0,35.
@@ -136,6 +136,9 @@ Regra: um título nunca passa de duas linhas. Se a data não cabe em `display`, 
 | `icon.sm / md / lg / xl / 2xl` | 18 / 20 / 22 / 40 / 64 | Botão pequeno / botão médio e avisos / ícones soltos e menu / ícone grande / QR reservado |
 | `button.sm / md` | 44 / 56 | Altura dos botões com texto |
 | `iconButton.sm / md` | 36 / 48 | Botões redondos (o pequeno ganha área de toque até 48) |
+| `row.md / lg` | 56 / 72 | Linha de lista com uma linha de texto (opções, meses) / com título e valor (Perfil) |
+| `avatar` | 48 | Inicial do passageiro |
+| `brandMark` | 36 | Círculo da marca no login |
 | `badge` | 10 | Ponto de não lido |
 | `dot.xs / sm / md / lg / xl` | 5 / 6 / 8 / 10 / 14 | Bolinhas de viagem, nós e marcadores |
 | `handle` | 40 × 4 | Alça das folhas |
@@ -156,7 +159,7 @@ Regra: um título nunca passa de duas linhas. Se a data não cabe em `display`, 
 | `layout.statWideFlex` | 1,6 | Proporção do cartão de total largo ao lado do estreito |
 | `passengerStack.*` | card 208 · peek 92 | Pilha de passageiros |
 | `timeColumn` | 44 | Coluna de horário em listas |
-| `routeNode` / `routeRail` | 24 / 2 | Linha do tempo do percurso |
+| `routeNode` / `routeRail` / `routeLeg` | 24 / 2 / 12 | Linha do tempo do percurso (nó, trilho, altura mínima do trecho) |
 | `routeMapWidth` / `routeMinHeight` | 104 / 150 | Ilustração do percurso |
 | `qr` | 240 | QR Code Pix, grande para a câmera do passageiro ler |
 | `stack.*` | card 236 · peek 116 | Pilha de viagens da home |

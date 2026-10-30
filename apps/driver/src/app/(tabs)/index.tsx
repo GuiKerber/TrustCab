@@ -174,6 +174,6 @@ const styles = StyleSheet.create({
     paddingBottom: layout.scrollEnd,
     gap: spacing[20],
   },
-  title: { paddingHorizontal: spacing[4] },
+  title: { paddingHorizontal: layout.textInset },
   total: { marginTop: spacing[8] },
 });

@@ -167,6 +167,12 @@ export const size = {
   icon: { sm: 16, md: 20, lg: 24, xl: 40, '2xl': 64 },
   button: { sm: 44, md: 56 },
   iconButton: { sm: 36, md: 48 },
+  // Linhas de lista: "md" com uma linha de texto (opções, meses), "lg" com título e valor embaixo (Perfil)
+  row: { md: 56, lg: 72 },
+  // Inicial do passageiro num círculo
+  avatar: 48,
+  // Círculo da marca no login, até o logo existir
+  brandMark: 36,
   badge: 12,
   dot: { xs: 4, md: 8, lg: 12, xl: 16 },
   handle: { width: 40, height: 4 },
@@ -191,6 +197,8 @@ export const size = {
   timeColumn: 44,
   routeNode: 24,
   routeRail: 2,
+  // Altura mínima do trecho entre dois pontos da linha do tempo
+  routeLeg: 12,
   routeMapWidth: 104,
   // Círculo da seta no percurso
   routeBubble: 44,
@@ -204,6 +212,8 @@ export const size = {
 
 export const layout = {
   screenPadding: 16,
+  // Texto solto sobre o fundo (títulos de página, dicas, cabeçalho de folha) entra um pouco além da margem.
+  textInset: 4,
   gap: 8,
   touchTarget: size.touchTarget,
   hairline: borderWidth.hairline,

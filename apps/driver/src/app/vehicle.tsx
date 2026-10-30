@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { Block, Button, FormScreen, Label, spacing, Text } from '@trustcab/ui';
+import { Block, Button, FormScreen, Label, layout, spacing, Text } from '@trustcab/ui';
 import { useVehicleForm } from '@/components/VehicleForm';
 import { useProfile } from '@/data/profile';
 import { goBack } from '@/lib/back';
@@ -44,7 +44,7 @@ export default function Vehicle() {
 }
 
 const styles = StyleSheet.create({
-  head: { paddingHorizontal: spacing[4] },
+  head: { paddingHorizontal: layout.textInset },
   lead: { marginTop: spacing[12] },
   saved: { gap: spacing[4] },
 });

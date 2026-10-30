@@ -95,8 +95,8 @@ const styles = StyleSheet.create({
     paddingTop: spacing[12],
     gap: spacing[20],
   },
-  head: { gap: spacing[8], paddingHorizontal: spacing[4] },
-  error: { paddingHorizontal: spacing[4] },
+  head: { gap: spacing[8], paddingHorizontal: layout.textInset },
+  error: { paddingHorizontal: layout.textInset },
   actions: { gap: spacing[8] },
   center: { alignSelf: 'center' },
 });

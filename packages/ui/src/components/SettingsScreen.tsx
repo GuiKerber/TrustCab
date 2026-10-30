@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.ground },
   content: { paddingHorizontal: layout.screenPadding, paddingTop: spacing[8], paddingBottom: spacing[40], gap: spacing[28] },
   top: { gap: spacing[8] },
-  head: { gap: spacing[4], paddingHorizontal: spacing[4] },
+  head: { gap: spacing[4], paddingHorizontal: layout.textInset },
   block: { gap: spacing[16] },
   section: { gap: spacing[4] },
   danger: { gap: spacing[8], marginTop: spacing[20] },

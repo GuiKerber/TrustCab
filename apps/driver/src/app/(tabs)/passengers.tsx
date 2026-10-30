@@ -170,6 +170,6 @@ const styles = StyleSheet.create({
     paddingBottom: layout.scrollEnd,
     gap: spacing[20],
   },
-  invite: { paddingHorizontal: spacing[4], paddingTop: spacing[28], paddingBottom: spacing[20] },
+  invite: { paddingHorizontal: layout.textInset, paddingTop: spacing[28], paddingBottom: spacing[20] },
   inviteText: { marginTop: spacing[12] },
 });

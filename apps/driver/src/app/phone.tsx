@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { formatPhone, parsePhone } from '@trustcab/core';
 import { setPhone } from '@trustcab/core/db';
-import { Block, Button, FormScreen, Label, spacing, Text, TextField } from '@trustcab/ui';
+import { Block, Button, FormScreen, Label, layout, spacing, Text, TextField } from '@trustcab/ui';
 
 import { useDriver } from '@/data/driver';
 import { goBack } from '@/lib/back';
@@ -86,7 +86,7 @@ export default function Phone() {
 }
 
 const styles = StyleSheet.create({
-  head: { paddingHorizontal: spacing[4] },
+  head: { paddingHorizontal: layout.textInset },
   lead: { marginTop: spacing[12] },
   note: { gap: spacing[4] },
 });

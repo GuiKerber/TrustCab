@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { Button, colors, FormScreen, Icon, Label, size, spacing, Text } from '@trustcab/ui';
+import { Button, colors, FormScreen, Icon, Label, layout, size, spacing, Text } from '@trustcab/ui';
 import { usePhoneForm } from '@/components/PhoneForm';
 import { usePixForm } from '@/components/PixForm';
 import { useVehicleForm } from '@/components/VehicleForm';
@@ -132,7 +132,7 @@ export default function Onboarding() {
 }
 
 const styles = StyleSheet.create({
-  head: { paddingHorizontal: spacing[4] },
+  head: { paddingHorizontal: layout.textInset },
   lead: { marginTop: spacing[12] },
   list: { gap: spacing[12] },
   item: { flexDirection: 'row', alignItems: 'center', gap: spacing[12] },
