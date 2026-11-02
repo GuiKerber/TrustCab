@@ -16,7 +16,7 @@ import { mountZone } from './zonas/motor.js';
 
 const palco = document.getElementById('palco-rodape');
 
-if (palco) {
+function montar() {
   try {
     mountZone(palco, 'vale', {
       background: STYLE.background,
@@ -29,5 +29,22 @@ if (palco) {
     });
   } catch (erro) {
     palco.hidden = true;
+  }
+}
+
+if (palco) {
+  /* A cena só nasce quando a rolagem chega perto dela. Dois contextos WebGL
+     vivos ao mesmo tempo é o que mais custa nesta página, e até aqui o vale
+     renderizava desde o load enquanto ninguém o via. A margem de uma tela é
+     para ele já estar pronto quando aparecer, e não montar na frente do
+     visitante. */
+  if (typeof IntersectionObserver === 'function') {
+    new IntersectionObserver(([entrada], obs) => {
+      if (!entrada.isIntersecting) return;
+      obs.disconnect();
+      montar();
+    }, { rootMargin: '100% 0px' }).observe(palco);
+  } else {
+    montar();
   }
 }
