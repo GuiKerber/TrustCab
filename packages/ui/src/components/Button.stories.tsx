@@ -86,8 +86,8 @@ export const BotaoDeIcone: StoryObj<typeof IconButton> = {
     <View style={styles.column}>
       {(['surface', 'light', 'ink'] as const).map((variant) => (
         <View key={variant} style={[styles.inline, variant === 'ink' && [styles.card, { backgroundColor: colors.cards[2] }]]}>
-          <IconButton name="chat" label="Conversas" variant={variant} onPress={fn()} />
-          <IconButton name="chat" label="Conversas" variant={variant} badge={2} onPress={fn()} />
+          <IconButton name="inbox" label="Pedidos" variant={variant} onPress={fn()} />
+          <IconButton name="inbox" label="Pedidos" variant={variant} badge={2} onPress={fn()} />
           <IconButton name="more_horiz" label="Opções" variant={variant} size="sm" onPress={fn()} />
           <IconButton name="map" label="Abrir no mapa" variant={variant} loading onPress={fn()} />
           <IconButton name="map" label="Abrir no mapa" variant={variant} disabled onPress={fn()} />

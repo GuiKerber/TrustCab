@@ -10,16 +10,27 @@ const meta = {
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen' },
   args: {
-    account: 'ana.souza@email.com',
+    account: 'carlos.pereira@email.com',
     groups: [
       {
-        title: 'Na hora da viagem',
+        title: 'Viagens',
         items: [
-          { key: 'onTheWay', title: 'Motorista a caminho', text: 'Quando ele sair para te buscar.', value: true, onChange: fn() },
-          { key: 'arrived', title: 'Motorista chegou', text: 'Com o carro e a placa, para você achar rápido.', value: true, onChange: fn() },
+          { key: 'tripReminder', title: 'Hora de sair', text: 'Quando libera o "Estou a caminho", 1 hora antes da viagem.', value: true, onChange: fn() },
+          { key: 'forgottenTrip', title: 'Viagem sem conclusão', text: 'Se uma viagem passou do horário e você não concluiu.', value: true, onChange: fn() },
         ],
       },
-      { title: 'Pedidos, conversas e cobranças', items: [{ key: 'message', title: 'Mensagens', text: 'Quando o motorista escreve no chat.', value: false, onChange: fn() }] },
+      {
+        title: 'Do servidor',
+        items: [
+          {
+            key: 'serverPush',
+            title: 'Pedidos e lembretes',
+            text: 'Quando alguém marca pelo seu link, a lista das viagens de amanhã e o fim do mês grátis.',
+            value: false,
+            onChange: fn(),
+          },
+        ],
+      },
     ],
     permission: 'granted',
     onRequestPermission: fn(),
@@ -27,7 +38,7 @@ const meta = {
     onBack: fn(),
     onSignOut: fn(),
     onDelete: async () => null,
-    deleteText: 'Suas viagens, rotinas, conversas e seu celular são apagados, e você sai da rede de todos os motoristas. Não dá para desfazer.',
+    deleteText: 'Seu link sai do ar na hora, e seus passageiros, agendas, viagens, chave Pix e carro são apagados. Não dá para desfazer.',
   },
 } satisfies Meta<typeof SettingsScreen>;
 

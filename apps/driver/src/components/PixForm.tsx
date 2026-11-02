@@ -39,6 +39,7 @@ export function usePixForm({ onChange }: { onChange?: () => void } = {}) {
           clear();
           onChange?.();
         }}
+        role="radio"
         accessibilityLabel="Tipo de chave"
       />
       <TextField

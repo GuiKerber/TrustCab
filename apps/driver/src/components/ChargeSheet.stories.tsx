@@ -5,7 +5,7 @@ import { sampleMonth } from '@trustcab/core';
 
 import { ChargeSheet } from './ChargeSheet';
 
-// Prévia da cobrança do mês antes de enviar pelo chat: viagens concluídas e não pagas, total e a chave Pix.
+// Prévia da cobrança do mês antes de abrir o WhatsApp: viagens concluídas e não pagas, total e a chave Pix.
 const lines = sampleMonth(new Date())
   .days.flatMap((day) => day.trips.filter((trip) => trip.passenger === 'Ana Souza').map((trip) => ({ date: day.date, trip })))
   .slice(0, 6);

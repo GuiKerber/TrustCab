@@ -31,7 +31,7 @@ export const ExcluirConta: Story = {
   name: 'Excluir conta',
   args: {
     title: 'Excluir sua conta?',
-    text: 'Seus passageiros, viagens, conversas, chave Pix e carro são apagados, e todas as conexões são encerradas. Não dá para desfazer.',
+    text: 'Seu link sai do ar na hora, e seus passageiros, agendas, viagens, chave Pix e carro são apagados. Não dá para desfazer.',
     confirmLabel: 'Excluir conta de vez',
     confirmIcon: 'delete_forever',
     confirmVariant: 'danger',

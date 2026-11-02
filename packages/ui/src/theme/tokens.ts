@@ -1,6 +1,6 @@
 import { Platform, type TextStyle } from 'react-native';
 
-// Design system do TrustCab. Documentação: projects/trustcab/design.md.
+// Design system do TrustCab. Documentação: design.md, na raiz do repositório.
 // Nenhum componente usa cor, tamanho, espaço, raio, opacidade ou tempo fora deste arquivo.
 // Camadas: primitivos (valores crus, sem significado) → semânticos (o papel na interface) → componentes.
 
@@ -167,9 +167,13 @@ export const size = {
   icon: { sm: 16, md: 20, lg: 24, xl: 40, '2xl': 64 },
   button: { sm: 44, md: 56 },
   iconButton: { sm: 36, md: 48 },
+  // Linhas de lista: "md" com uma linha de texto (opções, meses), "lg" com título e valor embaixo (Perfil)
+  row: { md: 56, lg: 72 },
+  // Inicial do passageiro num círculo
+  avatar: 48,
+  // Círculo da marca no login, até o logo existir
+  brandMark: 36,
   badge: 12,
-  // Contador de não lidas (pílula com número)
-  badgeCount: 20,
   dot: { xs: 4, md: 8, lg: 12, xl: 16 },
   handle: { width: 40, height: 4 },
   tabSlot: { width: 64, height: 44 },
@@ -186,8 +190,6 @@ export const size = {
   statCardMinHeight: 196,
   // Campo de texto
   field: 56,
-  // Altura máxima do campo de mensagem antes de rolar
-  composerMaxHeight: 120,
   // Caixa de seleção
   checkbox: 24,
   // Interruptor: trilho e bolinha (altura - bordas - respiro)
@@ -195,6 +197,8 @@ export const size = {
   timeColumn: 44,
   routeNode: 24,
   routeRail: 2,
+  // Altura mínima do trecho entre dois pontos da linha do tempo
+  routeLeg: 12,
   routeMapWidth: 104,
   // Círculo da seta no percurso
   routeBubble: 44,
@@ -208,13 +212,13 @@ export const size = {
 
 export const layout = {
   screenPadding: 16,
+  // Texto solto sobre o fundo (títulos de página, dicas, cabeçalho de folha) entra um pouco além da margem.
+  textInset: 4,
   gap: 8,
   touchTarget: size.touchTarget,
   hairline: borderWidth.hairline,
   // Folhas que sobem do rodapé nunca cobrem a tela inteira
   sheetMaxHeight: '88%',
-  // Largura máxima de uma bolha de mensagem
-  bubbleMaxWidth: '82%',
   // Proporção do cartão de total largo (valor em reais) ao lado do estreito (contagem)
   statWideFlex: 1.6,
   // Espaço no fim das telas roláveis, para o último item não ficar colado no menu
@@ -224,7 +228,8 @@ export const layout = {
 // ─── 6. Movimento e gestos ───────────────────────────────────────────────────
 // Durações entre 150 e 300 ms; tudo desliga com "Remover animações".
 // pulse: meio ciclo do brilho do esqueleto (carregando). É ambiente, não resposta a toque, então fica fora dos 150–300 ms.
-export const motion = { fast: 150, base: 220, slow: 300, pulse: 900 } as const;
+// toast: quanto tempo o aviso de confirmação fica na tela antes de sumir sozinho. Tempo de leitura, não de animação.
+export const motion = { fast: 150, base: 220, slow: 300, pulse: 900, toast: 4500 } as const;
 export const spring = { damping: 18, stiffness: 220 } as const;
 
 export const gesture = {

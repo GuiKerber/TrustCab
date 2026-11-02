@@ -47,7 +47,7 @@ export function ErrorState({
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, justifyContent: 'center', gap: spacing[20], padding: layout.screenPadding + spacing[4], backgroundColor: colors.ground },
+  screen: { flex: 1, justifyContent: 'center', gap: spacing[20], padding: layout.screenPadding + layout.textInset, backgroundColor: colors.ground },
   text: { gap: spacing[8] },
   actions: { gap: spacing[8] },
   center: { alignSelf: 'center' },

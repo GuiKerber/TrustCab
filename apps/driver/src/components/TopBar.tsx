@@ -14,7 +14,8 @@ export function TopBar({ title, action }: { title: string; action?: { icon: Andr
 
   const pedidos = {
     icon: 'inbox' as AndroidSymbol,
-    label: data.length === 1 ? '1 pedido esperando você' : `${data.length} pedidos esperando você`,
+    // O IconButton junta a contagem ao rótulo: "Pedidos, 2 esperando você".
+    label: 'Pedidos',
     badge: data.length,
     onPress: () => router.push('/requests'),
   };

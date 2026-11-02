@@ -67,7 +67,7 @@ function scaledPath(scaleY: number) {
 }
 
 export function RouteMap({ progress, tone, cardColor }: { progress: RouteProgress; tone: RouteTone; cardColor: string }) {
-  const palette = ROUTE_PALETTES[tone];
+  const routeColors = ROUTE_PALETTES[tone];
   const reduceMotion = useReducedMotion();
   const [box, setBox] = useState({ width: 0, height: 0 });
   // A rua encosta em x=108 de 115, ou seja 7 unidades da borda do desenho — mas a bolha
@@ -113,17 +113,17 @@ export function RouteMap({ progress, tone, cardColor }: { progress: RouteProgres
               {/* A rua some nas pontas: começa transparente, fica forte no meio e desbota no fim. */}
               <LinearGradient id="route-fade" x1="0" y1="0" x2="0" y2={artHeight} gradientUnits="userSpaceOnUse">
                 <Stop offset="0" stopColor={cardColor} stopOpacity={0} />
-                <Stop offset={gradient.routeFade.start} stopColor={palette.stroke} stopOpacity={1} />
-                <Stop offset={gradient.routeFade.end} stopColor={palette.stroke} stopOpacity={1} />
+                <Stop offset={gradient.routeFade.start} stopColor={routeColors.stroke} stopOpacity={1} />
+                <Stop offset={gradient.routeFade.end} stopColor={routeColors.stroke} stopOpacity={1} />
                 <Stop offset="1" stopColor={cardColor} stopOpacity={gradient.routeFade.tail} />
               </LinearGradient>
             </Defs>
             <Path d={scaledPath(scaleY)} stroke="url(#route-fade)" strokeWidth={size.routeStroke} fill="none" />
           </Svg>
-          <Animated.View style={[styles.bubble, { backgroundColor: palette.bubble }, bubbleStyle]}>
+          <Animated.View style={[styles.bubble, { backgroundColor: routeColors.bubble }, bubbleStyle]}>
             <Animated.View style={arrowStyle}>
               <Svg width={size.icon.md} height={size.icon.md} viewBox="0 0 18.28 20.13">
-                <Path d={ARROW_PATH} fill={palette.arrow} />
+                <Path d={ARROW_PATH} fill={routeColors.arrow} />
               </Svg>
             </Animated.View>
           </Animated.View>
@@ -135,13 +135,13 @@ export function RouteMap({ progress, tone, cardColor }: { progress: RouteProgres
 
 // Nó da linha do tempo: halo com um ponto no meio. Cheio quando o ponto já foi alcançado.
 export function RouteNode({ reached, tone, background }: { reached: boolean; tone: RouteTone; background: string }) {
-  const palette = ROUTE_PALETTES[tone];
+  const routeColors = ROUTE_PALETTES[tone];
   return (
-    <View style={[styles.halo, { backgroundColor: palette.halo }]}>
+    <View style={[styles.halo, { backgroundColor: routeColors.halo }]}>
       <View
         style={[
           styles.dot,
-          reached ? { backgroundColor: palette.stroke } : { backgroundColor: background, borderWidth: borderWidth.strong, borderColor: palette.stroke },
+          reached ? { backgroundColor: routeColors.stroke } : { backgroundColor: background, borderWidth: borderWidth.strong, borderColor: routeColors.stroke },
         ]}
       />
     </View>

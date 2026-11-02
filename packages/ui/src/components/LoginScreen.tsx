@@ -7,6 +7,7 @@ import { colors, layout, size, spacing } from '../theme/tokens';
 
 import { TextButton } from './Button';
 import { GoogleButton } from './GoogleButton';
+import { InlineNotice } from './InlineNotice';
 import { Icon, Text } from './ui';
 
 // Login dos dois apps: marca, uma frase em três linhas, o botão do Google e o aceite dos termos.
@@ -41,7 +42,8 @@ export function LoginScreen({
           <View style={styles.mark}>
             <Icon name="navigation" size={size.icon.md} color={colors.ink} />
           </View>
-          <Text variant="bodyMedium">trustcab</Text>
+          {/* A marca se escreve em minúsculas; o leitor de tela lê o nome como ele é. */}
+          <Text variant="bodyMedium">{brand.toLowerCase()}</Text>
         </View>
 
         <View style={styles.headline}>
@@ -59,11 +61,7 @@ export function LoginScreen({
             </Text>
           ) : null}
           {onSignIn ? <GoogleButton loading={busy} onPress={onSignIn} accessibilityHint="Abre a escolha de conta do Google" /> : null}
-          {error ? (
-            <Text variant="small" tone="orange" accessibilityLiveRegion="polite">
-              {error}
-            </Text>
-          ) : null}
+          {error ? <InlineNotice tone="warning" text={error} /> : null}
           {onSignIn ? (
             <Text variant="small" tone="secondary">
               Ao entrar, você aceita os{' '}
@@ -93,12 +91,12 @@ export function LoginScreen({
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.ground },
-  content: { flex: 1, paddingHorizontal: layout.screenPadding + spacing[4], paddingTop: spacing[20], paddingBottom: spacing[40] },
+  content: { flex: 1, paddingHorizontal: layout.screenPadding + layout.textInset, paddingTop: spacing[20], paddingBottom: spacing[40] },
   brand: { flexDirection: 'row', alignItems: 'center', gap: spacing[8] },
   mark: {
-    width: size.iconButton.sm,
-    height: size.iconButton.sm,
-    borderRadius: size.iconButton.sm / 2,
+    width: size.brandMark,
+    height: size.brandMark,
+    borderRadius: size.brandMark / 2,
     backgroundColor: colors.cards[0],
     alignItems: 'center',
     justifyContent: 'center',

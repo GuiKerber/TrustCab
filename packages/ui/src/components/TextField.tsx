@@ -3,7 +3,8 @@ import { StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
 
 import { borderWidth, colors, opacity, radius, size, spacing, type } from '../theme/tokens';
 
-import { Icon, Text } from './ui';
+import { InlineNotice } from './InlineNotice';
+import { Text } from './ui';
 
 type TextFieldProps = Pick<TextInputProps, 'value' | 'onChangeText' | 'placeholder' | 'keyboardType' | 'autoComplete' | 'autoCapitalize' | 'textContentType' | 'onSubmitEditing' | 'returnKeyType' | 'submitBehavior'> & {
   // Para encadear o foco: o "próximo" do teclado de um campo chama focus() no seguinte.
@@ -48,12 +49,7 @@ export function TextField({ label, hint, error, disabled = false, ref, ...input 
         />
       </View>
       {error ? (
-        <View style={styles.message} accessibilityLiveRegion="polite">
-          <Icon name="error" size={size.icon.sm} color={colors.orange} />
-          <Text variant="small" tone="orange" style={styles.messageText}>
-            {error}
-          </Text>
-        </View>
+        <InlineNotice tone="warning" text={error} />
       ) : hint ? (
         <Text variant="small" tone="secondary">
           {hint}
@@ -68,6 +64,4 @@ const styles = StyleSheet.create({
   disabled: { opacity: opacity.disabled },
   box: { minHeight: size.field, borderRadius: radius.blockSm, backgroundColor: colors.surface, justifyContent: 'center' },
   input: { ...type.body, color: colors.text, paddingHorizontal: spacing[16], minHeight: size.field, outlineWidth: 0 },
-  message: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing[8] },
-  messageText: { flex: 1 },
 });

@@ -1,9 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
-import { CardStack, colors, EmptyState, layout, PassengerCardContent, Pills, ScreenStatus, size, spacing, Text } from '@trustcab/ui';
+import { CardStack, colors, EmptyState, PageHeader, PassengerCardContent, Pills, ScreenStatus, ScrollScreen, size } from '@trustcab/ui';
 import { TopBar } from '@/components/TopBar';
 import { formatPrice, longDate, monthName, startOfDay, useNow } from '@trustcab/core';
 import { useRequests } from '@trustcab/core/db';
@@ -87,89 +84,71 @@ export default function Passengers() {
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <TopBar title="Passageiros" action={{ icon: 'link', label: 'Ver meu link', onPress: abrir }} />
+    <ScrollScreen>
+      <TopBar title="Passageiros" action={{ icon: 'link', label: 'Ver meu link', onPress: abrir }} />
 
-        <View style={styles.invite}>
-          <Text variant="display">Sua rede</Text>
-          <Text variant="display" tone="secondary">
-            de confiança
-          </Text>
-          <Text variant="body" tone="secondary" style={styles.inviteText}>
-            Mande seu link para quem já anda com você. A pessoa escolhe o dia e o horário, e você confirma.
-          </Text>
-        </View>
+      <PageHeader
+        title="Sua rede"
+        subtitle="de confiança"
+        lead="Mande seu link para quem já anda com você. A pessoa escolhe o dia e o horário, e você confirma."
+      />
 
-        <Pills
-          items={[
-            { key: 'active', label: `Ativos · ${active.length}`, accessibilityLabel: `Ativos, ${active.length}` },
-            { key: 'archived', label: `Arquivados · ${archived.length}`, accessibilityLabel: `Arquivados, ${archived.length}` },
-          ]}
-          selected={tab}
-          onSelect={(key) => setTab(key as Tab)}
-          accessibilityLabel="Tipo de passageiro"
-        />
+      <Pills
+        items={[
+          { key: 'active', label: `Ativos · ${active.length}`, accessibilityLabel: `Ativos, ${active.length}` },
+          { key: 'archived', label: `Arquivados · ${archived.length}`, accessibilityLabel: `Arquivados, ${archived.length}` },
+        ]}
+        selected={tab}
+        onSelect={(key) => setTab(key as Tab)}
+        accessibilityLabel="Tipo de passageiro"
+      />
 
-        {tab === 'active' ? (
-          active.length > 0 ? (
-            <CardStack
-              items={active}
-              sizes={size.passengerStack}
-              keyOf={(p) => p.id}
-              colorOf={(_, index) => colors.cards[index % colors.cards.length]}
-              accessibilityLabelOf={(p) => {
-                const s = summary(p);
-                return `${p.name}: ${s.subtitle}. ${formatPrice(s.total)} em ${month}`;
-              }}
-              accessibilityHint="Abre a página do passageiro. Também dá para segurar o cartão e arrastar para cima."
-              onOpen={(p) => open(p)}
-              renderCard={(p, { dark }) => {
-                const s = summary(p);
-                return <PassengerCardContent name={p.name} dark={dark} subtitle={s.subtitle} month={{ label: month, totalCents: s.total }} />;
-              }}
-            />
-          ) : (
-            <EmptyState
-              art="passageiros"
-              title="Ninguém na sua rede ainda"
-              text="Quem marcar pelo seu link entra aqui sozinho, com nome e WhatsApp."
-              action={{ label: 'Ver meu link', icon: 'link', onPress: abrir }}
-            />
-          )
-        ) : archived.length > 0 ? (
+      {tab === 'active' ? (
+        active.length > 0 ? (
           <CardStack
-            items={archived}
+            items={active}
             sizes={size.passengerStack}
             keyOf={(p) => p.id}
-            colorOf={() => colors.cardDone}
-            accessibilityLabelOf={(p) => `${p.name}: arquivado`}
-            accessibilityHint="Abre a página da pessoa, onde dá para tirar do arquivo"
+            colorOf={(_, index) => colors.cards[index % colors.cards.length]}
+            accessibilityLabelOf={(p) => {
+              const s = summary(p);
+              return `${p.name}: ${s.subtitle}. ${formatPrice(s.total)} em ${month}`;
+            }}
+            accessibilityHint="Abre a página do passageiro. Também dá para segurar o cartão e arrastar para cima."
             onOpen={(p) => open(p)}
-            renderCard={(p, { dark }) => (
-              <PassengerCardContent name={p.name} dark={dark} subtitle={`Na sua rede desde ${longDate(p.since)} · arquivado`} />
-            )}
+            renderCard={(p, { dark }) => {
+              const s = summary(p);
+              return <PassengerCardContent name={p.name} dark={dark} subtitle={s.subtitle} month={{ label: month, totalCents: s.total }} />;
+            }}
           />
         ) : (
           <EmptyState
             art="passageiros"
-            title="Ninguém arquivado"
-            text="Quem você arquivar sai da lista e fica aqui com o histórico. Dá para tirar do arquivo quando quiser."
+            title="Ninguém na sua rede ainda"
+            text="Quem marcar pelo seu link entra aqui sozinho, com nome e WhatsApp."
+            action={{ label: 'Ver meu link', icon: 'link', onPress: abrir }}
           />
-        )}
-      </ScrollView>
-    </SafeAreaView>
+        )
+      ) : archived.length > 0 ? (
+        <CardStack
+          items={archived}
+          sizes={size.passengerStack}
+          keyOf={(p) => p.id}
+          colorOf={() => colors.cardDone}
+          accessibilityLabelOf={(p) => `${p.name}: arquivado`}
+          accessibilityHint="Abre a página da pessoa, onde dá para tirar do arquivo"
+          onOpen={(p) => open(p)}
+          renderCard={(p, { dark }) => (
+            <PassengerCardContent name={p.name} dark={dark} subtitle={`Na sua rede desde ${longDate(p.since)} · arquivado`} />
+          )}
+        />
+      ) : (
+        <EmptyState
+          art="passageiros"
+          title="Ninguém arquivado"
+          text="Quem você arquivar sai da lista e fica aqui com o histórico. Dá para tirar do arquivo quando quiser."
+        />
+      )}
+    </ScrollScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.ground },
-  content: {
-    paddingHorizontal: layout.screenPadding,
-    paddingTop: spacing[8],
-    paddingBottom: layout.scrollEnd,
-    gap: spacing[20],
-  },
-  invite: { paddingHorizontal: spacing[4], paddingTop: spacing[28], paddingBottom: spacing[20] },
-  inviteText: { marginTop: spacing[12] },
-});

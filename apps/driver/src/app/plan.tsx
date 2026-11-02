@@ -1,9 +1,8 @@
-import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { daysOfAccess, priceLabel, SUPPORT_PHONE, todayISO, TRIAL_DAYS } from '@trustcab/core';
-import { Banner, Block, Button, colors, FormScreen, Icon, Label, size, spacing, Text } from '@trustcab/ui';
+import { Banner, Button, colors, FormScreen, Icon, InfoBlock, InlineNotice, layout, PageHeader, size, spacing, Text } from '@trustcab/ui';
 
 import { useDriver } from '@/data/driver';
 import { sendTo } from '@/data/whatsapp';
@@ -58,19 +57,17 @@ export default function PlanScreen() {
           <Button label="Falar sobre o pagamento" icon="chat" variant="light" onPress={falar} />
         )
       }>
-      <View style={styles.head}>
-        <Text variant="display">Seu mês</Text>
-        <Text variant="display" tone="secondary">
-          {titulo}
-        </Text>
-        <Text variant="body" tone="secondary" style={styles.lead}>
-          {plan.status === 'active'
+      <PageHeader
+        title="Seu mês"
+        subtitle={titulo}
+        lead={
+          plan.status === 'active'
             ? `Sua assinatura está ativa. ${price} por mês.`
             : !open
               ? `O mês grátis acabou. Para voltar a usar o TrustCab, a assinatura é ${price} por mês.`
-              : `Você tem ${TRIAL_DAYS} dias com tudo liberado para ver se funciona para você. Depois são ${price} por mês.`}
-        </Text>
-      </View>
+              : `Você tem ${TRIAL_DAYS} dias com tudo liberado para ver se funciona para você. Depois são ${price} por mês.`
+        }
+      />
 
       {!open ? (
         <Banner
@@ -92,28 +89,18 @@ export default function PlanScreen() {
         ))}
       </View>
 
-      {error ? (
-        <Text variant="small" tone="orange" accessibilityLiveRegion="polite">
-          {error}
-        </Text>
-      ) : null}
+      {error ? <InlineNotice tone="warning" text={error} /> : null}
 
-      <Block style={styles.note}>
-        <Label>Sem pegadinha</Label>
-        <Text variant="small" tone="secondary">
-          No mês grátis você não cadastra cartão nenhum. Se decidir não continuar, nada some: seus
-          passageiros, sua agenda e seu histórico ficam aqui do mesmo jeito.
-        </Text>
-      </Block>
+      <InfoBlock
+        label="Sem pegadinha"
+        text="No mês grátis você não cadastra cartão nenhum. Se decidir não continuar, nada some: seus passageiros, sua agenda e seu histórico ficam aqui do mesmo jeito."
+      />
     </FormScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  head: { paddingHorizontal: spacing[4] },
-  lead: { marginTop: spacing[12] },
-  list: { gap: spacing[12], paddingHorizontal: spacing[4] },
+  list: { gap: spacing[12], paddingHorizontal: layout.textInset },
   item: { flexDirection: 'row', alignItems: 'center', gap: spacing[12] },
   itemText: { flex: 1 },
-  note: { gap: spacing[4] },
 });

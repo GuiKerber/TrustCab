@@ -19,7 +19,9 @@ import {
   colors,
   EmptyState,
   FormScreen,
+  InlineNotice,
   Label,
+  PageHeader,
   ScreenStatus,
   spacing,
   Text,
@@ -52,16 +54,16 @@ export default function Requests() {
 
   return (
     <FormScreen backLabel="Voltar" onBack={() => goBack('/')}>
-      <View style={styles.head}>
-        <Text variant="display">Pedidos</Text>
-        <Text variant="body" tone="secondary" style={styles.lead}>
-          {waiting.length === 0
+      <PageHeader
+        title="Pedidos"
+        lead={
+          waiting.length === 0
             ? 'Nada esperando você agora.'
             : waiting.length === 1
               ? '1 pessoa esperando sua resposta.'
-              : `${waiting.length} pessoas esperando sua resposta.`}
-        </Text>
-      </View>
+              : `${waiting.length} pessoas esperando sua resposta.`
+        }
+      />
 
       {waiting.length === 0 && done.length === 0 ? (
         <EmptyState
@@ -91,12 +93,13 @@ export default function Requests() {
 
 function RequestCard({ agenda, onAnswered }: { agenda: Agenda; onAnswered: (status: 'confirmed' | 'declined', price: number | null) => void }) {
   const [price, setPrice] = useState('');
-  const [busy, setBusy] = useState(false);
+  // Qual das duas respostas está salvando: o indicador aparece só no botão tocado.
+  const [busy, setBusy] = useState<'confirmed' | 'declined' | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const responder = async (status: 'confirmed' | 'declined') => {
     setError(null);
-    setBusy(true);
+    setBusy(status);
     const cents = status === 'confirmed' && price ? moneyToCents(price) : null;
     try {
       await answerRequest(agenda.id, status, cents);
@@ -104,7 +107,7 @@ function RequestCard({ agenda, onAnswered }: { agenda: Agenda; onAnswered: (stat
     } catch {
       setError('Não deu para salvar a resposta. Confira sua internet e tente de novo.');
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   };
 
@@ -132,15 +135,27 @@ function RequestCard({ agenda, onAnswered }: { agenda: Agenda; onAnswered: (stat
         hint="Dá para acertar o valor depois, no WhatsApp."
       />
 
-      {error ? (
-        <Text variant="small" tone="orange" accessibilityLiveRegion="polite">
-          {error}
-        </Text>
-      ) : null}
+      {error ? <InlineNotice tone="warning" text={error} /> : null}
 
       <View style={styles.actions}>
-        <Button label={busy ? 'Salvando…' : 'Confirmar'} icon="check" variant="light" disabled={busy} onPress={() => responder('confirmed')} />
-        <Button label="Não consigo" icon="close" variant="surface" disabled={busy} onPress={() => responder('declined')} />
+        <Button
+          label="Confirmar"
+          icon="check"
+          variant="light"
+          loading={busy === 'confirmed'}
+          // Carregando já bloqueia o toque; "disabled" apaga só o outro botão.
+          disabled={busy === 'declined'}
+          onPress={() => responder('confirmed')}
+        />
+        <Button
+          label="Não consigo"
+          icon="close"
+          // Sobre o bloco "surface", um botão "surface" some no fundo: o fantasma é o que ele já parecia.
+          variant="ghost"
+          loading={busy === 'declined'}
+          disabled={busy === 'confirmed'}
+          onPress={() => responder('declined')}
+        />
       </View>
     </Block>
   );
@@ -193,11 +208,7 @@ function AnsweredCard({
           : `Avise ${firstName} e mande o link de novo, para ele escolher outro horário.`}
       </Text>
 
-      {error ? (
-        <Text variant="small" tone="orange" accessibilityLiveRegion="polite">
-          {error}
-        </Text>
-      ) : null}
+      {error ? <InlineNotice tone="warning" text={error} /> : null}
 
       <Button
         label={sent ? `Mandar de novo para ${firstName}` : `Avisar ${firstName} no WhatsApp`}
@@ -219,8 +230,6 @@ function Line({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  head: { paddingHorizontal: spacing[4] },
-  lead: { marginTop: spacing[12] },
   card: { gap: spacing[16] },
   who: { gap: spacing[4] },
   lines: { gap: spacing[12] },

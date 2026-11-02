@@ -12,7 +12,7 @@ const meta = {
   args: {
     items: [
       { key: 'active', label: 'Ativos' },
-      { key: 'pending', label: 'Pendentes' },
+      { key: 'archived', label: 'Arquivados' },
     ],
     selected: 'active',
     onSelect: fn(),
@@ -45,6 +45,22 @@ export const Meses: Story = {
     items: ['Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro'].map((label) => ({ key: label, label })),
     selected: 'Setembro',
     accessibilityLabel: 'Mês',
+  },
+  render: (args) => <Interactive {...args} />,
+};
+
+// Resposta de formulário (Horários, chave Pix): mesmo desenho, mas o leitor de tela anuncia opções, não abas.
+export const Formulario: Story = {
+  name: 'Formulário (radio)',
+  args: {
+    items: [
+      { key: '15', label: '15 min' },
+      { key: '30', label: '30 min' },
+      { key: '60', label: '1 hora' },
+    ],
+    selected: '30',
+    role: 'radio',
+    accessibilityLabel: 'Intervalo entre os horários',
   },
   render: (args) => <Interactive {...args} />,
 };

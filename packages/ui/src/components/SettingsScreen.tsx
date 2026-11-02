@@ -6,10 +6,11 @@ import { PRIVACY_URL, TERMS_URL } from '@trustcab/core';
 
 import { colors, layout, spacing } from '../theme/tokens';
 
+import { BackBar } from './BackBar';
 import { Banner } from './Banner';
-import { Button, IconButton } from './Button';
+import { Button } from './Button';
 import { ConfirmDialog } from './ConfirmDialog';
-import { OfflineNotice } from './OfflineNotice';
+import { PageHeader } from './PageHeader';
 import { Toggle } from './Toggle';
 import { Label, Text } from './ui';
 
@@ -67,18 +68,10 @@ export function SettingsScreen({
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.top}>
-          <IconButton name="arrow_back" label="Voltar para o perfil" onPress={onBack} />
-          <OfflineNotice />
-        </View>
+        <BackBar onBack={onBack} backLabel="Voltar para o perfil" />
 
-        <View style={styles.head}>
-          {/* Palavra longa: no tamanho "display" ela quebraria no meio em celulares estreitos. */}
-          <Text variant="displaySm">Configurações</Text>
-          <Text variant="body" tone="secondary">
-            {account}
-          </Text>
-        </View>
+        {/* Palavra longa: no tamanho "display" ela quebraria no meio em celulares estreitos. */}
+        <PageHeader title="Configurações" meta={account} size="displaySm" />
 
         <View style={styles.block}>
           <Text variant="title">Notificações</Text>
@@ -163,8 +156,6 @@ export function SettingsScreen({
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.ground },
   content: { paddingHorizontal: layout.screenPadding, paddingTop: spacing[8], paddingBottom: spacing[40], gap: spacing[28] },
-  top: { gap: spacing[8] },
-  head: { gap: spacing[4], paddingHorizontal: spacing[4] },
   block: { gap: spacing[16] },
   section: { gap: spacing[4] },
   danger: { gap: spacing[8], marginTop: spacing[20] },

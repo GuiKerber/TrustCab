@@ -1,10 +1,9 @@
-import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { maskTime, minutesOf, slotTimes, timeError, WEEKDAY_SHORT, type Slots } from '@trustcab/core';
 import { setSlots } from '@trustcab/core/db';
-import { Block, Button, ChipGroup, FormScreen, Label, Pills, spacing, Text, TextField } from '@trustcab/ui';
+import { Button, ChipGroup, FormScreen, InfoBlock, Label, PageHeader, Pills, spacing, Text, TextField } from '@trustcab/ui';
 
 import { useDriver } from '@/data/driver';
 import { goBack } from '@/lib/back';
@@ -76,16 +75,8 @@ export default function Hours() {
     <FormScreen
       backLabel="Voltar"
       onBack={() => goBack('/profile')}
-      footer={<Button label={busy ? 'Salvando…' : 'Salvar'} icon="check" variant="light" disabled={busy} onPress={salvar} />}>
-      <View style={styles.head}>
-        <Text variant="display">Seus</Text>
-        <Text variant="display" tone="secondary">
-          horários
-        </Text>
-        <Text variant="body" tone="secondary" style={styles.lead}>
-          É isto que aparece para quem abre seu link. Fora daqui, ninguém consegue marcar.
-        </Text>
-      </View>
+      footer={<Button label="Salvar" icon="check" variant="light" loading={busy} onPress={salvar} />}>
+      <PageHeader title="Seus" subtitle="horários" lead="É isto que aparece para quem abre seu link. Fora daqui, ninguém consegue marcar." />
 
       <View style={styles.section}>
         <Label>Dias em que você roda</Label>
@@ -126,7 +117,7 @@ export default function Hours() {
 
       <View style={styles.section}>
         <Label>De quanto em quanto tempo</Label>
-        <Pills items={INTERVALOS} selected={step} onSelect={setStep} accessibilityLabel="Intervalo entre os horários" />
+        <Pills items={INTERVALOS} selected={step} onSelect={setStep} role="radio" accessibilityLabel="Intervalo entre os horários" />
         <Text variant="small" tone="secondary">
           {quantos > 0 ? `${quantos} horários para escolher por dia.` : 'Confira a janela para ver quantos horários sobram.'}
         </Text>
@@ -134,26 +125,23 @@ export default function Hours() {
 
       <View style={styles.section}>
         <Label>Quantas pessoas no mesmo horário</Label>
-        <Pills items={VAGAS} selected={seats} onSelect={setSeats} accessibilityLabel="Pessoas por horário" />
+        <Pills items={VAGAS} selected={seats} onSelect={setSeats} role="radio" accessibilityLabel="Pessoas por horário" />
       </View>
 
-      <Block style={styles.note}>
-        <Label>Por que isso importa</Label>
-        <Text variant="small" tone="secondary">
-          {Number(seats) === 1
+      <InfoBlock
+        label="Por que isso importa"
+        text={
+          Number(seats) === 1
             ? 'Com 1 pessoa por horário, o primeiro que marcar as 07:00 fecha esse horário para os outros. Se você leva mais de um junto no mesmo trajeto, aumente aqui.'
-            : `Com ${seats} pessoas por horário, as 07:00 só aparecem cheias depois que ${seats} marcarem. Deixe só o que cabe no carro.`}
-        </Text>
-      </Block>
+            : `Com ${seats} pessoas por horário, as 07:00 só aparecem cheias depois que ${seats} marcarem. Deixe só o que cabe no carro.`
+        }
+      />
     </FormScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  head: { paddingHorizontal: spacing[4] },
-  lead: { marginTop: spacing[12] },
   section: { gap: spacing[8] },
   row: { flexDirection: 'row', gap: spacing[12] },
   half: { flex: 1 },
-  note: { gap: spacing[4] },
 });

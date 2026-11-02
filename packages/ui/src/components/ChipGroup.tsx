@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { borderWidth, colors, size, spacing } from '../theme/tokens';
 
 import { focusRing, useInteraction } from './Button';
+import { InlineNotice } from './InlineNotice';
 import { Icon, Text } from './ui';
 
 export type ChipItem = { key: string; label: string; accessibilityLabel?: string };
@@ -32,14 +33,7 @@ export function ChipGroup({
           <Chip key={item.key} item={item} selected={selected.includes(item.key)} onPress={() => toggle(item.key)} />
         ))}
       </View>
-      {error ? (
-        <View style={styles.error} accessibilityLiveRegion="polite">
-          <Icon name="error" size={size.icon.sm} color={colors.orange} />
-          <Text variant="small" tone="orange" style={styles.errorText}>
-            {error}
-          </Text>
-        </View>
-      ) : null}
+      {error ? <InlineNotice tone="warning" text={error} /> : null}
     </View>
   );
 }
@@ -81,6 +75,4 @@ const styles = StyleSheet.create({
   },
   chipOn: { backgroundColor: colors.text, borderColor: colors.text },
   chipActive: { backgroundColor: colors.surface },
-  error: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing[8] },
-  errorText: { flex: 1 },
 });

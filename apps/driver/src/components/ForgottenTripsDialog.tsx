@@ -1,8 +1,7 @@
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StyleSheet, View } from 'react-native';
 
 import { formatPrice, relativeDay, type Trip } from '@trustcab/core';
-import { Button, colors, FadeScroll, Handle, layout, radius, spacing, Text } from '@trustcab/ui';
+import { Button, colors, FadeScroll, layout, radius, Sheet, spacing, Text } from '@trustcab/ui';
 
 
 export type ForgottenTrip = { date: Date; trip: Trip };
@@ -22,70 +21,50 @@ export function ForgottenTripsDialog({
   onDidNotHappen: (item: ForgottenTrip) => void;
   onLater: () => void;
 }) {
-  const insets = useSafeAreaInsets();
   const count = items.length;
 
   return (
-    <Modal visible={count > 0} transparent animationType="fade" onRequestClose={onLater} statusBarTranslucent>
-      <View style={styles.layer}>
-        <Pressable style={styles.scrim} onPress={onLater} accessibilityLabel="Responder depois" />
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + spacing[16], maxHeight: layout.sheetMaxHeight }]} accessibilityViewIsModal>
-          <Handle />
-          <View style={styles.head}>
-            <Text variant="title" accessibilityRole="header">
-              {count === 1 ? 'Você concluiu esta viagem?' : `Você concluiu estas ${count} viagens?`}
-            </Text>
-            <Text variant="body" tone="secondary">
-              Já passaram do horário e continuam abertas. Só as concluídas entram nos seus ganhos.
-            </Text>
-          </View>
-
-          <FadeScroll background={colors.ground} contentContainerStyle={styles.list}>
-            {items.map((item) => (
-              <View key={item.trip.id} style={styles.item}>
-                <View style={styles.itemHead}>
-                  <View style={styles.itemWhen}>
-                    <Text variant="small" tone="secondary">
-                      {`${relativeDay(item.date, now)} · ${item.trip.time}`}
-                    </Text>
-                    <Text variant="bodyMedium">{item.trip.passenger}</Text>
-                  </View>
-                  <Text variant="bodyMedium">{formatPrice(item.trip.priceCents)}</Text>
-                </View>
-                <Text variant="small" tone="secondary" numberOfLines={2}>
-                  {`${item.trip.origin} → ${item.trip.destination}`}
-                </Text>
-                <View style={styles.actions}>
-                  <Button label="Concluída" icon="done_all" size="sm" variant="light" style={styles.grow} onPress={() => onComplete(item)} />
-                  <Button label="Não aconteceu" icon="close" size="sm" variant="surface" destructive style={styles.grow} onPress={() => onDidNotHappen(item)} />
-                </View>
-              </View>
-            ))}
-          </FadeScroll>
-
-          <Button label="Responder depois" size="sm" variant="ghost" onPress={onLater} style={styles.center} />
-        </View>
+    <Sheet visible={count > 0} onClose={onLater} closeLabel="Responder depois">
+      <View style={styles.head}>
+        <Text variant="title" accessibilityRole="header">
+          {count === 1 ? 'Você concluiu esta viagem?' : `Você concluiu estas ${count} viagens?`}
+        </Text>
+        <Text variant="body" tone="secondary">
+          Já passaram do horário e continuam abertas. Só as concluídas entram nos seus ganhos.
+        </Text>
       </View>
-    </Modal>
+
+      <FadeScroll background={colors.ground} contentContainerStyle={styles.list}>
+        {items.map((item) => (
+          <View key={item.trip.id} style={styles.item}>
+            <View style={styles.itemHead}>
+              <View style={styles.itemWhen}>
+                <Text variant="small" tone="secondary">
+                  {`${relativeDay(item.date, now)} · ${item.trip.time}`}
+                </Text>
+                <Text variant="bodyMedium">{item.trip.passenger}</Text>
+              </View>
+              <Text variant="bodyMedium">{formatPrice(item.trip.priceCents)}</Text>
+            </View>
+            <Text variant="small" tone="secondary" numberOfLines={2}>
+              {`${item.trip.origin} → ${item.trip.destination}`}
+            </Text>
+            <View style={styles.actions}>
+              <Button label="Concluída" icon="done_all" size="sm" variant="light" style={styles.grow} onPress={() => onComplete(item)} />
+              {/* Sobre o bloco "surface", um botão "surface" perde o contorno: é o fantasma que ele já parecia. */}
+              <Button label="Não aconteceu" icon="close" size="sm" variant="ghost" destructive style={styles.grow} onPress={() => onDidNotHappen(item)} />
+            </View>
+          </View>
+        ))}
+      </FadeScroll>
+
+      <Button label="Responder depois" size="sm" variant="ghost" onPress={onLater} style={styles.center} />
+    </Sheet>
   );
 }
 
 const styles = StyleSheet.create({
-  layer: { ...StyleSheet.absoluteFill },
-  scrim: { ...StyleSheet.absoluteFill, backgroundColor: colors.scrim },
-  sheet: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: colors.ground,
-    borderTopLeftRadius: radius.block,
-    borderTopRightRadius: radius.block,
-    paddingHorizontal: layout.screenPadding,
-    paddingTop: spacing[12],
-    gap: spacing[16],
-  },
-  head: { gap: spacing[8], paddingHorizontal: spacing[4] },
+  head: { gap: spacing[8], paddingHorizontal: layout.textInset },
   list: { gap: spacing[8] },
   item: { backgroundColor: colors.surface, borderRadius: radius.block, padding: spacing[16], gap: spacing[8] },
   itemHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: spacing[12] },

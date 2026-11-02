@@ -47,10 +47,16 @@ export function stateOpacity({ pressed, hovered, disabled }: { pressed: boolean;
 }
 
 export type ButtonSize = 'sm' | 'md';
+
+// O que o leitor de tela fala junto com o ponto laranja: quantos estão esperando você.
+export function badgeLabel(label: string, count: number) {
+  return `${label}, ${count} esperando você`;
+}
+
 // danger: só para o que não tem volta, como excluir a conta.
 export type ButtonVariant = 'ink' | 'light' | 'surface' | 'ghost' | 'danger';
 
-function buttonPalette(variant: ButtonVariant, onCard: boolean, destructive: boolean) {
+function buttonScheme(variant: ButtonVariant, onCard: boolean, destructive: boolean) {
   const fg = destructive ? colors.orange : undefined;
   switch (variant) {
     case 'ink':
@@ -98,7 +104,7 @@ export function Button({
   style,
 }: ButtonProps) {
   const { hovered, focused, handlers } = useInteraction();
-  const palette = buttonPalette(variant, onCard, destructive);
+  const scheme = buttonScheme(variant, onCard, destructive);
   const blocked = disabled || loading;
 
   return (
@@ -106,6 +112,8 @@ export function Button({
       {...handlers}
       onPress={onPress}
       disabled={blocked}
+      // O pequeno tem 44 de altura no desenho; a área de toque continua com 48, como no IconButton.
+      hitSlop={size === 'sm' ? (sizes.touchTarget - sizes.button.sm) / 2 : undefined}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityHint={accessibilityHint}
@@ -113,16 +121,16 @@ export function Button({
       style={({ pressed }) => [
         styles.button,
         size === 'sm' ? styles.buttonSm : styles.buttonMd,
-        { backgroundColor: palette.bg, opacity: stateOpacity({ pressed, hovered, disabled }) },
+        { backgroundColor: scheme.bg, opacity: stateOpacity({ pressed, hovered, disabled }) },
         focused && focusRing(onCard),
         style,
       ]}>
       {loading ? (
-        <ActivityIndicator size="small" color={palette.fg} />
+        <ActivityIndicator size="small" color={scheme.fg} />
       ) : icon ? (
-        <Icon name={icon} size={size === 'sm' ? sizes.icon.sm : sizes.icon.md} color={palette.fg} />
+        <Icon name={icon} size={size === 'sm' ? sizes.icon.sm : sizes.icon.md} color={scheme.fg} />
       ) : null}
-      <Text variant={size === 'sm' ? 'small' : 'bodyMedium'} style={[styles.label, { color: palette.fg }]}>
+      <Text variant={size === 'sm' ? 'small' : 'bodyMedium'} style={[styles.label, { color: scheme.fg }]}>
         {label}
       </Text>
     </Pressable>
@@ -131,7 +139,7 @@ export function Button({
 
 export type IconButtonVariant = 'surface' | 'light' | 'ink';
 
-const ICON_PALETTES: Record<IconButtonVariant, { bg: string; fg: string }> = {
+const ICON_SCHEMES: Record<IconButtonVariant, { bg: string; fg: string }> = {
   surface: { bg: colors.surface, fg: colors.text },
   light: { bg: colors.text, fg: colors.ink },
   ink: { bg: colors.ink, fg: colors.text },
@@ -160,7 +168,7 @@ export function IconButton({
   onCard?: boolean;
 }) {
   const { hovered, focused, handlers } = useInteraction();
-  const palette = ICON_PALETTES[variant];
+  const scheme = ICON_SCHEMES[variant];
   const blocked = disabled || loading;
   const box = sizes.iconButton[size];
 
@@ -171,19 +179,19 @@ export function IconButton({
       disabled={blocked}
       accessibilityRole="button"
       accessibilityState={{ disabled: blocked, busy: loading }}
-      accessibilityLabel={badge ? `${label}, ${badge} não lidas` : label}
+      accessibilityLabel={badge ? badgeLabel(label, badge) : label}
       hitSlop={(sizes.touchTarget - box) / 2}
       style={({ pressed }) => [
         styles.iconButton,
-        { width: box, height: box, borderRadius: box / 2, backgroundColor: palette.bg, opacity: stateOpacity({ pressed, hovered, disabled }) },
+        { width: box, height: box, borderRadius: box / 2, backgroundColor: scheme.bg, opacity: stateOpacity({ pressed, hovered, disabled }) },
         focused && focusRing(onCard),
       ]}>
       {loading ? (
-        <ActivityIndicator size="small" color={palette.fg} />
+        <ActivityIndicator size="small" color={scheme.fg} />
       ) : (
-        <Icon name={name} size={size === 'sm' ? sizes.icon.sm : sizes.icon.lg} color={palette.fg} />
+        <Icon name={name} size={size === 'sm' ? sizes.icon.sm : sizes.icon.lg} color={scheme.fg} />
       )}
-      {badge ? <View style={[styles.badge, { borderColor: palette.bg }]} /> : null}
+      {badge ? <View style={[styles.badge, { borderColor: scheme.bg }]} /> : null}
     </Pressable>
   );
 }
